@@ -28,8 +28,8 @@ def main():
     record["residues"][name]={"present":True,"hydrogen_names":hydrogens,
       "atom_count":len(template.atoms),"external_bonds":external}
    for patch_name in ("NTER","CTER","GLYP","PROP","CYSD","DISU","ACE","CT3","CNEU","NNEU"):
-    patch=force._patches.get(patch_name)
-    record.setdefault("target_patches",{})[patch_name]={"exists":patch is not None}
+    matches=sorted(k for k in force._patches if k==patch_name or k.startswith(patch_name+"_"))
+    record.setdefault("target_patches",{})[patch_name]={"exists":bool(matches),"variants":matches}
   except Exception as exc:record["error"]=str(exc)
  pathlib.Path("simulation/forcefield_patch_inventory.json").write_text(json.dumps(output,indent=2))
  print(json.dumps(output,indent=2))
