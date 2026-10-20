@@ -1,0 +1,45 @@
+name: VWF MD code smoke checks
+on:
+  pull_request:
+    paths:
+      - "simulation/**"
+      - ".github/workflows/vwf-*.yml"
+  push:
+    branches: [vwf-md-automation]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate Python syntax
+        run: python -m compileall -q simulation
+      - name: Verify missing private topologies block MD
+        run: |
+          cd simulation
+          set +e
+          python check_inputs.py
+          status=$?
+          set -e
+          if [ "$status" -ne 2 ]; then
+            echo "Safety gate should exit 2 without approved inputs; got $status"
+            exit 1
+          fi
+          python - <<'PY'
+          import json
+          status=json.load(open("input_status.json"))
+          assert status["status"] == "BLOCKED_MISSING_APPROVED_TOPOLOGIES", status
+          print("PASS: no topology, no MD")
+          PY
+      - name: Upload smoke report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vwf-smoke-report
+          path: simulation/input_status.json
+          if-no-files-found: warn
