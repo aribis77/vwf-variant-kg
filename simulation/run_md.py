@@ -36,7 +36,7 @@ for label, seed in [("WT",1786),("H1786D",1787)]:
     simulation.minimizeEnergy(maxIterations=1000)
     simulation.context.setVelocitiesToTemperature(300*unit.kelvin,seed)
     simulation.reporters.append(app.DCDReporter(str(Path(args.out)/label)+".dcd",max(1,args.steps//100)))
-    simulation.reporters.append(app.StateDataReporter("results/"+label+".csv",500,step=True,potentialEnergy=True,temperature=True))
+    simulation.reporters.append(app.StateDataReporter(str(Path(args.out)/label)+".csv",max(1,args.steps//100),step=True,potentialEnergy=True,temperature=True))
     simulation.step(args.steps)
-    with open("results/"+label+"_final.pdb","w") as output:
+    with open(str(Path(args.out)/label)+"_final.pdb","w") as output:
         app.PDBFile.writeFile(topology.topology,simulation.context.getState(getPositions=True).getPositions(),output)
