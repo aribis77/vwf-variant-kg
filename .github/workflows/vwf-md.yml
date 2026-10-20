@@ -32,6 +32,8 @@ jobs:
           fi
       - name: Check approved inputs
         run: python check_inputs.py
+      - name: Validate chemistry of periodic AMBER topologies
+        run: python validate_topologies.py --prepared prepared --report topology_qa.json
       - name: Run matched pilot
         run: python run_md.py --prepared prepared --out results --steps "${{ inputs.steps }}"
       - name: Collect diagnostics and outputs
@@ -41,6 +43,7 @@ jobs:
           name: vwf-md-reports
           path: |
             simulation/input_status.json
+            simulation/topology_qa.json
             simulation/prep_reports/
             simulation/results/
           retention-days: 30
