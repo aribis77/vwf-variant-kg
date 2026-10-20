@@ -22,6 +22,14 @@ jobs:
           python-version: "3.11"
       - name: Install OpenMM
         run: python -m pip install "openmm>=8.2,<9"
+      - name: Diagnose CHARMM36 preparation when private inputs exist
+        run: |
+          if [ -f private_inputs/WT.pdb ] && [ -f private_inputs/H1786D.pdb ]; then
+            python prepare_systems.py --input-dir private_inputs --output-dir prep_reports
+          else
+            mkdir -p prep_reports
+            echo '{"status":"BLOCKED_PRIVATE_INPUTS_NOT_PROVIDED","simulation_ready":false}' > prep_reports/summary.json
+          fi
       - name: Check approved inputs
         run: python check_inputs.py
       - name: Run matched pilot
@@ -33,6 +41,7 @@ jobs:
           name: vwf-md-reports
           path: |
             simulation/input_status.json
+            simulation/prep_reports/
             simulation/results/
           retention-days: 30
           if-no-files-found: warn
