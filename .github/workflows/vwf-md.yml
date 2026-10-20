@@ -1,0 +1,38 @@
+name: VWF A3 WT versus H1786D MD
+on:
+  workflow_dispatch:
+    inputs:
+      steps:
+        description: "MD steps at 2 fs (50000 = 100 ps)"
+        required: true
+        default: "50000"
+permissions:
+  contents: read
+jobs:
+  matched-md:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    defaults:
+      run:
+        working-directory: simulation
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install OpenMM
+        run: python -m pip install "openmm>=8.2,<9"
+      - name: Check approved inputs
+        run: python check_inputs.py
+      - name: Run matched pilot
+        run: python run_md.py --prepared prepared --out results --steps "${{ inputs.steps }}"
+      - name: Collect diagnostics and outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vwf-md-reports
+          path: |
+            simulation/input_status.json
+            simulation/results/
+          retention-days: 30
+          if-no-files-found: warn
