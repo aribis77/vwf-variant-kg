@@ -4,6 +4,7 @@ on:
     branches: [vwf-md-automation]
     paths:
       - "simulation/inspect_forcefield_patches.py"
+      - "simulation/test_full_sequence_topology.py"
       - ".github/workflows/vwf-forcefield-inventory.yml"
   workflow_dispatch:
 permissions:
@@ -21,10 +22,14 @@ jobs:
         run: python -m pip install "openmm>=8.2,<9"
       - name: Inventory HYP and terminal patches
         run: python simulation/inspect_forcefield_patches.py
+      - name: Evaluate full sequence topology
+        run: python simulation/test_full_sequence_topology.py
       - name: Upload parameterization evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: charmm36-installed-patch-inventory
-          path: simulation/forcefield_patch_inventory.json
+          path: |
+            simulation/forcefield_patch_inventory.json
+            simulation/full_sequence_topology_report.json
           if-no-files-found: error
