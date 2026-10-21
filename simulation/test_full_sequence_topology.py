@@ -22,7 +22,7 @@ def build(mut):
  for ch,letters in [("B",S if mut=="WT" else S[:100]+"D"+S[101:])]+[(x,C) for x in "XYZ"]:
   chain=top.addChain(ch);entries=[]
   for i,aa in enumerate(letters):
-   name=MAP[aa]
+   name="HSE" if aa=="H" else MAP[aa]
    tmpl=(choices["first"] if ch=="B" and i==0 else
      choices["other"] if ch=="B" and i==186 else
      choices["ser"] if ch=="B" and i==187 else
@@ -43,7 +43,7 @@ def build(mut):
   ans["particles"]=system.getNumParticles();ans["status"]="SYNTHETIC_SYSTEM_CONSTRUCTED"
  else:ans["status"]="UNMATCHED"
  return ans
-out={"scope":"sequence-only; no real coordinates, solvent or MD","openmm":openmm.__version__,"variants":{}}
+out={"scope":"sequence-only; HSE tautomer assigned provisionally, no real coordinates, solvent or MD","openmm":openmm.__version__,"variants":{}}
 for name in ("WT","H1786D"):
  try:out["variants"][name]=build(name)
  except Exception as e:out["variants"][name]={"status":"ERROR","error":str(e)}
