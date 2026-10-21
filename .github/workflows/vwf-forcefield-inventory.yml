@@ -27,6 +27,16 @@ jobs:
         run: python simulation/test_full_sequence_topology.py
       - name: Audit published experimental 4DMU PDB
         run: python simulation/public_4dmu_audit.py
+      - name: Package OpenMM Python 3.13 runtime wheel for private local execution
+        run: |
+          mkdir -p runtime_wheels
+          python -m pip download --only-binary=:all: --python-version 313 --implementation cp --abi cp313 --platform manylinux_2_34_x86_64 --no-deps "openmm>=8.2,<9" -d runtime_wheels
+      - name: Publish public OpenMM wheel for private workspace installation
+        uses: actions/upload-artifact@v4
+        with:
+          name: openmm-py313-linux-wheel
+          path: runtime_wheels/*.whl
+          retention-days: 1
       - name: Upload parameterization evidence
         if: always()
         uses: actions/upload-artifact@v4
