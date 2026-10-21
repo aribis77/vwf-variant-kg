@@ -5,6 +5,7 @@ on:
     paths:
       - "simulation/inspect_forcefield_patches.py"
       - "simulation/test_full_sequence_topology.py"
+      - "simulation/public_4dmu_audit.py"
       - ".github/workflows/vwf-forcefield-inventory.yml"
   workflow_dispatch:
 permissions:
@@ -24,6 +25,8 @@ jobs:
         run: python simulation/inspect_forcefield_patches.py
       - name: Evaluate full sequence topology
         run: python simulation/test_full_sequence_topology.py
+      - name: Audit published experimental 4DMU PDB
+        run: python simulation/public_4dmu_audit.py
       - name: Upload parameterization evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -32,4 +35,5 @@ jobs:
           path: |
             simulation/forcefield_patch_inventory.json
             simulation/full_sequence_topology_report.json
+            simulation/public_4dmu_audit.json
           if-no-files-found: error
