@@ -1,0 +1,29 @@
+name: Synthetic collagen HYP terminal construction
+on:
+  push:
+    branches: [vwf-md-automation]
+    paths:
+      - "simulation/test_synthetic_hyp_termini.py"
+      - ".github/workflows/vwf-synthetic-termini.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install "openmm>=8.2,<9"
+      - name: Test parameterized synthetic collagen peptide
+        run: python simulation/test_synthetic_hyp_termini.py
+      - name: Keep chemistry diagnostic report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-gly-hyp-termini-test
+          path: simulation/synthetic_terminal_test.json
+          if-no-files-found: warn

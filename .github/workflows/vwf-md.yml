@@ -1,0 +1,36 @@
+name: VWF A3 MD — public safe diagnostics
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-safe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Check syntax
+        run: python -m compileall -q simulation
+      - name: Confirm private molecular inputs are NOT available in public workflow
+        run: |
+          test ! -d simulation/private_inputs
+          test ! -d simulation/prepared
+      - name: Confirm simulation gate blocks unapproved missing inputs
+        run: |
+          cd simulation
+          set +e
+          python check_inputs.py
+          status=$?
+          set -e
+          test "$status" -eq 2
+      - name: Publish non-sensitive status only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vwf-public-gate-status
+          path: simulation/input_status.json
+          retention-days: 7
+          if-no-files-found: warn

@@ -1,0 +1,19 @@
+# Never commit unpublished structures, periodic systems, simulation data, or approvals.
+private_inputs/
+prepared/
+prep_reports/
+results/
+*.pdb
+*.cif
+*.prmtop
+*.inpcrd
+*.rst7
+*.dcd
+*.xtc
+*.nc
+chemistry_approved.json
+topology_qa.json
+input_checksums.json
+input_status.json
+__pycache__/
+*.pyc

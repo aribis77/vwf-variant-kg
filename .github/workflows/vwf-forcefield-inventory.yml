@@ -1,0 +1,49 @@
+name: CHARMM36 terminal patch inventory
+on:
+  push:
+    branches: [vwf-md-automation]
+    paths:
+      - "simulation/inspect_forcefield_patches.py"
+      - "simulation/test_full_sequence_topology.py"
+      - "simulation/public_4dmu_audit.py"
+      - ".github/workflows/vwf-forcefield-inventory.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install OpenMM
+        run: python -m pip install "openmm>=8.2,<9"
+      - name: Inventory HYP and terminal patches
+        run: python simulation/inspect_forcefield_patches.py
+      - name: Evaluate full sequence topology
+        run: python simulation/test_full_sequence_topology.py
+      - name: Audit published experimental 4DMU PDB
+        run: python simulation/public_4dmu_audit.py
+      - name: Package OpenMM Python 3.13 runtime wheel for private local execution
+        run: |
+          mkdir -p runtime_wheels
+          python -m pip download --only-binary=:all: --python-version 313 --implementation cp --abi cp313 --platform manylinux_2_34_x86_64 --no-deps "openmm>=8.2,<9" -d runtime_wheels
+      - name: Publish public OpenMM wheel for private workspace installation
+        uses: actions/upload-artifact@v4
+        with:
+          name: openmm-py313-linux-wheel
+          path: runtime_wheels/*.whl
+          retention-days: 1
+      - name: Upload parameterization evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: charmm36-installed-patch-inventory
+          path: |
+            simulation/forcefield_patch_inventory.json
+            simulation/full_sequence_topology_report.json
+            simulation/public_4dmu_audit.json
+          if-no-files-found: error

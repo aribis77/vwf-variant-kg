@@ -1,0 +1,29 @@
+name: CHARMM36 terminal patch operation audit
+on:
+  push:
+    branches: [vwf-md-automation]
+    paths:
+      - "simulation/audit_terminal_patch_operations.py"
+      - ".github/workflows/vwf-patch-operations.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  patch-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install "openmm>=8.2,<9"
+      - name: Inspect CHARMM36 patches, additions and bond edits
+        run: python simulation/audit_terminal_patch_operations.py
+      - name: Save force-field evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vwf-charmm-terminal-operations
+          path: simulation/terminal_patch_operations.json
+          if-no-files-found: warn
