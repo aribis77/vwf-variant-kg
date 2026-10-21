@@ -15,6 +15,10 @@ def synthetic_chain(ff,n_patch,c_patch):
         g=ff._patches[n_patch].createPatchedTemplates([g])[0]
     if c_patch:
         h=ff._patches[c_patch].createPatchedTemplates([h])[0]
+    # Patched templates must be explicitly exposed as candidates for this synthetic test.
+    for template in (g,h):
+        if template not in ff._templates.values():
+            ff.registerResidueTemplate(template)
     t=app.Topology()
     ch=t.addChain("P")
     objects=[]
