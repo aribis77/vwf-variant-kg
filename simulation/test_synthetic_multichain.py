@@ -52,7 +52,8 @@ def disulfide_two():
     first=patched(ff,"GLY","GLYP")
     last=patched(ff,"SER","CTER")
     pair=ff._patches["DISU"].createPatchedTemplates([ff._templates["CYS"],ff._templates["CYS"]])
-    for tpl in pair:ff.registerResidueTemplate(tpl)
+    # DISU patches both CYS sites with an identical residue template. Register once.
+    ff.registerResidueTemplate(pair[0])
     t=app.Topology()
     cysteines=[]
     for idx,chain_id in enumerate("AB"):
