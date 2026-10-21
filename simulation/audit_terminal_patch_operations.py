@@ -11,12 +11,19 @@ import openmm
 residue_names=("HYP","GLY","SER","CYS")
 patch_prefixes=("NTER","CTER","GLYP","PROP","CYSD","DISU","ACE","CT3","CNEU","NNEU")
 
+def object_name(value):
+    if isinstance(value,(list,tuple)):
+        return [object_name(v) for v in value]
+    name=getattr(value,"name",None)
+    if name is not None:return str(name)
+    return str(value) if isinstance(value,(int,float,str,bool)) else type(value).__name__
+
 def atoms(p):
-    return sorted(getattr(a,"name",str(a)) for a in getattr(p,"addedAtoms",[]))
+    return object_name(getattr(p,"addedAtoms",[]))
 def deleted(p):
-    return sorted(str(a) for a in getattr(p,"deletedAtoms",[]))
+    return object_name(getattr(p,"deletedAtoms",[]))
 def bond_entries(items):
-    return [str(x) for x in items]
+    return object_name(items)
 def main():
     ff=app.ForceField("charmm36.xml")
     data={"openmm":openmm.__version__,"forcefield":"charmm36.xml","HYP_present":"HYP" in ff._templates,
