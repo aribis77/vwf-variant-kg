@@ -45,10 +45,9 @@ def synthetic_chain(ff,n_patch,c_patch):
     return report
 
 def main():
-    ff=app.ForceField("charmm36.xml")
     report={"openmm":openmm.__version__,"forcefield":"charmm36.xml","tests":[]}
     for n,c in [("GLYP","CTER"),("NTER","CTER"),("GLYP",None),(None,"CTER")]:
-        try:result=synthetic_chain(ff,n,c)
+        try:result=synthetic_chain(app.ForceField("charmm36.xml"),n,c)
         except Exception as e:result={"n_patch":n,"c_patch":c,"status":"FAILED_EXCEPTION","error":str(e)}
         report["tests"].append(result)
     Path("simulation/synthetic_terminal_test.json").write_text(json.dumps(report,indent=2))
