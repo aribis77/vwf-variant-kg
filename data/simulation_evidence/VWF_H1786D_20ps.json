@@ -1,0 +1,101 @@
+{
+  "schema_version": "0.1.0",
+  "record_id": "VWF-H1786D-MD20PS-2026-10-22",
+  "variant": {
+    "gene": "VWF",
+    "protein_change": "p.His1786Asp",
+    "short_name": "H1786D",
+    "domain": "A3",
+    "transcript_hgvs": null,
+    "clinical_significance": null
+  },
+  "evidence_type": "exploratory_simulation_endpoint",
+  "status": "user_reported_not_independently_audited",
+  "protocol": {
+    "engine": "OpenMM",
+    "temperature_kelvin": 300,
+    "endpoint_time_ps": 20,
+    "replicates_per_group": 3,
+    "replicate_independence": "stochastic replicates from shared variant-specific initial model",
+    "trajectory_average": false,
+    "interface_definition": "pending method audit",
+    "contact_cutoff": "pending method audit",
+    "distance_atom_selection": "pending method audit"
+  },
+  "groups": {
+    "WT": [
+      {
+        "replicate": 1,
+        "total_interface_contacts": 129,
+        "residue1786_contacts": 12,
+        "residue1786_distance_angstrom": 2.86,
+        "disulfide_distance_angstrom": 2.11,
+        "checkpoint": "OK"
+      },
+      {
+        "replicate": 2,
+        "total_interface_contacts": 145,
+        "residue1786_contacts": 28,
+        "residue1786_distance_angstrom": 2.66,
+        "disulfide_distance_angstrom": 1.97,
+        "checkpoint": "OK"
+      },
+      {
+        "replicate": 3,
+        "total_interface_contacts": 114,
+        "residue1786_contacts": 17,
+        "residue1786_distance_angstrom": 3.2,
+        "disulfide_distance_angstrom": 2.04,
+        "checkpoint": "OK"
+      }
+    ],
+    "H1786D": [
+      {
+        "replicate": 1,
+        "total_interface_contacts": 156,
+        "residue1786_contacts": 2,
+        "residue1786_distance_angstrom": 4.36,
+        "disulfide_distance_angstrom": 1.99,
+        "checkpoint": "OK"
+      },
+      {
+        "replicate": 2,
+        "total_interface_contacts": 149,
+        "residue1786_contacts": 0,
+        "residue1786_distance_angstrom": 4.81,
+        "disulfide_distance_angstrom": 2.05,
+        "checkpoint": "OK"
+      },
+      {
+        "replicate": 3,
+        "total_interface_contacts": 152,
+        "residue1786_contacts": 0,
+        "residue1786_distance_angstrom": 5.12,
+        "disulfide_distance_angstrom": 2.06,
+        "checkpoint": "OK"
+      }
+    ]
+  },
+  "interpretation": {
+    "observation": "Reduced local contacts around residue 1786 at six short-simulation endpoints despite higher total interface contact counts in mutant endpoints.",
+    "hypothesis": "Local interface interaction redistribution",
+    "not_established": [
+      "equilibrium effect",
+      "collagen binding affinity change",
+      "clinical pathogenicity",
+      "independent structural replication"
+    ]
+  },
+  "provenance": {
+    "origin": "User-supplied six-replicate structural validation output in ChatGPT conversation",
+    "raw_structure_files_in_repository": false,
+    "checkpoint_files_in_repository": false,
+    "analysis_script_hash": null
+  },
+  "kg_ingestion": {
+    "tier": 3,
+    "relation": "HAS_SIMULATION_OBSERVATION",
+    "confidence_label": "exploratory",
+    "clinical_assertion_allowed": false
+  }
+}
