@@ -34,15 +34,23 @@ def assess(records,reference,position,expected="H",minimum_orthologs=5):
     if position<1 or position>len(residues):raise ValueError("Reference position out of range")
     col=residues[position-1]
     if ref[col]!=expected:raise ValueError("Reference wild-type residue mismatch")
-    valid={name:seq[col] for name,seq in records.items() if name!=reference and seq[col] in AMINO}
+    # A FASTA identifier is not proof of an independent ortholog. Exclude exact
+    # duplicate aligned sequences so redundant records cannot inflate coverage.
+    valid={}
+    seen_sequences=set()
+    for name,seq in records.items():
+        if name==reference or seq[col] not in AMINO:continue
+        if seq in seen_sequences:continue
+        seen_sequences.add(seq)
+        valid[name]=seq[col]
     if len(valid)<minimum_orthologs:
         raise ValueError(f"Insufficient ortholog coverage: {len(valid)} of {minimum_orthologs} required")
     counts=Counter(valid.values())
     return {"schema":"vwf-conservation/1.0","reference":reference,"position":position,
             "wild_type":expected,"alignment_column_1based":col+1,
-            "ortholog_count":len(valid),"reference_residue_fraction":round(counts[expected]/len(valid),4),
+            "ortholog_count":len(valid),"duplicate_sequences_excluded":sum(name!=reference and seq[col] in AMINO for name,seq in records.items())-len(valid),"reference_residue_fraction":round(counts[expected]/len(valid),4),
             "residue_counts":dict(sorted(counts.items())),
-            "method":"prealigned ortholog residues, excluding reference and gaps",
+            "method":"prealigned ortholog residues, excluding reference, gaps and exact duplicate aligned sequences",
             "caveats":"Requires curated independent ortholog sequences; not a clinical classification"}
 
 def main():
