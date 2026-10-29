@@ -7,6 +7,6 @@ test_unmutated_model_rejected (test_structural_contacts.StructuralTests.test_unm
 test_wrong_wild_type_rejected (test_structural_contacts.StructuralTests.test_wrong_wild_type_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 0.003s
+Ran 7 tests in 0.004s
 
 OK

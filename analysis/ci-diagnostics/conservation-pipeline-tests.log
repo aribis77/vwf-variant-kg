@@ -2,6 +2,6 @@ test_alignment_sequence_mutation_rejected (test_conservation_pipeline.Conservati
 test_complete_pipeline_with_mocked_uniprot_and_mafft (test_conservation_pipeline.ConservationPipelineTests.test_complete_pipeline_with_mocked_uniprot_and_mafft) ... ok
 
 ----------------------------------------------------------------------
-Ran 2 tests in 0.005s
+Ran 2 tests in 0.006s
 
 OK
