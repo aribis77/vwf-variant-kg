@@ -33,6 +33,9 @@ class ReportTests(unittest.TestCase):
         self.assertIn("Modeled H1786D environment",page)
         self.assertIn("Atom-pair contact change: -4",page)
         self.assertIn("relaxed: False",page)
+        self.assertIn("Interchain residue partners: 1 in WT versus 0",page)
+        self.assertIn("Lost interchain partners: A:42 (G)",page)
+        self.assertIn("not evidence of a quantified binding-affinity change",page)
     def test_rejects_unverified_mapping(self):
         data=fixture()
         data["site"]["wild_type_verified"]=False
