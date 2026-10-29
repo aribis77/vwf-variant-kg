@@ -1,0 +1,41 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>VWF residue mapping diagnostic</title><style>body{font:16px system-ui;max-width:900px;margin:35px auto;padding:0 18px;color:#18314b}input,button{padding:10px;font:inherit;margin:5px}pre{white-space:pre-wrap;background:#f2f6fa;padding:18px;border-radius:8px}button{background:#1767a5;color:white;border:0;border-radius:5px}</style><h1>VWF variant to PDB residue mapping</h1><p>Verifies UniProt P04275 position against PDBe/SIFTS mappings and the actual PDB residue records. Reports both PDB author and label numbering when available. No mutation is executed.</p><label>Variant <input id="variant" value="H1786D"></label><label>PDB <input id="pdb" value="1AO3" maxlength="4"></label><button id="run">Verify mapping</button><pre id="out">Ready.</pre><script>
+const out=document.getElementById('out');
+async function json(url){const r=await fetch(url);if(!r.ok)throw Error(url+' HTTP '+r.status);return r.json()}
+async function verify(){
+const v=document.getElementById('variant').value.trim().toUpperCase(),pdb=document.getElementById('pdb').value.trim().toLowerCase();
+const m=/^([ACDEFGHIKLMNPQRSTVWY])(\d{1,5})([ACDEFGHIKLMNPQRSTVWY])$/.exec(v);
+if(!m||!/^[a-z0-9]{4}$/.test(pdb)){out.textContent='Invalid variant or PDB ID';return}
+const pos=+m[2],aa=m[1],mut=m[3];out.textContent='Checking UniProt, SIFTS and PDB records…';
+try{
+const uni=await json('https://rest.uniprot.org/uniprotkb/P04275.json');
+const sequence=uni.sequence?.value||'';
+if(!sequence||pos>sequence.length)throw Error('Position outside UniProt P04275');
+const observed=sequence[pos-1];
+const report={variant:v,uniprot:'P04275',uniprot_position:pos,uniprot_residue:observed,expected_residue:aa,mature_vwf_position:pos-763,pdb:pdb.toUpperCase(),status:'unverified',candidates:[]};
+if(observed!==aa){report.status='REFERENCE_MISMATCH';report.explanation='The submitted reference residue differs from UniProt; no mutation may be run';out.textContent=JSON.stringify(report,null,2);return}
+const mapping=await json('https://www.ebi.ac.uk/pdbe/api/mappings/uniprot/'+pdb);
+const pdbMap=mapping[pdb]?.UniProt?.P04275?.mappings||[];
+for(const region of pdbMap){
+const start=region.unp_start,end=region.unp_end;
+if(pos<start||pos>end)continue;
+const offset=pos-start,begin=region.start?.residue_number;
+const entry={chain_id:region.chain_id,struct_asym_id:region.struct_asym_id,uniprot_range:[start,end],pdb_range:[region.start,region.end],inferred_author_residue_number:Number.isFinite(begin)?begin+offset:null,verified:false,warning:'An offset is provisional until the actual residue and numbering are verified'};
+report.candidates.push(entry)
+}
+if(!report.candidates.length){report.status='NOT_COVERED';report.explanation='No SIFTS mapping for this UniProt position in the requested PDB';out.textContent=JSON.stringify(report,null,2);return}
+const residues=await json('https://www.ebi.ac.uk/pdbe/api/pdb/entry/residue_listing/'+pdb);
+const molecules=residues[pdb]?.molecules||[];
+const three={A:'ALA',C:'CYS',D:'ASP',E:'GLU',F:'PHE',G:'GLY',H:'HIS',I:'ILE',K:'LYS',L:'LEU',M:'MET',N:'ASN',P:'PRO',Q:'GLN',R:'ARG',S:'SER',T:'THR',V:'VAL',W:'TRP',Y:'TYR'};
+for(const candidate of report.candidates){
+for(const molecule of molecules)for(const chain of molecule.chains||[]){
+if(chain.chain_id!==candidate.chain_id&&chain.struct_asym_id!==candidate.struct_asym_id)continue;
+const matches=(chain.residues||[]).filter(r=>r.residue_number===candidate.inferred_author_residue_number||r.author_residue_number===candidate.inferred_author_residue_number);
+for(const r of matches){if(r.residue_name!==three[aa])continue;candidate.verified=true;candidate.author_residue_number=r.author_residue_number;candidate.label_residue_number=r.residue_number;candidate.insertion_code=r.author_insertion_code||'';candidate.residue_name=r.residue_name;candidate.warning='Sequence identity confirmed at mapped coordinate; confirm coordinate atom presence before running structural analysis'}
+}}
+report.status=report.candidates.some(x=>x.verified)?'SEQUENCE_AND_NUMBERING_VERIFIED':'MAPPING_REQUIRES_REVIEW';
+report.explanation='Only a verified chain-specific residue may be used for a structural mutation. PDB coordinate presence and mutation engine numbering must still be checked.';
+out.textContent=JSON.stringify(report,null,2)
+}catch(e){out.textContent='Mapping unavailable: '+e.message+'\nNo mutation was generated.'}
+}
+document.getElementById('run').onclick=verify;verify();
+</script></html>
