@@ -25,7 +25,11 @@ def atoms_from_pdb(path):
             key = (line[21], int(line[22:26]), line[26].strip())
         except ValueError:
             continue
-        if line[12:16].strip().startswith("H"):
+        atom_name=line[12:16].strip()
+        element=line[76:78].strip().upper()
+        # The PDB element column is authoritative when present. For older files,
+        # only a leading H or D in a standard atom name denotes hydrogen.
+        if element in ("H","D") or (not element and atom_name.lstrip("0123456789").startswith(("H","D"))):
             continue
         residues[key].append((line[12:16].strip(),xyz))
         names[key] = line[17:20].strip()
