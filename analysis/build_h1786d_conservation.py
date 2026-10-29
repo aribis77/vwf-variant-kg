@@ -81,7 +81,19 @@ def run(output):
     result["alignment_method"]="MAFFT --auto"
     result["ortholog_provenance"]=provenance
     result["reference_accession"]=REFERENCE
-    result["ortholog_accessions_used"]=sorted(accession for accession in records if accession!=REFERENCE and records[accession][result["alignment_column_1based"]-1] in "ACDEFGHIKLMNPQRSTVWY")
+    col=result["alignment_column_1based"]-1
+    seen=set()
+    used=[]
+    for accession,aligned_sequence in records.items():
+        if accession==REFERENCE or aligned_sequence[col] not in "ACDEFGHIKLMNPQRSTVWY":
+            continue
+        if aligned_sequence in seen:
+            continue
+        seen.add(aligned_sequence)
+        used.append(accession)
+    if len(used)!=result["ortholog_count"]:
+        raise ValueError("Ortholog provenance does not match conservation denominator")
+    result["ortholog_accessions_used"]=sorted(used)
     result["excluded_taxa"]=failures
     Path(output).parent.mkdir(parents=True,exist_ok=True)
     Path(output).write_text(json.dumps(result,indent=2)+"\n")
