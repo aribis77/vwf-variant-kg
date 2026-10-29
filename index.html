@@ -408,22 +408,51 @@ async function discover(){
    const mapping=regions.find(x=>Number(x.ref_beg_seq_id)<=position&&Number(x.ref_beg_seq_id)+Number(x.length)-1>=position);
    const entityPos=mapping?Number(mapping.entity_beg_seq_id)+(position-Number(mapping.ref_beg_seq_id)):null;
    const residue=entityPos&&entityPos>=1&&entityPos<=seq.length?seq[entityPos-1]:null;
-   const verified=!!(mapping&&residue===match[1]);
+   const sequenceMatched=!!(mapping&&residue===match[1]);
    const pdb=id.split('_')[0];
-   candidates.push({pdb,entity:id,verified,sequence_length:seq.length,score:verified?100:10,notes:verified?'Reference position and wild-type residue agree':'Reference position or wild-type residue mapping not established'});
+   let coordinateVerified=false,chain=null,coordinateNote='No coordinate validation';
+   if(sequenceMatched){
+    try{
+     // Check actual coordinate-model residues rather than trusting only entity alignment.
+     const rr=await fetch('https://files.rcsb.org/download/'+pdb+'.cif');
+     if(!rr.ok)throw Error('coordinate file HTTP '+rr.status);
+     const cif=await rr.text();
+     const lines=cif.split(/\r?\n/);
+     let fields=[],inAtoms=false,seen=false;
+     for(let k=0;k<lines.length;k++){
+      const line=lines[k].trim();
+      if(line==='loop_'){inAtoms=false;fields=[];continue;}
+      if(line.startsWith('_atom_site.')){fields.push(line);inAtoms=true;continue;}
+      if(!inAtoms||!fields.length||!line||line[0]==='#'||line[0]==='_')continue;
+      const tokens=line.match(/(?:'[^']*'|"[^"]*"|\S+)/g)||[];
+      if(tokens.length<fields.length)continue;
+      const idx=n=>fields.indexOf('_atom_site.'+n);
+      const entityIndex=idx('label_entity_id'),seqIndex=idx('label_seq_id'),resIndex=idx('label_comp_id'),chainIndex=idx('auth_asym_id');
+      if([entityIndex,seqIndex,resIndex,chainIndex].some(x=>x<0))break;
+      if(tokens[entityIndex]!==id.split('_')[1]||Number(tokens[seqIndex])!==entityPos)continue;
+      seen=true;
+      const aa3={ALA:'A',ARG:'R',ASN:'N',ASP:'D',CYS:'C',GLN:'Q',GLU:'E',GLY:'G',HIS:'H',ILE:'I',LEU:'L',LYS:'K',MET:'M',PHE:'F',PRO:'P',SER:'S',THR:'T',TRP:'W',TYR:'Y',VAL:'V'};
+      if(aa3[tokens[resIndex]]===match[1]){coordinateVerified=true;chain=tokens[chainIndex];break;}
+     }
+     coordinateNote=coordinateVerified?'Coordinate residue and chain verified':'Residue absent or mismatched in coordinate model';
+     if(!seen)coordinateNote='Mapped residue is not present in resolved coordinates';
+    }catch(e){coordinateNote='Coordinate validation unavailable: '+e.message;}
+   }
+   const verified=sequenceMatched&&coordinateVerified;
+   candidates.push({pdb,entity:id,verified,chain,sequence_length:seq.length,score:verified?100:sequenceMatched?40:10,notes:coordinateNote});
   }catch(e){}
  }
  candidates.sort((a,b)=>b.score-a.score||a.pdb.localeCompare(b.pdb));
  const select=get('pwchoices');select.innerHTML='';
  if(!candidates.length){select.add(new Option('No verified candidates found',''));msg('No eligible candidates were identified. RCSB mapping may be incomplete; no structure was automatically selected.');return}
- for(const c of candidates){const o=new Option(c.pdb+' · '+c.entity+(c.verified?' · mapped':' · mapping unverified'),c.pdb);o.dataset.verified=String(c.verified);select.add(o)}
+ for(const c of candidates){const o=new Option(c.pdb+' · '+c.entity+(c.verified?' · mapped':' · mapping unverified'),c.pdb);o.dataset.verified=String(c.verified);o.dataset.chain=c.chain||'';o.title=c.notes;select.add(o)}
  const top=candidates.find(x=>x.verified);
- if(top){select.value=top.pdb;get('pwpdb').value=top.pdb;msg('Discovered '+candidates.length+' candidate polymer entities; '+candidates.filter(x=>x.verified).length+' have reference-position and residue-identity matches. Structural chain and coordinates still require verification in Workbench.')}else msg('Discovered '+candidates.length+' entities but none with validated residue mapping; no automatic selection.');
+ if(top){select.value=top.pdb;get('pwpdb').value=top.pdb;get('pwchain').value=top.chain||'';msg('Discovered '+candidates.length+' candidate polymer entities; '+candidates.filter(x=>x.verified).length+' have residue identities verified against coordinate-model records. Workbench must still validate numbering and analysis suitability.')}else msg('Discovered '+candidates.length+' entities but none with validated residue mapping; no automatic selection.');
  }catch(e){msg('Automatic PDB discovery unavailable: '+e.message)}
 }
 get('pwdiscover').onclick=discover;
 get('pwbatch').onclick=()=>{const options=[...get('pwchoices').options].filter(o=>o.value&&o.dataset.verified==='true');const list=get('pwbatchlist');list.replaceChildren();if(!options.length){msg('No mapped candidates available. Run discovery first.');return;}const seen=new Set();for(const opt of options){if(seen.has(opt.value)||seen.size>=8)continue;seen.add(opt.value);const a=document.createElement('a');const u=new URL('https://aribis77.github.io/protein-workbench/');u.searchParams.set('pdb',opt.value);u.searchParams.set('mutation',get('pwvariant').value.trim().toUpperCase());u.searchParams.set('analysis','combined');a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';a.addEventListener('click',e=>{e.preventDefault();window.VWFLaunchWorkbench(u);});a.textContent='Run '+opt.value+' in Workbench';a.style.marginRight='16px';list.appendChild(a);}msg('Prepared '+seen.size+' independent Workbench launch links. Each structure must validate the mutation and be run separately; import their JSON reports together afterward.');};
-get('pwchoices').onchange=function(){if(this.value)get('pwpdb').value=this.value};
+get('pwchoices').onchange=function(){if(this.value){get('pwpdb').value=this.value;get('pwchain').value=this.selectedOptions[0]?.dataset.chain||'';}};
 })();
 </script><script id="simple-experience-script">
 (function(){
