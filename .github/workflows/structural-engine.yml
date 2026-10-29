@@ -77,7 +77,10 @@ jobs:
       - name: Compute H1786 conservation from reviewed UniProt orthologs
         if: steps.mafft.outcome == 'success'
         continue-on-error: true
-        run: python -m analysis.build_h1786d_conservation --output analysis/H1786D_conservation.json
+        run: |
+          mkdir -p analysis/ci-diagnostics
+          python -m analysis.build_h1786d_conservation --output analysis/H1786D_conservation.json 2>&1 | tee analysis/ci-diagnostics/conservation-run.log
+          exit ${PIPESTATUS[0]}
       - name: Merge validated conservation evidence when available
         run: |
           python - <<'PY'
@@ -130,6 +133,13 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add analysis/ci-diagnostics/
           git diff --cached --quiet || (git commit -m "Record structural CI failure diagnostics [skip ci]" && git push)
+      - name: Preserve conservation analysis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: H1786D-conservation-evidence
+          path: analysis/H1786D_conservation.json
+          if-no-files-found: warn
       - name: Upload diagnostic logs
         if: always()
         uses: actions/upload-artifact@v4
