@@ -1,0 +1,265 @@
+{
+  "schema": "vwf-structural-analysis/1.0",
+  "mutation": "H1786D",
+  "structure": "4DMU.pdb",
+  "site": {
+    "chain": "B",
+    "author_residue": 1786,
+    "insertion_code": "",
+    "wild_type_verified": true
+  },
+  "cutoff_angstrom": 4.5,
+  "wild_type_contacts": {
+    "partner_residues": [
+      {
+        "chain": "A",
+        "author_residue": 18,
+        "insertion_code": "",
+        "residue": "M",
+        "atom_pairs": 6,
+        "minimum_distance_angstrom": 2.758,
+        "inter_chain": true
+      },
+      {
+        "chain": "A",
+        "author_residue": 17,
+        "insertion_code": "",
+        "residue": "V",
+        "atom_pairs": 3,
+        "minimum_distance_angstrom": 3.261,
+        "inter_chain": true
+      },
+      {
+        "chain": "A",
+        "author_residue": 19,
+        "insertion_code": "",
+        "residue": "G",
+        "atom_pairs": 3,
+        "minimum_distance_angstrom": 3.786,
+        "inter_chain": true
+      },
+      {
+        "chain": "A",
+        "author_residue": 20,
+        "insertion_code": "",
+        "residue": "F",
+        "atom_pairs": 4,
+        "minimum_distance_angstrom": 3.922,
+        "inter_chain": true
+      },
+      {
+        "chain": "B",
+        "author_residue": 1785,
+        "insertion_code": "",
+        "residue": "M",
+        "atom_pairs": 19,
+        "minimum_distance_angstrom": 1.331,
+        "inter_chain": false
+      },
+      {
+        "chain": "B",
+        "author_residue": 1787,
+        "insertion_code": "",
+        "residue": "G",
+        "atom_pairs": 11,
+        "minimum_distance_angstrom": 1.338,
+        "inter_chain": false
+      },
+      {
+        "chain": "B",
+        "author_residue": 1746,
+        "insertion_code": "",
+        "residue": "N",
+        "atom_pairs": 10,
+        "minimum_distance_angstrom": 3.044,
+        "inter_chain": false
+      },
+      {
+        "chain": "B",
+        "author_residue": 1783,
+        "insertion_code": "",
+        "residue": "S",
+        "atom_pairs": 13,
+        "minimum_distance_angstrom": 3.137,
+        "inter_chain": false
+      },
+      {
+        "chain": "B",
+        "author_residue": 1784,
+        "insertion_code": "",
+        "residue": "E",
+        "atom_pairs": 4,
+        "minimum_distance_angstrom": 3.263,
+        "inter_chain": false
+      },
+      {
+        "chain": "B",
+        "author_residue": 1745,
+        "insertion_code": "",
+        "residue": "W",
+        "atom_pairs": 6,
+        "minimum_distance_angstrom": 3.641,
+        "inter_chain": false
+      },
+      {
+        "chain": "B",
+        "author_residue": 1788,
+        "insertion_code": "",
+        "residue": "A",
+        "atom_pairs": 2,
+        "minimum_distance_angstrom": 3.691,
+        "inter_chain": false
+      },
+      {
+        "chain": "B",
+        "author_residue": 1780,
+        "insertion_code": "",
+        "residue": "Y",
+        "atom_pairs": 6,
+        "minimum_distance_angstrom": 3.899,
+        "inter_chain": false
+      }
+    ],
+    "partner_count": 12,
+    "interchain_partner_count": 4,
+    "atom_pair_count": 87
+  },
+  "mutant_contacts": {
+    "partner_residues": [
+      {
+        "chain": "A",
+        "author_residue": 17,
+        "insertion_code": "",
+        "residue": "V",
+        "atom_pairs": 3,
+        "minimum_distance_angstrom": 4.235,
+        "inter_chain": true
+      },
+      {
+        "chain": "A",
+        "author_residue": 18,
+        "insertion_code": "",
+        "residue": "M",
+        "atom_pairs": 1,
+        "minimum_distance_angstrom": 4.331,
+        "inter_chain": true
+      },
+      {
+        "chain": "A",
+        "author_residue": 20,
+        "insertion_code": "",
+        "residue": "F",
+        "atom_pairs": 1,
+        "minimum_distance_angstrom": 4.43,
+        "inter_chain": true
+      },
+      {
+        "chain": "B",
+        "author_residue": 1785,
+        "insertion_code": "",
+        "residue": "M",
+        "atom_pairs": 22,
+        "minimum_distance_angstrom": 1.331,
+        "inter_chain": false
+      },
+      {
+        "chain": "B",
+        "author_residue": 1787,
+        "insertion_code": "",
+        "residue": "G",
+        "atom_pairs": 11,
+        "minimum_distance_angstrom": 1.338,
+        "inter_chain": false
+      },
+      {
+        "chain": "B",
+        "author_residue": 1746,
+        "insertion_code": "",
+        "residue": "N",
+        "atom_pairs": 10,
+        "minimum_distance_angstrom": 3.044,
+        "inter_chain": false
+      },
+      {
+        "chain": "B",
+        "author_residue": 1783,
+        "insertion_code": "",
+        "residue": "S",
+        "atom_pairs": 11,
+        "minimum_distance_angstrom": 3.234,
+        "inter_chain": false
+      },
+      {
+        "chain": "B",
+        "author_residue": 1784,
+        "insertion_code": "",
+        "residue": "E",
+        "atom_pairs": 4,
+        "minimum_distance_angstrom": 3.263,
+        "inter_chain": false
+      },
+      {
+        "chain": "B",
+        "author_residue": 1745,
+        "insertion_code": "",
+        "residue": "W",
+        "atom_pairs": 6,
+        "minimum_distance_angstrom": 3.641,
+        "inter_chain": false
+      },
+      {
+        "chain": "B",
+        "author_residue": 1788,
+        "insertion_code": "",
+        "residue": "A",
+        "atom_pairs": 2,
+        "minimum_distance_angstrom": 3.691,
+        "inter_chain": false
+      },
+      {
+        "chain": "B",
+        "author_residue": 1780,
+        "insertion_code": "",
+        "residue": "Y",
+        "atom_pairs": 6,
+        "minimum_distance_angstrom": 3.899,
+        "inter_chain": false
+      }
+    ],
+    "partner_count": 11,
+    "interchain_partner_count": 3,
+    "atom_pair_count": 77
+  },
+  "delta_contacts": {
+    "lost_partner_residues": [
+      {
+        "chain": "A",
+        "author_residue": 19,
+        "insertion_code": "",
+        "residue": "G",
+        "atom_pairs": 3,
+        "minimum_distance_angstrom": 3.786,
+        "inter_chain": true
+      }
+    ],
+    "gained_partner_residues": [],
+    "retained_partner_count": 11,
+    "delta_atom_pairs": -10
+  },
+  "energetics": null,
+  "conservation": null,
+  "interpretation": "Measured geometric differences between supplied WT and mutant coordinate models. Model quality and side-chain rotamers affect results. No binding free energy or clinical classification calculated.",
+  "status": "coordinate_models_compared",
+  "mutant_structure": "4DMU_H1786D_unrelaxed.pdb",
+  "model_validation": {
+    "site_verified": true,
+    "relaxed": false,
+    "binding_energy_calculated": false,
+    "confidence": "exploratory"
+  },
+  "modeling": {
+    "method": "PDBFixer.applyMutations",
+    "relaxed": false,
+    "interpretation_limit": "Unrelaxed side-chain replacement; geometric comparison only"
+  }
+}
