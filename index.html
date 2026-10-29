@@ -96,7 +96,7 @@ window.addEventListener('vwf-workbench-result',function(event){
  if(!j||j.schema!=='protein-workbench-mechanistic-report/0.1')return;
  state.reports=state.reports.filter(r=>!(r.pdb===j.pdb&&r.mutation===j.mutation));
  state.reports.push(j);state.imported=j;get('vrvariant').value=j.mutation;
- render();get('vrmessage').textContent='Automatic Workbench result received for '+j.pdb+' · '+j.mutation+'. '+state.reports.length+' report(s) available in this session.';
+ render();get('vrmessage').textContent='Automatic Workbench result received for '+j.pdb+' · '+j.mutation+'. '+state.reports.length+' report(s) available in this session.';get('variant-report').scrollIntoView({behavior:'smooth',block:'start'});
 });
 get('vrfile').onchange=async function(){
  const files=[...(this.files||[])];if(!files.length)return;
