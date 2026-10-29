@@ -299,7 +299,7 @@ window.addEventListener('vwf-workbench-result',function(event){
  const j=event.detail;
  if(!j||j.schema!=='protein-workbench-mechanistic-report/0.1')return;
  state.reports=state.reports.filter(r=>!(r.pdb===j.pdb&&r.mutation===j.mutation));
- state.reports.push(j);state.imported=j;get('vrvariant').value=j.mutation;
+ state.reports.push(j);state.imported=j;if(get('vrvariant').value.trim().toUpperCase()!==j.mutation){get('vrmessage').textContent='Received a report for '+j.mutation+'; the selected variant remains unchanged.';return;}
  render();get('vrmessage').textContent='Automatic Workbench result received for '+j.pdb+' · '+j.mutation+'. '+state.reports.length+' report(s) available in this session.';const message=document.getElementById('simple-message');if(message)message.textContent='Structural report received for '+j.mutation+'. Review the updated summary below.';
 });
 get('vrfile').onchange=async function(){
@@ -318,7 +318,7 @@ get('vrfile').onchange=async function(){
 };
 get('vrclear').onclick=()=>{state.imported=null;state.reports=[];get('vrfile').value='';render();};
 const q=new URLSearchParams(location.search),v=q.get('variant');if(v&&/^[A-Za-z][0-9]{1,5}[A-Za-z]$/.test(v))get('vrvariant').value=v.toUpperCase();
-render();if(q.get('view')==='report')get('variant-report').scrollIntoView();
+render();
 })();
 </script><script id="vwf-workbench-bridge">
 (function(){
@@ -330,7 +330,7 @@ render();if(q.get('view')==='report')get('variant-report').scrollIntoView();
  function accept(packet){
   if(!packet||packet.type!=='vwf-workbench-result/1'||typeof packet.token!=='string')return;
   const expected=pending.get(packet.token),report=packet.report;
-  if(!expected||Date.now()-expected.created>3600000||!report||report.schema!=='protein-workbench-mechanistic-report/0.1'||report.mutation!==expected.mutation||report.pdb!==expected.pdb)return;
+  if(!expected||Date.now()-expected.created>3600000||!report||report.schema!=='protein-workbench-mechanistic-report/0.1'||report.mutation!==expected.mutation||report.pdb!==expected.pdb||!/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(report.mutation)||!/^[A-Z0-9]{4}$/.test(report.pdb))return;
   pending.delete(packet.token);save();
   try{sessionStorage.setItem('vwf-last-workbench-report',JSON.stringify(report));}catch(e){}
   window.dispatchEvent(new CustomEvent('vwf-workbench-result',{detail:report}));
