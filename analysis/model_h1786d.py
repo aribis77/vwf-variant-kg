@@ -42,6 +42,8 @@ with output.open("w") as handle:
     PDBFile.writeFile(fixer.topology,fixer.positions,handle,keepIds=True)
 from structural_contacts import compare_models
 result=compare_models(source,output,"B",1786,"H","D")
+# Do not report an artificial contact change as a biological effect.
+result["model_validation"]={"site_verified":True,"relaxed":False,"binding_energy_calculated":False,"confidence":"exploratory"}
 result["modeling"]={"method":"PDBFixer.applyMutations","relaxed":False,
                     "interpretation_limit":"Unrelaxed side-chain replacement; geometric comparison only"}
 (ROOT/"H1786D_model_comparison.json").write_text(json.dumps(result,indent=2)+"\n")
