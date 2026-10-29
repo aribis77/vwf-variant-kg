@@ -119,24 +119,32 @@ render();if(q.get('view')==='report')get('variant-report').scrollIntoView();
 </script><script id="vwf-workbench-bridge">
 (function(){
  const pending=new Map();
+ const channel=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('vwf-workbench-results-v1'):null;
+ const key='vwf-workbench-pending-v1';
+ try{for(const x of JSON.parse(sessionStorage.getItem(key)||'[]'))if(Date.now()-x[1].created<3600000)pending.set(x[0],x[1]);}catch(e){}
+ function save(){try{sessionStorage.setItem(key,JSON.stringify([...pending]));}catch(e){}}
+ function accept(packet){
+  if(!packet||packet.type!=='vwf-workbench-result/1'||typeof packet.token!=='string')return;
+  const expected=pending.get(packet.token),report=packet.report;
+  if(!expected||Date.now()-expected.created>3600000||!report||report.schema!=='protein-workbench-mechanistic-report/0.1'||report.mutation!==expected.mutation||report.pdb!==expected.pdb)return;
+  pending.delete(packet.token);save();
+  window.dispatchEvent(new CustomEvent('vwf-workbench-result',{detail:report}));
+ }
+ if(channel)channel.onmessage=e=>accept(e.data);
+
  window.VWFLaunchWorkbench=function(input){
   const u=new URL(input.href||input);
   if(u.origin!=='https://aribis77.github.io'||!u.pathname.startsWith('/protein-workbench/'))throw Error('Unexpected Workbench destination');
   const token=Array.from(crypto.getRandomValues(new Uint8Array(24)),x=>x.toString(16).padStart(2,'0')).join('');
   u.searchParams.set('return_origin',location.origin);
   u.searchParams.set('return_token',token);
-  pending.set(token,{mutation:u.searchParams.get('mutation'),pdb:u.searchParams.get('pdb'),created:Date.now()});
+  pending.set(token,{mutation:u.searchParams.get('mutation'),pdb:u.searchParams.get('pdb'),created:Date.now()});save();
   const popup=window.open(u.href,'_blank');
-  if(!popup){pending.delete(token);document.getElementById('pwstatus').textContent='Popup blocked: allow Workbench to open in a new tab.';}
+  if(!popup){pending.delete(token);save();document.getElementById('pwstatus').textContent='Popup blocked: allow Workbench to open in a new tab.';}
  };
  window.addEventListener('message',function(event){
-  if(event.origin!=='https://aribis77.github.io'||!event.source)return;
-  const packet=event.data;
-  if(!packet||packet.type!=='vwf-workbench-result/1'||typeof packet.token!=='string')return;
-  const expected=pending.get(packet.token),report=packet.report;
-  if(!expected||Date.now()-expected.created>3600000||!report||report.schema!=='protein-workbench-mechanistic-report/0.1'||report.mutation!==expected.mutation||report.pdb!==expected.pdb)return;
-  pending.delete(packet.token);
-  window.dispatchEvent(new CustomEvent('vwf-workbench-result',{detail:report}));
+  if(event.origin!=='https://aribis77.github.io')return;
+  accept(event.data);
  });
 })();
 </script><script id="pdb-discovery-script">
