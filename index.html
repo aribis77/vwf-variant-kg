@@ -148,10 +148,10 @@ async function discover(){
  if(!match){msg('Enter a valid substitution such as H1786D.');return}
  const position=Number(match[2]),accession='P04275';
  msg('Searching RCSB for VWF polymer entities; validating candidate sequence coverage…');
- const request={query:{type:'terminal',service:'text',parameters:{attribute:'rcsb_polymer_entity.rcsb_polymer_entity_container_identifiers.reference_sequence_identifiers.database_accession',operator:'exact_match',value:accession}},return_type:'polymer_entity',request_options:{paginate:{start:0,rows:100}}};
+ const request={query:{type:'terminal',service:'text',parameters:{attribute:'rcsb_polymer_entity_container_identifiers.reference_sequence_identifiers.database_accession',operator:'exact_match',value:accession}},return_type:'polymer_entity',request_options:{paginate:{start:0,rows:100}}};
  try{
  const res=await fetch('https://search.rcsb.org/rcsbsearch/v2/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request)});
- if(!res.ok)throw Error('RCSB search HTTP '+res.status);
+ if(!res.ok){const detail=(await res.text()).slice(0,450);throw Error('RCSB search HTTP '+res.status+': '+detail);}
  const found=(await res.json()).result_set||[];
  const candidates=[];
  for(const hit of found.slice(0,45)){
