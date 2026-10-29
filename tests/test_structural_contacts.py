@@ -33,6 +33,15 @@ class StructuralTests(unittest.TestCase):
         self.assertEqual(r["delta_contacts"]["lost_partner_residues"][0]["author_residue"],10)
         self.assertEqual(r["delta_contacts"]["gained_partner_residues"][0]["author_residue"],1787)
         self.assertIsNone(r["energetics"])
+    def test_heavy_atom_named_hg_is_not_dropped(self):
+        # The element field takes precedence over an atom name starting with H.
+        heavy=atom(1,"HG","HIS","B",1786,0,0,0)
+        heavy=heavy[:76]+"HG"+heavy[78:]
+        partner=atom(2,"CA","GLY","A",10,0,0,3)
+        self.path.write_text(heavy+partner)
+        result=analyse(self.path,"B",1786,"H","D")
+        self.assertEqual(result["wild_type_contacts"]["interchain_partner_count"],1)
+
     def test_unmutated_model_rejected(self):
         with self.assertRaisesRegex(ValueError,"Mutant coordinate mismatch"):
             compare_models(self.path,self.path,"B",1786,"H","D")
