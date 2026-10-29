@@ -78,6 +78,8 @@ def run(output):
                 raise ValueError("Alignment altered sequence "+accession)
         result=assess(records,REFERENCE,1786,"H")
     result["source"]="UniProtKB REST; reviewed full-length VWF orthologs"
+    result["reference_length"]=len(reference)
+    result["alignment_sequence_count"]=len(records)
     result["alignment_method"]="MAFFT --auto"
     result["ortholog_provenance"]=provenance
     result["reference_accession"]=REFERENCE
