@@ -80,6 +80,8 @@ def run(output):
     result["source"]="UniProtKB REST; reviewed full-length VWF orthologs"
     result["alignment_method"]="MAFFT --auto"
     result["ortholog_provenance"]=provenance
+    result["reference_accession"]=REFERENCE
+    result["ortholog_accessions_used"]=sorted(accession for accession in records if accession!=REFERENCE and records[accession][result["alignment_column_1based"]-1] in "ACDEFGHIKLMNPQRSTVWY")
     result["excluded_taxa"]=failures
     Path(output).parent.mkdir(parents=True,exist_ok=True)
     Path(output).write_text(json.dumps(result,indent=2)+"\n")
