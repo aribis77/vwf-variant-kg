@@ -27,12 +27,20 @@ class StructuralTests(unittest.TestCase):
 
     def test_mutant_comparison(self):
         mutant=Path(self.tmp.name)/"mutant.pdb"
-        mutant.write_text(atom(1,"CA","ASP","B",1786,0,0,0)+atom(2,"CA","GLY","A",10,0,0,7)+atom(3,"CA","ALA","B",1787,0,0,3))
+        mutant.write_text(atom(1,"CA","ASP","B",1786,0,0,0)+atom(2,"CA","GLY","A",10,0,0,3)+atom(3,"CA","ALA","B",1787,0,0,9)+atom(4,"OD1","ASP","B",1786,0,0,7))
         r=compare_models(self.path,mutant,"B",1786,"H","D")
         self.assertEqual(r["status"],"coordinate_models_compared")
-        self.assertEqual(r["delta_contacts"]["lost_partner_residues"][0]["author_residue"],10)
+        self.assertEqual(r["delta_contacts"]["lost_partner_residues"],[])
         self.assertEqual(r["delta_contacts"]["gained_partner_residues"][0]["author_residue"],1787)
         self.assertIsNone(r["energetics"])
+    def test_local_backbone_movement_rejected(self):
+        mutant=Path(self.tmp.name)/"shifted.pdb"
+        mutant.write_text(atom(1,"CA","ASP","B",1786,0,0,0)+
+                          atom(2,"CA","GLY","A",10,0,0,7)+
+                          atom(3,"CA","ALA","B",1787,0,0,9))
+        with self.assertRaisesRegex(ValueError,"changed local backbone"):
+            compare_models(self.path,mutant,"B",1786,"H","D")
+
     def test_heavy_atom_named_hg_is_not_dropped(self):
         # The element field takes precedence over an atom name starting with H.
         heavy=atom(1,"HG","HIS","B",1786,0,0,0)
