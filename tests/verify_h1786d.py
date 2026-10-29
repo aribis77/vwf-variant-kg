@@ -22,35 +22,58 @@ def validate(pdb):
     coords = download(f"https://files.rcsb.org/download/{pdb}.pdb")
     matches = []
     diagnostics = []
+    # PDBe SIFTS start/end author_residue_number may be null. The
+    # segment's PDB residue_number refers to the polymer's label_seq_id;
+    # mmCIF atom_site links label_seq_id to the actual auth_seq_id.
+    # Use the authoritative atom-site mapping via PDBe residue listing.
+    residue_payload = json.loads(download(
+        f"https://www.ebi.ac.uk/pdbe/api/pdb/entry/residue_listing/{pdb.lower()}"
+    ))
+    molecules = (residue_payload.get(pdb.lower()) or {}).get("molecules", [])
+    residue_index = {}
+    for molecule in molecules:
+        for chain_record in molecule.get("chains", []):
+            auth_chain = chain_record.get("chain_id")
+            for residue in chain_record.get("residues", []):
+                key = (auth_chain, residue.get("residue_number"))
+                residue_index[key] = residue
+
     for mapping in mappings:
-        start, end = mapping.get("start", {}), mapping.get("end", {})
+        start, end = mapping.get("start") or {}, mapping.get("end") or {}
         lo, hi = mapping.get("unp_start"), mapping.get("unp_end")
         if not isinstance(lo, int) or not isinstance(hi, int) or not lo <= POSITION <= hi:
             continue
-        begin, finish = start.get("author_residue_number"), end.get("author_residue_number")
         chain = mapping.get("chain_id")
+        begin = start.get("residue_number")
+        finish = end.get("residue_number")
         try:
             begin, finish = int(begin), int(finish)
         except (TypeError, ValueError):
-            diagnostics.append(f"{chain}: missing author numbering {begin!r}-{finish!r}")
+            diagnostics.append(f"{chain}: missing PDB segment numbering {begin!r}-{finish!r}")
             continue
         if finish - begin != hi - lo:
-            diagnostics.append(f"{chain}: noncontiguous mapping {begin}-{finish} / {lo}-{hi}")
+            diagnostics.append(f"{chain}: noncontiguous segment; needs residue-level SIFTS mapping")
             continue
-        if not chain:
-            diagnostics.append("mapping missing chain_id")
+        seq_position = begin + POSITION - lo
+        residue = residue_index.get((chain, seq_position))
+        if not residue:
+            diagnostics.append(f"{chain}: residue listing missing position {seq_position}")
             continue
-        number = begin + POSITION - lo
+        author_number = residue.get("author_residue_number")
+        if author_number is None:
+            diagnostics.append(f"{chain}:{seq_position} missing author residue number")
+            continue
         atoms = [line for line in coords.splitlines()
                  if line.startswith("ATOM  ") and line[21:22] == chain
                  and line[22:26].strip().lstrip("-").isdigit()
-                 and int(line[22:26]) == number and line[26:27] == " "]
+                 and int(line[22:26]) == int(author_number)
+                 and line[26:27].strip() == str(residue.get("author_insertion_code") or "").strip()]
         if any(AA3.get(line[17:20].strip()) == WT for line in atoms):
-            matches.append({"pdb": pdb, "chain": chain, "author_residue": number,
+            matches.append({"pdb": pdb, "chain": chain, "author_residue": int(author_number),
                             "uniprot": f"{ACCESSION}:{POSITION}", "wild_type": WT,
                             "atom_count": len(atoms)})
         else:
-            diagnostics.append(f"{chain}:{number} has {len(atoms)} ATOM lines; no resolved HIS")
+            diagnostics.append(f"{chain}:{author_number} has {len(atoms)} ATOM lines; no resolved HIS")
     unique = list({(m["chain"], m["author_residue"]): m for m in matches}.values())
     if not unique:
         raise AssertionError(f"{pdb}: no verified histidine. SIFTS mappings={len(mappings)}; diagnostics={diagnostics[:12]}")
