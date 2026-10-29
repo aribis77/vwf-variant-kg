@@ -9,6 +9,7 @@ on:
       - 'analysis/conservation.py'
       - 'analysis/build_h1786d_conservation.py'
       - 'tests/test_conservation.py'
+      - 'tests/test_conservation_pipeline.py'
       - 'tests/test_variant_report.py'
       - 'tests/test_structural_contacts.py'
       - '.github/workflows/structural-engine.yml'
@@ -34,9 +35,11 @@ jobs:
           report=$?
           python -m unittest discover -s tests -p 'test_conservation.py' -v > analysis/ci-diagnostics/conservation-tests.log 2>&1
           conservation=$?
+          python -m unittest discover -s tests -p 'test_conservation_pipeline.py' -v > analysis/ci-diagnostics/conservation-pipeline-tests.log 2>&1
+          pipeline=$?
           for file in analysis/ci-diagnostics/*.log; do echo "===== $file ====="; cat "$file"; done
-          printf 'structural=%s report=%s conservation=%s\\n' "$structural" "$report" "$conservation" > analysis/ci-diagnostics/summary.txt
-          if [ "$structural" -ne 0 ] || [ "$report" -ne 0 ] || [ "$conservation" -ne 0 ]; then exit 1; fi
+          printf 'structural=%s report=%s conservation=%s pipeline=%s\\n' "$structural" "$report" "$conservation" "$pipeline" > analysis/ci-diagnostics/summary.txt
+          if [ "$structural" -ne 0 ] || [ "$report" -ne 0 ] || [ "$conservation" -ne 0 ] || [ "$pipeline" -ne 0 ]; then exit 1; fi
       - name: Analyse experimental H1786D site in 4DMU
         run: python analysis/run_h1786d.py
       - name: Verify real structure report and publish readable summary
