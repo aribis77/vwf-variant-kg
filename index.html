@@ -331,6 +331,7 @@ render();
   if(!packet||packet.type!=='vwf-workbench-result/1'||typeof packet.token!=='string')return;
   const expected=pending.get(packet.token),report=packet.report;
   if(!expected||Date.now()-expected.created>3600000||!report||report.schema!=='protein-workbench-mechanistic-report/0.1'||report.mutation!==expected.mutation||report.pdb!==expected.pdb||!/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(report.mutation)||!/^[A-Z0-9]{4}$/.test(report.pdb))return;
+  if(!Array.isArray(report.analysis_results)&&!report.metrics&&!report.status&&!report.analysis_status){const message=document.getElementById('vrmessage');if(message)message.textContent='Workbench returned an incomplete report; no structural conclusion can be drawn.';return;}
   pending.delete(packet.token);save();
   try{sessionStorage.setItem('vwf-last-workbench-report',JSON.stringify(report));}catch(e){}
   window.dispatchEvent(new CustomEvent('vwf-workbench-result',{detail:report}));
@@ -358,8 +359,9 @@ render();
   u.searchParams.set('return_origin',location.origin);
   u.searchParams.set('return_token',token);
   pending.set(token,{mutation:u.searchParams.get('mutation'),pdb:u.searchParams.get('pdb'),created:Date.now()});save();
+  const progress=document.getElementById('vrmessage');if(progress)progress.textContent='Workbench request prepared: '+u.searchParams.get('mutation')+' in '+u.searchParams.get('pdb')+'. Awaiting a validated structure mapping and completed report; opening the Workbench does not mean analysis succeeded.';
   const popup=window.open(u.href,'_blank');
-  if(!popup){pending.delete(token);save();document.getElementById('pwstatus').textContent='Popup blocked: allow Workbench to open in a new tab.';}
+  if(!popup){pending.delete(token);save();const status=document.getElementById('pwstatus');if(status)status.textContent='Popup blocked: allow Workbench to open in a new tab.';const progress=document.getElementById('vrmessage');if(progress)progress.textContent='Workbench did not open. No analysis has started.';}
  };
  window.addEventListener('message',function(event){
   if(event.origin!=='https://aribis77.github.io')return;
