@@ -15,6 +15,13 @@ class ConservationTests(unittest.TestCase):
         result=assess(records,"human",2,"H")
         self.assertEqual(result["ortholog_count"],5)
         self.assertEqual(result["duplicate_sequences_excluded"],1)
+    def test_reference_numbering_counts_unknown_residues(self):
+        records={"human":"AXH","mouse":"ATH","rat":"ACH",
+                 "dog":"AGH","cow":"ASH","pig":"AVH"}
+        result=assess(records,"human",3,"H")
+        self.assertEqual(result["alignment_column_1based"],3)
+        self.assertEqual(result["ortholog_count"],5)
+        self.assertEqual(result["reference_residue_fraction"],1.0)
     def test_reject_wrong_reference_residue(self):
         with self.assertRaisesRegex(ValueError,"mismatch"):
             assess({"human":"AC","mouse":"AC"},"human",2,"H",minimum_orthologs=1)
