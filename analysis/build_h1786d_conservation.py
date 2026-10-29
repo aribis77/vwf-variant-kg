@@ -34,11 +34,12 @@ def select_ortholog(taxon):
         "query":query,"format":"json","size":100,
         "fields":"accession,reviewed,length,gene_primary,organism_id"})
     entries=get_json(url).get("results",[])
-    # Only unambiguous reviewed, full-length proteins are accepted.
-    candidates=[entry for entry in entries if entry.get("entryType")=="UniProtKB reviewed (Swiss-Prot)"
-                and 1500<=entry.get("sequence",{}).get("length",0)<=4000]
+    # Prefer reviewed entries, but permit an unambiguous full-length unreviewed entry.
+    full=[entry for entry in entries if 1500<=entry.get("sequence",{}).get("length",0)<=4000]
+    reviewed=[entry for entry in full if entry.get("entryType")=="UniProtKB reviewed (Swiss-Prot)"]
+    candidates=reviewed if reviewed else full
     if len(candidates)!=1:
-        raise ValueError(f"Taxon {taxon}: expected one reviewed full-length VWF, got {len(candidates)}")
+        raise ValueError(f"Taxon {taxon}: expected one unambiguous full-length VWF, got {len(candidates)}")
     return candidates[0]["primaryAccession"]
 
 def run(output):
@@ -77,7 +78,7 @@ def run(output):
             if records[accession].replace("-","")!=sequence:
                 raise ValueError("Alignment altered sequence "+accession)
         result=assess(records,REFERENCE,1786,"H")
-    result["source"]="UniProtKB REST; reviewed full-length VWF orthologs"
+    result["source"]="UniProtKB REST; unique full-length VWF entries, reviewed preferred"
     result["reference_length"]=len(reference)
     result["alignment_sequence_count"]=len(records)
     result["alignment_method"]="MAFFT --auto"
@@ -97,7 +98,7 @@ def run(output):
         raise ValueError("Ortholog provenance does not match conservation denominator")
     result["ortholog_accessions_used"]=sorted(used)
     result["excluded_taxa"]=failures
-    result["ortholog_selection_policy"]="UniProtKB reviewed, unique full-length VWF per taxon; exact aligned sequence deduplication"
+    result["ortholog_selection_policy"]="Unique full-length VWF per taxon, reviewed preferred; exact aligned sequence deduplication"
     result["alignment_reference_verified"]=True
     Path(output).parent.mkdir(parents=True,exist_ok=True)
     Path(output).write_text(json.dumps(result,indent=2)+"\n")
