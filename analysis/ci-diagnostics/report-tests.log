@@ -4,6 +4,6 @@ test_rejects_unverified_mapping (test_variant_report.ReportTests.test_rejects_un
 test_wild_type_report_has_residue_and_no_false_mutant (test_variant_report.ReportTests.test_wild_type_report_has_residue_and_no_false_mutant) ... ok
 
 ----------------------------------------------------------------------
-Ran 4 tests in 0.006s
+Ran 4 tests in 0.001s
 
 OK

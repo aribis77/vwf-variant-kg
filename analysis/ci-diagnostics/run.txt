@@ -1,1 +1,1 @@
-Run: https://github.com/aribis77/vwf-variant-kg/actions/runs/40972768261
+Run: https://github.com/aribis77/vwf-variant-kg/actions/runs/40973140964
