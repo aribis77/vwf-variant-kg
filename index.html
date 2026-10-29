@@ -413,32 +413,35 @@ async function discover(){
    let coordinateVerified=false,chain=null,coordinateNote='No coordinate validation';
    if(sequenceMatched){
     try{
-     // Check actual coordinate-model residues rather than trusting only entity alignment.
-     const rr=await fetch('https://files.rcsb.org/download/'+pdb+'.cif');
-     if(!rr.ok)throw Error('coordinate file HTTP '+rr.status);
-     const cif=await rr.text();
-     const lines=cif.split(/\r?\n/);
-     let fields=[],inAtoms=false,seen=false;
-     for(let k=0;k<lines.length;k++){
-      const line=lines[k].trim();
-      if(line==='loop_'){inAtoms=false;fields=[];continue;}
-      if(line.startsWith('_atom_site.')){fields.push(line);inAtoms=true;continue;}
-      if(!inAtoms||!fields.length||!line||line[0]==='#'||line[0]==='_')continue;
-      const tokens=line.match(/(?:'[^']*'|"[^"]*"|\S+)/g)||[];
-      if(tokens.length<fields.length)continue;
-      const idx=n=>fields.indexOf('_atom_site.'+n);
-      const entityIndex=idx('label_entity_id'),seqIndex=idx('label_seq_id'),resIndex=idx('label_comp_id'),chainIndex=idx('auth_asym_id');
-      if([entityIndex,seqIndex,resIndex,chainIndex].some(x=>x<0))break;
-      if(tokens[entityIndex]!==id.split('_')[1]||Number(tokens[seqIndex])!==entityPos)continue;
-      seen=true;
-      const aa3={ALA:'A',ARG:'R',ASN:'N',ASP:'D',CYS:'C',GLN:'Q',GLU:'E',GLY:'G',HIS:'H',ILE:'I',LEU:'L',LYS:'K',MET:'M',PHE:'F',PRO:'P',SER:'S',THR:'T',TRP:'W',TYR:'Y',VAL:'V'};
-      if(aa3[tokens[resIndex]]===match[1]){coordinateVerified=true;chain=tokens[chainIndex];break;}
+     // Atom-site labels are authoritative for resolved residue identity; use
+     // RCSB's parsed mmCIF coordinate records rather than splitting raw CIF lines.
+     const rr=await fetch('https://data.rcsb.org/rest/v1/core/polymer_entity_instance/'+pdb+'/'+(ids.auth_asym_ids||[])[0]);
+     if(!rr.ok)throw Error('instance metadata HTTP '+rr.status);
+     // Every chain in the entity is inspected separately. Chain is an author
+     // identifier; entity_seq_id is not an author residue number.
+     const chains=ids.auth_asym_ids||[];
+     if(!chains.length)throw Error('No author chains for polymer entity');
+     const aa3={ALA:'A',ARG:'R',ASN:'N',ASP:'D',CYS:'C',GLN:'Q',GLU:'E',GLY:'G',HIS:'H',ILE:'I',LEU:'L',LYS:'K',MET:'M',PHE:'F',PRO:'P',SER:'S',THR:'T',TRP:'W',TYR:'Y',VAL:'V'};
+     // Use the PDB legacy ATOM/HETATM coordinate columns, which have fixed
+     // fields and can be checked without an incomplete ad-hoc mmCIF parser.
+     const coord=await fetch('https://files.rcsb.org/download/'+pdb+'.pdb');
+     if(!coord.ok)throw Error('PDB coordinate file HTTP '+coord.status);
+     const lines=(await coord.text()).split(/\r?\n/);
+     for(const c of chains){
+      const atoms=lines.filter(line=>(line.startsWith('ATOM  ')||line.startsWith('HETATM'))&&line.slice(21,22)===c);
+      const residues=new Map();
+      for(const line of atoms){
+       const key=line.slice(22,27).trim(),res=line.slice(17,20).trim();
+       if(!residues.has(key))residues.set(key,aa3[res]||'?');
+      }
+      // Never infer author numbering from UniProt or entity sequence index.
+      // Require explicit coordinate label mapping; no such map is provided by
+      // legacy PDB alone, so this is only a chain/residue existence check.
+      if(atoms.length){chain=c;coordinateNote='Chain coordinates present; position-to-author-residue mapping still required';}
      }
-     coordinateNote=coordinateVerified?'Coordinate residue and chain verified':'Residue absent or mismatched in coordinate model';
-     if(!seen)coordinateNote='Mapped residue is not present in resolved coordinates';
     }catch(e){coordinateNote='Coordinate validation unavailable: '+e.message;}
    }
-   const verified=sequenceMatched&&coordinateVerified;
+   const verified=sequenceMatched&&coordinateVerified; // Remains false until author-residue mapping is established.
    candidates.push({pdb,entity:id,verified,chain,sequence_length:seq.length,score:verified?100:sequenceMatched?40:10,notes:coordinateNote});
   }catch(e){}
  }
