@@ -17,3 +17,11 @@ jobs:
       - run: npm install --no-save playwright@1.58.2
       - run: npx playwright install --with-deps chromium
       - run: node tests/integration-smoke.cjs
+
+      - name: Preserve failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: h1786d-failure-diagnostics
+          path: test-results/
+          if-no-files-found: warn
