@@ -94,8 +94,8 @@ def compare_models(wild_type_path, mutant_path, chain, position, wt, mut, cutoff
     wild["mutant_contacts"]={"partner_residues":partners,"partner_count":len(partners),
                              "interchain_partner_count":sum(p["inter_chain"] for p in partners),
                              "atom_pair_count":sum(p["atom_pairs"] for p in partners)}
-    wild["delta_contacts"]={"lost_partner_residues":[before[k] for k in before.keys()-after.keys()],
-                            "gained_partner_residues":[after[k] for k in after.keys()-before.keys()],
+    wild["delta_contacts"]={"lost_partner_residues":[before[k] for k in sorted(before.keys()-after.keys())],
+                            "gained_partner_residues":[after[k] for k in sorted(after.keys()-before.keys())],
                             "retained_partner_count":len(before.keys()&after.keys()),
                             "delta_atom_pairs":wild["mutant_contacts"]["atom_pair_count"]-wild["wild_type_contacts"]["atom_pair_count"]}
     wild["status"]="coordinate_models_compared"
