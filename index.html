@@ -68,15 +68,38 @@ function compareStructures(reports){
  return {structures:values.map(r=>({pdb:r.pdb,chain:r.chain||null,created:r.created||null,analysis_status:r.analysis_status||{}})),contact_turnover:summarize(turnover),residue_conservation:summarize(cons),note:'Descriptive cross-structure ranges; structural models are not independent biological replicates. No pooled pathogenicity score.'};
 }
 function assessNumericEvidence(observations){
+ const endpointGroup=(endpoint,assay)=>{
+  const e=(endpoint+' '+assay).toLowerCase();
+  if(/collagen|vwf:cb|vwf.cb/.test(e))return 'Collagen binding';
+  if(/gpib|ristocetin|vwf:rco|vwf:gpi/.test(e))return 'Platelet binding';
+  if(/vwf:ag|antigen/.test(e))return 'VWF antigen';
+  if(/factor viii|fviii|f8 binding/.test(e))return 'FVIII binding';
+  if(/multimer/.test(e))return 'Multimer pattern';
+  return 'Other endpoint';
+ };
+ const units={'iu/ml':1,'iu/dl':0.01,'u/dl':0.01};
  const entries=(observations||[]).map(o=>{
-  const result=String(o.result??''),endpoint=String(o.endpoint??'');
-  const values=[...result.matchAll(/(-?\d+(?:\.\d+)?)\s*(%|IU\/dL|IU\/mL|U\/dL|mg\/dL)?\b/g)].map(m=>({value:Number(m[1]),unit:m[2]||null}));
-  const reference=String(o.reference_range||o.normal_range||o.control_value||'');
-  const hasReference=!!reference;
-  const group=/collagen/i.test(endpoint)?'Collagen binding':/ristocetin|GPIb/i.test(endpoint)?'Platelet binding':/multimer/i.test(endpoint)?'Multimer pattern':/activity/i.test(endpoint)?'Other activity':'Other endpoint';
-  return {endpoint,result,group,values,reference:reference||null,has_reference:hasReference,source_url:o.source_url||null,observation_id:o.observation_id||null,interpretation:'Not normalized: units, controls, assay method and reference intervals require verification'};
- }).filter(x=>x.values.length);
- return {records:entries.length,with_reference:entries.filter(x=>x.has_reference).length,measurements:entries,summary:entries.length?'Numerical observations were detected. They are displayed without automatically labeling them abnormal, because assay-specific controls and reference intervals have not been verified.':'No numerical assay observations were detected in the directly linked records.',limitations:['Numbers are extracted from result text and may include sample sizes or other non-assay values','A percentage without a verified control is not an effect size','Different assay methods and endpoints cannot be pooled without normalization']};
+  const endpoint=String(o.endpoint??''),result=String(o.result??''),assay=String(o.assay_method||o.method||'');
+  const group=endpointGroup(endpoint,assay);
+  const explicit=Number(o.numeric_value??o.value_numeric);
+  const explicitUnit=String(o.unit||o.units||o.unit_or_type||'').trim();
+  const value=Number.isFinite(explicit)&&o.numeric_value!==undefined||Number.isFinite(explicit)&&o.value_numeric!==undefined?explicit:null;
+  const unit=/^(IU\/mL|IU\/dL|U\/dL|%)$/i.test(explicitUnit)?explicitUnit:null;
+  const control=Number(o.control_numeric??o.reference_numeric);
+  const controlUnit=String(o.control_unit||o.reference_unit||explicitUnit).trim();
+  const hasControl=(o.control_numeric!==undefined||o.reference_numeric!==undefined)&&Number.isFinite(control)&&control>0;
+  let normalized=null,reason='No validated structured numeric assay value, compatible control, or method';
+  if(value!==null&&unit&&hasControl&&assay&&group!=='Other endpoint'){
+   const vu=unit.toLowerCase(),cu=controlUnit.toLowerCase();
+   if(vu===cu)normalized=100*value/control;
+   else if(units[vu]&&units[cu])normalized=100*(value*units[vu])/(control*units[cu]);
+   if(normalized!==null)reason='Ratio to explicitly provided assay-matched control; requires source verification';
+  }
+  const display=normalized===null?null:Number(normalized.toFixed(1));
+  return {endpoint,result,group,assay:assay||null,raw_value:value,unit,control:hasControl?control:null,control_unit:hasControl?controlUnit:null,percent_of_control:display,interpretation:reason,source_url:o.source_url||null,observation_id:o.observation_id||null};
+ }).filter(x=>x.raw_value!==null||/\d/.test(x.result));
+ const comparable=entries.filter(x=>x.percent_of_control!==null);
+ return {records:entries.length,normalized:comparable.length,measurements:entries,summary:comparable.length?comparable.length+' structured assay values have a provisional within-assay percentage of their explicitly supplied controls. No clinical reference range or pathogenicity threshold is inferred.':entries.length?'Numerical records found, but no assay-matched structured value and control pair can be safely normalized.':'No numerical assay observations were detected.',limitations:['Normalization requires structured value, unit, assay method and a positive matched control','Percent of control is not a clinical normal range','No automatic pooling across assays, collagen types or independent studies','Unstructured numbers remain visible but are never treated as measured assay values']};
 }
 function assessConcordance(observations,workbench){
  const rows=(observations||[]).map(o=>{
@@ -202,7 +225,8 @@ function render(){
  const concord=current.evidence_concordance;
  const concordHtml='<section class="evidence-assessment"><h4>Do the findings agree?</h4><p>'+safe(concord.assessment)+'</p><p>'+safe(concord.structural_functional_relationship)+'</p><details><summary>Review extracted findings and source-level comparisons</summary>'+(concord.findings.length?concord.findings.map(f=>'<div class="record"><b>'+safe(f.endpoint)+'</b>: '+safe(f.result)+' <span class="sub">('+safe(f.direction)+')</span>'+(f.source_url&&/^https:\/\//.test(f.source_url)?' · <a target="_blank" rel="noopener noreferrer" href="'+safe(f.source_url)+'">Source</a>':'')+'</div>').join(''):'<p>No directional functional or clinical evidence extracted.</p>')+'<p class="sub">Text-derived directions are preliminary; different assay endpoints are not directly comparable. No clinical score is assigned.</p></details></section>';
  const num=current.numeric_evidence;
- const numericHtml='<section class="evidence-assessment"><h4>Numerical functional findings</h4><p>'+safe(num.summary)+'</p><details><summary>Inspect extracted values ('+num.records+')</summary>'+(num.measurements.length?num.measurements.map(x=>'<div class="record"><b>'+safe(x.group)+' · '+safe(x.endpoint)+'</b><p>'+safe(x.result)+'</p><p class="sub">Reference/control: '+safe(x.reference||'not provided in structured record')+' · Interpretation pending assay validation</p>'+(x.source_url&&/^https:\/\//.test(x.source_url)?'<a href="'+safe(x.source_url)+'" target="_blank" rel="noopener noreferrer">Original source</a>':'')+'</div>').join(''):'<p>No numerical values found.</p>')+'<p class="sub">Automated number extraction is provisional and may include non-assay numbers.</p></details></section>';
+ const numericHtml='<section class="evidence-assessment"><h4>Assay-aware functional measurements</h4><p>'+safe(num.summary)+'</p><details><summary>Inspect assay measurements ('+num.records+')</summary>'+(num.measurements.length?num.measurements.map(x=>'<div class="record"><b>'+safe(x.group)+' · '+safe(x.endpoint)+'</b><p>'+safe(x.result)+'</p><p class="sub">Method: '+safe(x.assay||'not specified')+' · Structured value: '+safe(x.raw_value===null?'unavailable':x.raw_value+' '+(x.unit||''))+' · Matched control: '+safe(x.control===null?'unavailable':x.control+' '+(x.control_unit||''))+'</p><p><b>'+safe(x.percent_of_control===null?'Not normalized':'Provisional: '+x.percent_of_control+'% of matched control')+'</b></p><p class="sub">'+safe(x.interpretation)+'</p>'+(x.source_url&&/^https:\/\//.test(x.source_url)?'<a href="'+safe(x.source_url)+'" target="_blank" rel="noopener noreferrer">Original source</a>':'')+'</div>').join(''):'<p>No numerical values found.</p>')+'</details></section>';
+
  const technical='<details class="technical-details"><summary>Show technical evidence, metrics and source audit</summary>'+
  '<h4>Analysis status</h4><p>'+status+'</p>'+
  '<h4>Structure reports</h4><p>'+safe(current.structure_comparison.structures.length)+' PDB reports. Contact turnover: '+safe(current.structure_comparison.contact_turnover.minimum===null?'unavailable':current.structure_comparison.contact_turnover.minimum.toFixed(3)+'–'+current.structure_comparison.contact_turnover.maximum.toFixed(3))+'.</p>'+
