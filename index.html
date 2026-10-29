@@ -91,6 +91,7 @@ function render(){
 get('vrshow').onclick=render;
 get('vrshare').onclick=async()=>{if(!current)render();const url=new URL(location.href);url.searchParams.set('variant',get('vrvariant').value.trim().toUpperCase());url.searchParams.set('view','report');try{await navigator.clipboard.writeText(url.href);get('vrmessage').textContent='Report link copied. Imported Workbench data is local and will not be included in the link.';}catch(e){get('vrmessage').textContent=url.href;}};
 get('vrdownload').onclick=()=>{if(!current)render();if(!current)return;const b=new Blob([JSON.stringify(current,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='VWF_'+current.variant+'_integrated_report.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);};
+try{const recovered=JSON.parse(sessionStorage.getItem('vwf-last-workbench-report')||'null');if(recovered&&recovered.schema==='protein-workbench-mechanistic-report/0.1'){state.reports=[recovered];state.imported=recovered;get('vrvariant').value=recovered.mutation;render();get('vrmessage').textContent='Recovered previous Workbench result from this browser session.';}}catch(e){}
 window.addEventListener('vwf-workbench-result',function(event){
  const j=event.detail;
  if(!j||j.schema!=='protein-workbench-mechanistic-report/0.1')return;
@@ -128,7 +129,9 @@ render();if(q.get('view')==='report')get('variant-report').scrollIntoView();
   const expected=pending.get(packet.token),report=packet.report;
   if(!expected||Date.now()-expected.created>3600000||!report||report.schema!=='protein-workbench-mechanistic-report/0.1'||report.mutation!==expected.mutation||report.pdb!==expected.pdb)return;
   pending.delete(packet.token);save();
+  try{sessionStorage.setItem('vwf-last-workbench-report',JSON.stringify(report));}catch(e){}
   window.dispatchEvent(new CustomEvent('vwf-workbench-result',{detail:report}));
+  const status=document.getElementById('pwstatus');if(status)status.textContent='Structural report received from Workbench for '+report.mutation+' in '+report.pdb+'. See integrated variant report above.';
  }
  if(channel)channel.onmessage=e=>accept(e.data);
 
