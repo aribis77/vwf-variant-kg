@@ -413,42 +413,51 @@ async function discover(){
    let coordinateVerified=false,chain=null,coordinateNote='No coordinate validation';
    if(sequenceMatched){
     try{
-     // Atom-site labels are authoritative for resolved residue identity; use
-     // RCSB's parsed mmCIF coordinate records rather than splitting raw CIF lines.
-     const rr=await fetch('https://data.rcsb.org/rest/v1/core/polymer_entity_instance/'+pdb+'/'+(ids.auth_asym_ids||[])[0]);
-     if(!rr.ok)throw Error('instance metadata HTTP '+rr.status);
-     // Every chain in the entity is inspected separately. Chain is an author
-     // identifier; entity_seq_id is not an author residue number.
-     const chains=ids.auth_asym_ids||[];
-     if(!chains.length)throw Error('No author chains for polymer entity');
-     const aa3={ALA:'A',ARG:'R',ASN:'N',ASP:'D',CYS:'C',GLN:'Q',GLU:'E',GLY:'G',HIS:'H',ILE:'I',LEU:'L',LYS:'K',MET:'M',PHE:'F',PRO:'P',SER:'S',THR:'T',TRP:'W',TYR:'Y',VAL:'V'};
-     // Use the PDB legacy ATOM/HETATM coordinate columns, which have fixed
-     // fields and can be checked without an incomplete ad-hoc mmCIF parser.
-     const coord=await fetch('https://files.rcsb.org/download/'+pdb+'.pdb');
-     if(!coord.ok)throw Error('PDB coordinate file HTTP '+coord.status);
-     const lines=(await coord.text()).split(/\r?\n/);
-     for(const c of chains){
-      const atoms=lines.filter(line=>(line.startsWith('ATOM  ')||line.startsWith('HETATM'))&&line.slice(21,22)===c);
-      const residues=new Map();
-      for(const line of atoms){
-       const key=line.slice(22,27).trim(),res=line.slice(17,20).trim();
-       if(!residues.has(key))residues.set(key,aa3[res]||'?');
+     // SIFTS provides explicit UniProt -> PDB author residue numbering.
+     // Never assume that UniProt, entity sequence and author numbering coincide.
+     const response=await fetch('https://www.ebi.ac.uk/pdbe/api/mappings/uniprot/'+pdb.toLowerCase());
+     if(!response.ok)throw Error('SIFTS HTTP '+response.status);
+     const payload=await response.json();
+     const entry=payload[pdb.toLowerCase()]||payload[pdb.toUpperCase()];
+     const records=entry?.UniProt?.[accession]?.mappings||[];
+     const hits=records.filter(m=>position>=Number(m.unp_start)&&position<=Number(m.unp_end));
+     const matches=[];
+     for(const m of hits){
+      const start=Number(m.start?.residue_number),end=Number(m.end?.residue_number);
+      const authorStart=Number(m.start?.author_residue_number),authorEnd=Number(m.end?.author_residue_number);
+      const chainId=m.chain_id||m.struct_asym_id||null;
+      const offset=position-Number(m.unp_start);
+      // Offset mapping is only safe for contiguous segments with matching
+      // coordinate and UniProt lengths and no insertion codes.
+      const contiguous=Number.isInteger(start)&&Number.isInteger(end)&&end-start===Number(m.unp_end)-Number(m.unp_start);
+      const authorContiguous=Number.isInteger(authorStart)&&Number.isInteger(authorEnd)&&authorEnd-authorStart===end-start;
+      if(contiguous&&authorContiguous&&chainId){
+       matches.push({chain:chainId,author:authorStart+offset,entity:start+offset});
       }
-      // Never infer author numbering from UniProt or entity sequence index.
-      // Require explicit coordinate label mapping; no such map is provided by
-      // legacy PDB alone, so this is only a chain/residue existence check.
-      if(atoms.length){chain=c;coordinateNote='Chain coordinates present; position-to-author-residue mapping still required';}
      }
+     const unique=[...new Map(matches.map(m=>[m.chain+':'+m.author,m])).values()];
+     if(unique.length===1){
+      const m=unique[0];
+      // SIFTS segment mapping is not proof the atom is resolved: verify
+      // actual coordinate residue and wild-type identity in the PDB model.
+      const cr=await fetch('https://files.rcsb.org/download/'+pdb+'.pdb');
+      if(!cr.ok)throw Error('coordinate HTTP '+cr.status);
+      const rows=(await cr.text()).split(/\r?\n/);
+      const aa3={ALA:'A',ARG:'R',ASN:'N',ASP:'D',CYS:'C',GLN:'Q',GLU:'E',GLY:'G',HIS:'H',ILE:'I',LEU:'L',LYS:'K',MET:'M',PHE:'F',PRO:'P',SER:'S',THR:'T',TRP:'W',TYR:'Y',VAL:'V'};
+      const atom=rows.find(line=>line.startsWith('ATOM  ')&&line.slice(21,22)===m.chain&&Number(line.slice(22,26))===m.author&&line.slice(26,27)===' '&&aa3[line.slice(17,20).trim()]===match[1]);
+      if(atom){coordinateVerified=true;chain=m.chain;coordinateNote='SIFTS '+accession+':'+position+' → '+pdb+' chain '+chain+' author residue '+m.author+' ('+match[1]+'), confirmed in ATOM records';}
+      else coordinateNote='SIFTS mapped '+m.chain+':'+m.author+' but the expected histidine was not verified in ATOM records';
+     }else coordinateNote=unique.length?'Multiple coordinate mappings; no unique residue selected':'No contiguous SIFTS UniProt-to-author-residue mapping';
     }catch(e){coordinateNote='Coordinate validation unavailable: '+e.message;}
    }
-   const verified=sequenceMatched&&coordinateVerified; // Remains false until author-residue mapping is established.
+   const verified=sequenceMatched&&coordinateVerified;
    candidates.push({pdb,entity:id,verified,chain,sequence_length:seq.length,score:verified?100:sequenceMatched?40:10,notes:coordinateNote});
   }catch(e){}
  }
  candidates.sort((a,b)=>b.score-a.score||a.pdb.localeCompare(b.pdb));
  const select=get('pwchoices');select.innerHTML='';
  if(!candidates.length){select.add(new Option('No verified candidates found',''));msg('No eligible candidates were identified. RCSB mapping may be incomplete; no structure was automatically selected.');return}
- for(const c of candidates){const o=new Option(c.pdb+' · '+c.entity+(c.verified?' · mapped':' · mapping unverified'),c.pdb);o.dataset.verified=String(c.verified);o.dataset.chain=c.chain||'';o.title=c.notes;select.add(o)}
+ for(const c of candidates){const o=new Option(c.pdb+' · '+c.entity+(c.verified?' · coordinate verified':' · unverified'),c.pdb);o.dataset.verified=String(c.verified);o.dataset.chain=c.chain||'';o.title=c.notes;select.add(o)}
  const top=candidates.find(x=>x.verified);
  if(top){select.value=top.pdb;get('pwpdb').value=top.pdb;get('pwchain').value=top.chain||'';msg('Discovered '+candidates.length+' candidate polymer entities; '+candidates.filter(x=>x.verified).length+' have residue identities verified against coordinate-model records. Workbench must still validate numbering and analysis suitability.')}else msg('Discovered '+candidates.length+' entities but none with validated residue mapping; no automatic selection.');
  }catch(e){msg('Automatic PDB discovery unavailable: '+e.message)}
