@@ -402,10 +402,15 @@ async function discover(){
    const uniprot=refs.find(x=>x.database_accession===accession);
    if(!uniprot)continue;
    const seq=(d.entity_poly?.pdbx_seq_one_letter_code_can||'').replace(/[^A-Z]/gi,'').toUpperCase();
-   const mapping=(d.rcsb_polymer_entity_align||[]).flatMap(x=>x.aligned_regions||[]).find(x=>Number(x.ref_beg_seq_id)<=position&&Number(x.ref_beg_seq_id)+Number(x.length)-1>=position);
-   const verified=!!mapping;
+   // An alignment region alone does not establish the residue identity.
+   // RCSB alignment metadata can use different shapes; do not mark unverified offsets as mapped.
+   const regions=(d.rcsb_polymer_entity_align||[]).flatMap(x=>x.aligned_regions||[]);
+   const mapping=regions.find(x=>Number(x.ref_beg_seq_id)<=position&&Number(x.ref_beg_seq_id)+Number(x.length)-1>=position);
+   const entityPos=mapping?Number(mapping.entity_beg_seq_id)+(position-Number(mapping.ref_beg_seq_id)):null;
+   const residue=entityPos&&entityPos>=1&&entityPos<=seq.length?seq[entityPos-1]:null;
+   const verified=!!(mapping&&residue===match[1]);
    const pdb=id.split('_')[0];
-   candidates.push({pdb,entity:id,verified,sequence_length:seq.length,score:verified?100:10,notes:verified?'Reference position covered by reported alignment':'Reference position mapping not established'});
+   candidates.push({pdb,entity:id,verified,sequence_length:seq.length,score:verified?100:10,notes:verified?'Reference position and wild-type residue agree':'Reference position or wild-type residue mapping not established'});
   }catch(e){}
  }
  candidates.sort((a,b)=>b.score-a.score||a.pdb.localeCompare(b.pdb));
@@ -413,7 +418,7 @@ async function discover(){
  if(!candidates.length){select.add(new Option('No verified candidates found',''));msg('No eligible candidates were identified. RCSB mapping may be incomplete; no structure was automatically selected.');return}
  for(const c of candidates){const o=new Option(c.pdb+' · '+c.entity+(c.verified?' · mapped':' · mapping unverified'),c.pdb);o.dataset.verified=String(c.verified);select.add(o)}
  const top=candidates.find(x=>x.verified);
- if(top){select.value=top.pdb;get('pwpdb').value=top.pdb;msg('Discovered '+candidates.length+' candidate polymer entities; '+candidates.filter(x=>x.verified).length+' have provisional reference-coordinate coverage. Verify mutation identity and structural chain in Workbench before analysis.')}else msg('Discovered '+candidates.length+' entities but none with validated residue mapping; no automatic selection.');
+ if(top){select.value=top.pdb;get('pwpdb').value=top.pdb;msg('Discovered '+candidates.length+' candidate polymer entities; '+candidates.filter(x=>x.verified).length+' have reference-position and residue-identity matches. Structural chain and coordinates still require verification in Workbench.')}else msg('Discovered '+candidates.length+' entities but none with validated residue mapping; no automatic selection.');
  }catch(e){msg('Automatic PDB discovery unavailable: '+e.message)}
 }
 get('pwdiscover').onclick=discover;
