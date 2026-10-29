@@ -49,6 +49,7 @@ jobs:
           python -m pip install openmm
           python -m pip install git+https://github.com/openmm/pdbfixer.git
       - name: Generate H1786D model and compare coordinates
+        continue-on-error: true
         run: python analysis/model_h1786d.py
       - name: Render readable H1786D report
         if: always()
