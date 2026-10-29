@@ -64,8 +64,11 @@ def render(data):
             "partner_residues":delta["gained_partner_residues"]})
     else:
         content+="<p class='notice'>Mutant model not available. These are WT contacts, not measured mutation effects.</p>"
-    model=data.get("modeling",{})
-    content+="<h2>Evidence and limitations</h2><dl><dt>Experimental structure</dt><dd>"+esc(data["structure"])+             " — chain "+esc(site["chain"])+", author residue "+esc(site["author_residue"])+             "</dd><dt>Model status</dt><dd>"+esc(model.get("method","No mutant model"))+             "; relaxed: "+esc(model.get("relaxed",False))+             "</dd><dt>Energetics</dt><dd>"+("Reported separately" if data.get("energetics") is not None else "Not calculated — no ΔΔG claim")+             "</dd><dt>Conservation</dt><dd>"+("Reported separately" if data.get("conservation") is not None else "Not calculated")+             "</dd><dt>Clinical classification</dt><dd>Not established from structural contacts alone</dd></dl>"
+    model=data.get("modeling") or {}
+    conservation=data.get("conservation")
+    if isinstance(conservation,dict) and conservation.get("ortholog_count") and conservation.get("reference_residue_fraction") is not None:
+        content+="<h2>Sequence conservation</h2><p>Wild-type residue retained in "+esc(round(100*conservation["reference_residue_fraction"],1))+"% of "+esc(conservation["ortholog_count"])+" aligned orthologs. This is evolutionary evidence, not a clinical classification.</p>"
+    content+="<h2>Evidence and limitations</h2><dl><dt>Experimental structure</dt><dd>"+esc(data["structure"])+             " — chain "+esc(site["chain"])+", author residue "+esc(site["author_residue"])+             "</dd><dt>Model status</dt><dd>"+esc(model.get("method","No mutant model"))+             "; relaxed: "+esc(model.get("relaxed",False))+             "</dd><dt>Energetics</dt><dd>"+("Reported separately" if data.get("energetics") is not None else "Not calculated — no ΔΔG claim")+             "</dd><dt>Conservation</dt><dd>"+("See sequence conservation above" if isinstance(conservation,dict) and conservation.get("ortholog_count") else "Not calculated")+             "</dd><dt>Clinical classification</dt><dd>Not established from structural contacts alone</dd></dl>"
     content+="<p>"+esc(data.get("interpretation","No interpretation available"))+"</p>"
     return """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VWF """+esc(data["mutation"])+""" structural evidence</title><style>
