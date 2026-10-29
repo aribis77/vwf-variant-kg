@@ -69,6 +69,27 @@ jobs:
         if: steps.modeling_dependencies.outcome == 'success'
         continue-on-error: true
         run: python analysis/model_h1786d.py
+      - name: Merge validated conservation evidence when available
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          conservation_path=Path("analysis/H1786D_conservation.json")
+          if not conservation_path.is_file():
+              print("No curated H1786D conservation dataset available; retaining null.")
+          else:
+              c=json.loads(conservation_path.read_text())
+              assert c["position"]==1786 and c["wild_type"]=="H"
+              assert c["ortholog_count"]>=5
+              assert 0<=c["reference_residue_fraction"]<=1
+              for name in ("H1786D_contacts.json","H1786D_model_comparison.json"):
+                  path=Path("analysis")/name
+                  if path.is_file():
+                      d=json.loads(path.read_text())
+                      assert d["mutation"]=="H1786D" and d["site"]["wild_type_verified"]
+                      d["conservation"]=c
+                      path.write_text(json.dumps(d,indent=2)+"\\n")
+          PY
       - name: Render readable H1786D report
         if: always()
         run: |
