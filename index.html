@@ -148,11 +148,21 @@ async function discover(){
  if(!match){msg('Enter a valid substitution such as H1786D.');return}
  const position=Number(match[2]),accession='P04275';
  msg('Searching RCSB for VWF polymer entities; validating candidate sequence coverage…');
- const request={query:{type:'terminal',service:'text',parameters:{attribute:'rcsb_polymer_entity_container_identifiers.reference_sequence_identifiers.database_accession',operator:'exact_match',value:accession}},return_type:'polymer_entity',request_options:{paginate:{start:0,rows:100}}};
+ const requests=[
+  {query:{type:'terminal',service:'text',parameters:{operator:'exact_match',value:accession,attribute:'rcsb_polymer_entity.rcsb_polymer_entity_container_identifiers.reference_sequence_identifiers.database_accession'}},return_type:'polymer_entity',request_options:{paginate:{start:0,rows:100}}},
+  {query:{type:'terminal',service:'full_text',parameters:{value:accession}},return_type:'polymer_entity',request_options:{paginate:{start:0,rows:100}}}
+ ];
  try{
- const res=await fetch('https://search.rcsb.org/rcsbsearch/v2/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request)});
- if(!res.ok){const detail=(await res.text()).slice(0,450);throw Error('RCSB search HTTP '+res.status+': '+detail);}
- const found=(await res.json()).result_set||[];
+ let found=[],errors=[];
+ for(const request of requests){
+  try{
+   const res=await fetch('https://search.rcsb.org/rcsbsearch/v2/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request)});
+   if(!res.ok){errors.push('HTTP '+res.status+': '+(await res.text()).slice(0,220));continue;}
+   found=(await res.json()).result_set||[];
+   if(found.length)break;
+  }catch(e){errors.push(e.message)}
+ }
+ if(!found.length)throw Error('No search results; '+errors.join(' | '));
  const candidates=[];
  for(const hit of found.slice(0,45)){
   const id=hit.identifier;if(!/^[A-Za-z0-9]{4}_[0-9]+$/.test(id))continue;
