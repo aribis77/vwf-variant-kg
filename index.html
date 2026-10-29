@@ -411,7 +411,7 @@ async function discover(){
    const sequenceMatched=!!(mapping&&residue===match[1]);
    const pdb=id.split('_')[0];
    let coordinateVerified=false,chain=null,coordinateNote='No coordinate validation';
-   if(sequenceMatched){
+   if(true){
     try{
      // SIFTS provides explicit UniProt -> PDB author residue numbering.
      // Never assume that UniProt, entity sequence and author numbering coincide.
@@ -450,7 +450,7 @@ async function discover(){
      }else coordinateNote=unique.length?'Multiple coordinate mappings; no unique residue selected':'No contiguous SIFTS UniProt-to-author-residue mapping';
     }catch(e){coordinateNote='Coordinate validation unavailable: '+e.message;}
    }
-   const verified=sequenceMatched&&coordinateVerified;
+   const verified=coordinateVerified;
    candidates.push({pdb,entity:id,verified,chain,sequence_length:seq.length,score:verified?100:sequenceMatched?40:10,notes:coordinateNote});
   }catch(e){}
  }
