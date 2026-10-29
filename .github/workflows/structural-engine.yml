@@ -79,7 +79,6 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y mafft
       - name: Compute H1786 conservation from reviewed UniProt orthologs
         if: steps.mafft.outcome == 'success'
-        continue-on-error: true
         run: |
           mkdir -p analysis/ci-diagnostics
           python -m analysis.build_h1786d_conservation --output analysis/H1786D_conservation.json 2>&1 | tee analysis/ci-diagnostics/conservation-run.log
@@ -102,13 +101,14 @@ jobs:
                       f.write("Check the conservation-run diagnostic artifact for the error.\\n")
           PY
       - name: Merge validated conservation evidence when available
+        if: always()
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           conservation_path=Path("analysis/H1786D_conservation.json")
           if not conservation_path.is_file():
-              print("No curated H1786D conservation dataset available; retaining null.")
+              raise SystemExit("H1786D conservation dataset was not produced; see conservation-run.log")
           else:
               c=json.loads(conservation_path.read_text())
               assert c["position"]==1786 and c["wild_type"]=="H"
