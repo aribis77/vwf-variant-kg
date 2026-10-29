@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'analysis/structural_contacts.py'
+      - 'analysis/run_h1786d.py'
       - 'analysis/model_h1786d.py'
       - 'analysis/render_variant_report.py'
       - 'analysis/conservation.py'
@@ -47,11 +48,14 @@ jobs:
           print("\\n".join(lines))
           PY
       - name: Install mutation modeling tools
+        id: modeling_dependencies
+        continue-on-error: true
         run: |
           python -m pip install --upgrade pip
           python -m pip install openmm
           python -m pip install git+https://github.com/openmm/pdbfixer.git
       - name: Generate H1786D model and compare coordinates
+        if: steps.modeling_dependencies.outcome == 'success'
         continue-on-error: true
         run: python analysis/model_h1786d.py
       - name: Render readable H1786D report
@@ -63,7 +67,7 @@ jobs:
             python analysis/render_variant_report.py --input analysis/H1786D_contacts.json --output analysis/H1786D_report.html
           fi
       - name: Copy validated report into website
-        if: success()
+        if: success() && hashFiles('analysis/H1786D_contacts.json', 'analysis/H1786D_report.html') != ''
         run: |
           cp analysis/H1786D_report.html H1786D_report.html
           mkdir -p data/variants
