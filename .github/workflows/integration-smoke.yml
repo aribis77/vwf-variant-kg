@@ -1,0 +1,19 @@
+name: VWF integrated browser smoke
+on:
+  push:
+    paths:
+      - '.github/workflows/integration-smoke.yml'
+      - 'tests/integration-smoke.cjs'
+  workflow_dispatch:
+jobs:
+  live-workbench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright@1.58.2
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/integration-smoke.cjs
