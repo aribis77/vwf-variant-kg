@@ -1,0 +1,33 @@
+{
+  "schema": "vwf-structural-archive/1.0",
+  "variant": "H1786D",
+  "accession": "P04275",
+  "analysis_type": "exploratory_short_nvt",
+  "duration_ps_per_replicate": 20,
+  "provenance": {
+    "origin": "Previously reported project analysis",
+    "raw_trajectories_available_in_archive": false,
+    "independent_reproduction_verified": false,
+    "interpretation": "Summary-level historical results; not a new calculation"
+  },
+  "metrics": {
+    "residue_1786_contacts": {
+      "wt_mean": 19,
+      "variant_mean": 0.7
+    },
+    "residue_1786_min_ca_distance_angstrom": {
+      "wt_mean": 2.91,
+      "variant_mean": 4.76
+    },
+    "global_interface_contacts": {
+      "wt_mean": 129,
+      "variant_mean": 152
+    }
+  },
+  "limitations": [
+    "Very short exploratory simulation",
+    "No binding free energy estimate",
+    "No independently verified raw trajectory archive",
+    "Cannot infer clinical pathogenicity or collagen-binding activity"
+  ]
+}
