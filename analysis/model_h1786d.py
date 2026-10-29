@@ -27,6 +27,11 @@ for chain in chains:
 if len(matches)!=1:
     raise RuntimeError(f"Expected exactly one chain B HIS1786; found {len(matches)}")
 fixer.applyMutations(["HIS-1786-ASP"],"B")
+fixer.findMissingResidues()
+# Do not invent missing backbone segments; only construct missing side-chain atoms.
+fixer.missingResidues={}
+fixer.findMissingAtoms()
+fixer.addMissingAtoms()
 after=[r for c in fixer.topology.chains() if c.id=="B" for r in c.residues() if r.id=="1786"]
 if len(after)!=1 or after[0].name!="ASP":
     raise RuntimeError("PDBFixer mutation did not produce ASP at B:1786")
