@@ -611,28 +611,50 @@ window.addEventListener('load',()=>{const q=new URLSearchParams(location.search)
   document.body.appendChild(host);
   const status=host.querySelector('#published-structural-status');
   const link=host.querySelector('#published-structural-link');
-  const params=new URLSearchParams(location.search);
-  const variant=(params.get('variant')||document.getElementById('simple-variant')?.value||document.getElementById('vrvariant')?.value||'').trim().toUpperCase();
-  if(!/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(variant)){
-    status.textContent='Enter a variant above to check for published structural evidence.';
-    return;
+  let requestNumber=0;
+  async function refresh(){
+    const ticket=++requestNumber;
+    link.replaceChildren();
+    const params=new URLSearchParams(location.search);
+    const input=document.getElementById('simple-variant');
+    const advanced=document.getElementById('vrvariant');
+    const variant=(input?.value||advanced?.value||params.get('variant')||'').trim().toUpperCase();
+    if(!/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(variant)){
+      status.textContent='Enter a variant above to check for published structural evidence.';
+      return;
+    }
+    status.textContent='Checking published evidence for '+variant+'…';
+    try{
+      const response=await fetch('data/variants/'+encodeURIComponent(variant)+'.json',{cache:'no-store'});
+      if(ticket!==requestNumber)return;
+      if(!response.ok){status.textContent='No validated structural report has been published for '+variant+' yet.';return;}
+      const data=await response.json();
+      if(ticket!==requestNumber)return;
+      if(data.mutation!==variant||data.site?.wild_type_verified!==true){
+        status.textContent='A report was found, but its variant or residue mapping did not validate.';return;
+      }
+      const wt=data.wild_type_contacts;
+      const mutant=data.mutant_contacts;
+      status.textContent=variant+': experimental WT residue '+data.site.chain+':'+data.site.author_residue+
+        ' has '+wt.partner_count+' neighboring residues ('+wt.interchain_partner_count+
+        ' interchain). '+(mutant?'A modeled mutant comparison is available.':'No mutant model has been validated.')+
+        ' Binding free energy: '+(data.energetics==null?'not calculated.':'see evidence.')+
+        ' Conservation: '+(data.conservation==null?'not calculated.':'see evidence.');
+      const a=document.createElement('a');
+      a.href=encodeURIComponent(variant)+'_report.html';
+      a.textContent='Read residue-level '+variant+' structural report';
+      a.style.cssText='display:inline-block;margin-top:10px;color:#1767a5;font-weight:600';
+      link.appendChild(a);
+    }catch(error){
+      if(ticket===requestNumber)status.textContent='The published structural evidence could not be retrieved.';
+    }
   }
-  fetch('data/variants/'+encodeURIComponent(variant)+'.json',{cache:'no-store'}).then(async response=>{
-    if(!response.ok){status.textContent='No validated structural report has been published for '+variant+' yet.';return;}
-    const data=await response.json();
-    if(data.mutation!==variant||data.site?.wild_type_verified!==true){
-      status.textContent='A report was found, but its variant or residue mapping did not validate.';return;
-    }
-    const wt=data.wild_type_contacts;
-    const mutant=data.mutant_contacts;
-    status.textContent=variant+': experimental WT residue '+data.site.chain+':'+data.site.author_residue+
-      ' has '+wt.partner_count+' neighboring residues ('+wt.interchain_partner_count+
-      ' interchain). '+(mutant?'A modeled mutant comparison is available.':'No mutant model has been validated.')+
-      ' Binding free energy: '+(data.energetics==null?'not calculated.':'see evidence.')+
-      ' Conservation: '+(data.conservation==null?'not calculated.':'see evidence.');
-    if(variant==='H1786D'){
-      const a=document.createElement('a');a.href='H1786D_report.html';a.textContent='Read residue-level H1786D structural report';a.style.cssText='display:inline-block;margin-top:10px;color:#1767a5;font-weight:600';link.appendChild(a);
-    }
-  }).catch(()=>{status.textContent='The published structural evidence could not be retrieved.';});
+  for(const id of ['simple-variant','vrvariant']){
+    const field=document.getElementById(id);
+    if(field){field.addEventListener('change',refresh);field.addEventListener('input',refresh);}
+  }
+  document.getElementById('simple-analyze')?.addEventListener('click',refresh);
+  window.addEventListener('popstate',refresh);
+  refresh();
 })();
 </script></body></html>
