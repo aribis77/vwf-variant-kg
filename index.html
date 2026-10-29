@@ -51,6 +51,29 @@ const blob=new Blob([JSON.stringify(job,null,2)],{type:'application/json'});cons
 (function(){
 const get=id=>document.getElementById(id),safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&#39;'}[c]));
 const state={imported:null,reports:[]};let current=null;
+const archiveCache=new Map();
+async function loadStructuralArchive(variant){
+ if(!/^[A-Z][0-9]{1,5}[A-Z]$/.test(variant))return;
+ try{
+  const response=await fetch('./data/structural/'+encodeURIComponent(variant)+'.json',{cache:'no-cache'});
+  if(response.status===404){archiveCache.set(variant,null);return;}
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const doc=await response.json();
+  if(doc.schema!=='vwf-structural-archive/1.0'||doc.variant!==variant)throw Error('Archive schema or variant mismatch');
+  const m=doc.metrics||{};
+  const numbers=[m.residue_1786_contacts?.wt_mean,m.residue_1786_contacts?.variant_mean,m.residue_1786_min_ca_distance_angstrom?.wt_mean,m.residue_1786_min_ca_distance_angstrom?.variant_mean,m.global_interface_contacts?.wt_mean,m.global_interface_contacts?.variant_mean];
+  if(numbers.some(x=>!Number.isFinite(x)))throw Error('Incomplete numeric metrics');
+  archiveCache.set(variant,{
+   wt_site_contacts:numbers[0],mutant_site_contacts:numbers[1],
+   wt_min_ca_distance_angstrom:numbers[2],mutant_min_ca_distance_angstrom:numbers[3],
+   wt_global_interface_contacts:numbers[4],mutant_global_interface_contacts:numbers[5],
+   conclusion:'Exploratory models show fewer local residue contacts but more global interface contacts; direction of functional binding change remains unverified.',
+   confidence:'Exploratory, unvalidated',
+   source_status:doc.provenance?.origin+'; raw trajectory archived: '+Boolean(doc.provenance?.raw_trajectories_available_in_archive),
+   archive_url:'./data/structural/'+variant+'.json'
+  });
+ }catch(e){archiveCache.set(variant,null);const m=document.getElementById('vrmessage');if(m)m.textContent='Structural archive could not be loaded: '+e.message;}
+}
 const archivedExploratory={
  H1786D:{
   variant:'H1786D',source:'Earlier project WT/H1786D exploratory NVT analysis (20 ps per replicate; user-provided project results)',
@@ -335,7 +358,7 @@ function render(){
  const headline=candidate?candidate.name+': '+candidate.prediction.toLowerCase():'No directional functional prediction supported yet';
  const note=candidate?'Mechanism-based hypotheses identify which VWF function to investigate. A domain match does not establish whether activity increases or decreases; assay-based labels are provisional.':'A molecular substitution or contact change alone cannot tell us whether function increases or decreases. Additional calibrated functional evidence is needed.';
  const functionalTable='<table style="width:100%;border-collapse:collapse;margin:14px 0"><thead><tr><th style="text-align:left">VWF function</th><th style="text-align:left">Predicted effect</th><th style="text-align:left">Evidence basis</th></tr></thead><tbody>'+functionalRows.map(x=>'<tr><td style="padding:9px;border-top:1px solid #ddd">'+safe(x.name)+'</td><td style="padding:9px;border-top:1px solid #ddd"><b>'+safe(x.prediction)+'</b></td><td style="padding:9px;border-top:1px solid #ddd">'+safe(x.basis)+'</td></tr>').join('')+'</tbody></table>';
- const archived=archivedExploratory[v]||null;
+ const archived=archiveCache.has(v)?archiveCache.get(v):(archivedExploratory[v]||null);
  const archivedPanel=archived?'<section style="padding:18px;border:1px solid #94a3b8;border-radius:12px;margin:12px 0;background:#f8fafc"><h4>Previously calculated structural results · exploratory</h4><p><b>Residue-local contacts:</b> WT '+archived.wt_site_contacts.toFixed(1)+' versus variant '+archived.mutant_site_contacts.toFixed(1)+' (mean, earlier exploratory models).</p><p><b>Minimum CA distance:</b> WT '+archived.wt_min_ca_distance_angstrom.toFixed(2)+' Å versus variant '+archived.mutant_min_ca_distance_angstrom.toFixed(2)+' Å.</p><p><b>Global interface contacts:</b> WT '+archived.wt_global_interface_contacts+' versus variant '+archived.mutant_global_interface_contacts+'.</p><p><b>Interpretation:</b> '+safe(archived.conclusion)+'</p><p class="sub"><b>Evidence status:</b> '+safe(archived.confidence)+'. '+safe(archived.source_status)+'. These are archived research-summary values, not a new Workbench calculation or experimentally measured binding activity.</p></section>':'';
  const effectPanel='<section aria-label="Functional impact prediction" style="padding:22px;border:2px solid #334155;border-radius:14px;background:#fff;margin-bottom:20px"><div style="font-size:12px;letter-spacing:.08em;font-weight:750;color:#475569">FUNCTIONAL IMPACT PREDICTION · RESEARCH USE</div><h3 style="font-size:24px;margin:10px 0 8px">Does '+safe(v)+' affect VWF?</h3><p style="font-size:20px;font-weight:750;margin:10px 0">'+safe(headline)+'</p><p>'+safe(note)+'</p>'+functionalTable+'<p><b>Experimental validation:</b> '+safe(numeric.length?'Quantitative assay records present; source verification and experimental independence not established.':'Not established from normalized quantitative assays in this report.')+'</p><p><b>Structural prediction:</b> '+safe(safeCount?'WT/mutant model shows '+contact.lost+' lost and '+contact.gained+' gained contacts in '+w.pdb+'. This is not a binding affinity measurement.':(archived?'Earlier exploratory structural results are shown below; no new completed Workbench comparison is available.':'No completed WT/mutant contact comparison available.'))+'</p><details><summary>How predictions are assigned</summary><p>Provisional heuristic thresholds: two or more normalized assay measurements consistently below 70% of control suggest likely impairment; one suggests possible impairment. Two or more within 80–120% suggest likely preservation; one suggests possible preservation. Conflicting measurements remain uncertain. These are exploratory rules, not clinically validated cutoffs. Text-mined claims and structural contact counts are not used as independent functional measurements.</p></details></section>';
  get('vrcontent').innerHTML=effectPanel+archivedPanel+'<section class="interpretation"><div class="interpret-heading"><span class="interpret-eyebrow">VARIANT EVIDENCE SUMMARY</span><h3>VWF '+safe(v)+'</h3></div><h4>What does the evidence tell us?</h4><p class="interpret-conclusion">'+safe(summary)+'</p><p class="interpret-caution">Clinical significance: not determined by this report. Missing evidence is not evidence of no effect.</p>'+synthesisHtml+evidenceCards+evidenceAssessmentHtml+concordHtml+numericHtml+provenanceHtml+technical+'</section>';
@@ -368,8 +391,10 @@ get('vrfile').onchange=async function(){
  render();get('vrmessage').textContent=accepted+' Workbench report(s) imported; '+rejected+' rejected. Results are local to this browser session.';
 };
 get('vrclear').onclick=()=>{state.imported=null;state.reports=[];get('vrfile').value='';render();};
+get('vrshow').addEventListener('click',()=>{const variant=get('vrvariant').value.trim().toUpperCase();loadStructuralArchive(variant).then(()=>{if(get('vrvariant').value.trim().toUpperCase()===variant)render();});});
 const q=new URLSearchParams(location.search),v=q.get('variant');if(v&&/^[A-Za-z][0-9]{1,5}[A-Za-z]$/.test(v))get('vrvariant').value=v.toUpperCase();
 render();
+loadStructuralArchive(get('vrvariant').value.trim().toUpperCase()).then(render);
 })();
 </script><script id="vwf-workbench-bridge">
 (function(){
