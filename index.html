@@ -431,33 +431,44 @@ async function discover(){
      const entry=payload[pdb.toLowerCase()]||payload[pdb.toUpperCase()];
      const records=entry?.UniProt?.[accession]?.mappings||[];
      const hits=records.filter(m=>position>=Number(m.unp_start)&&position<=Number(m.unp_end));
-     const matches=[];
-     for(const m of hits){
-      const start=Number(m.start?.residue_number),end=Number(m.end?.residue_number);
-      const authorStart=Number(m.start?.author_residue_number),authorEnd=Number(m.end?.author_residue_number);
-      const chainId=m.chain_id||m.struct_asym_id||null;
-      const offset=position-Number(m.unp_start);
-      // Offset mapping is only safe for contiguous segments with matching
-      // coordinate and UniProt lengths and no insertion codes.
-      const contiguous=Number.isInteger(start)&&Number.isInteger(end)&&end-start===Number(m.unp_end)-Number(m.unp_start);
-      const authorContiguous=Number.isInteger(authorStart)&&Number.isInteger(authorEnd)&&authorEnd-authorStart===end-start;
-      if(contiguous&&authorContiguous&&chainId){
-       matches.push({chain:chainId,author:authorStart+offset,entity:start+offset});
+     // PDBe segment endpoints may omit author_residue_number. Resolve
+     // polymer sequence indices through PDBe residue_listing instead.
+     const listingResponse=await fetch('https://www.ebi.ac.uk/pdbe/api/pdb/entry/residue_listing/'+pdb.toLowerCase());
+     if(!listingResponse.ok)throw Error('residue listing HTTP '+listingResponse.status);
+     const listing=await listingResponse.json();
+     const chains=new Map();
+     for(const molecule of (listing[pdb.toLowerCase()]?.molecules||[])){
+      for(const ch of (molecule.chains||[])){
+       const key=ch.chain_id;
+       if(!chains.has(key))chains.set(key,new Map());
+       for(const res of (ch.residues||[]))chains.get(key).set(Number(res.residue_number),res);
       }
      }
+     const cr=await fetch('https://files.rcsb.org/download/'+pdb+'.pdb');
+     if(!cr.ok)throw Error('coordinate HTTP '+cr.status);
+     const rows=(await cr.text()).split(/\\r?\\n/);
+     const aa3={ALA:'A',ARG:'R',ASN:'N',ASP:'D',CYS:'C',GLN:'Q',GLU:'E',GLY:'G',HIS:'H',ILE:'I',LEU:'L',LYS:'K',MET:'M',PHE:'F',PRO:'P',SER:'S',THR:'T',TRP:'W',TYR:'Y',VAL:'V'};
+     const matches=[];
+     for(const m of hits){
+      const start=m.start?.residue_number,end=m.end?.residue_number;
+      if(start==null||end==null)continue;
+      const first=Number(start),last=Number(end),offset=position-Number(m.unp_start);
+      if(!Number.isInteger(first)||!Number.isInteger(last)||last-first!==Number(m.unp_end)-Number(m.unp_start))continue;
+      const chainId=m.chain_id;
+      const residue=chains.get(chainId)?.get(first+offset);
+      const author=residue?.author_residue_number;
+      if(author==null)continue;
+      const insertion=String(residue.author_insertion_code||'').trim();
+      const atom=rows.find(line=>line.startsWith('ATOM  ')&&line.slice(21,22)===chainId&&Number(line.slice(22,26))===Number(author)&&line.slice(26,27).trim()===insertion&&aa3[line.slice(17,20).trim()]===match[1]);
+      if(atom)matches.push({chain:chainId,author:Number(author),entity:first+offset});
+     }
      const unique=[...new Map(matches.map(m=>[m.chain+':'+m.author,m])).values()];
-     if(unique.length===1){
-      const m=unique[0];
-      // SIFTS segment mapping is not proof the atom is resolved: verify
-      // actual coordinate residue and wild-type identity in the PDB model.
-      const cr=await fetch('https://files.rcsb.org/download/'+pdb+'.pdb');
-      if(!cr.ok)throw Error('coordinate HTTP '+cr.status);
-      const rows=(await cr.text()).split(/\r?\n/);
-      const aa3={ALA:'A',ARG:'R',ASN:'N',ASP:'D',CYS:'C',GLN:'Q',GLU:'E',GLY:'G',HIS:'H',ILE:'I',LEU:'L',LYS:'K',MET:'M',PHE:'F',PRO:'P',SER:'S',THR:'T',TRP:'W',TYR:'Y',VAL:'V'};
-      const atom=rows.find(line=>line.startsWith('ATOM  ')&&line.slice(21,22)===m.chain&&Number(line.slice(22,26))===m.author&&line.slice(26,27)===' '&&aa3[line.slice(17,20).trim()]===match[1]);
-      if(atom){coordinateVerified=true;chain=m.chain;coordinateNote='SIFTS '+accession+':'+position+' → '+pdb+' chain '+chain+' author residue '+m.author+' ('+match[1]+'), confirmed in ATOM records';}
-      else coordinateNote='SIFTS mapped '+m.chain+':'+m.author+' but the expected histidine was not verified in ATOM records';
-     }else coordinateNote=unique.length?'Multiple coordinate mappings; no unique residue selected':'No contiguous SIFTS UniProt-to-author-residue mapping';
+     if(unique.length){
+      unique.sort((a,b)=>a.chain.localeCompare(b.chain));
+      const selected=unique[0];
+      coordinateVerified=true;chain=selected.chain;
+      coordinateNote='SIFTS and residue listing '+accession+':'+position+' → '+pdb+' '+selected.chain+':'+selected.author+'; '+unique.length+' coordinate-verified chain copies';
+     }else coordinateNote='No SIFTS-mapped residue with matching wild-type identity in deposited ATOM coordinates';
     }catch(e){coordinateNote='Coordinate validation unavailable: '+e.message;}
    }
    const verified=coordinateVerified;
