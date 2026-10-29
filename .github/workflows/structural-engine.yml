@@ -84,6 +84,23 @@ jobs:
           mkdir -p analysis/ci-diagnostics
           python -m analysis.build_h1786d_conservation --output analysis/H1786D_conservation.json 2>&1 | tee analysis/ci-diagnostics/conservation-run.log
           exit ${PIPESTATUS[0]}
+      - name: Publish conservation execution status
+        if: always()
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          output=Path("analysis/H1786D_conservation.json")
+          log=Path("analysis/ci-diagnostics/conservation-run.log")
+          summary=Path(os.environ["GITHUB_STEP_SUMMARY"])
+          with summary.open("a") as f:
+              if output.exists() and output.stat().st_size:
+                  f.write("\\n## H1786 conservation\\nComputed dataset exists; see conservation artifact.\\n")
+              else:
+                  f.write("\\n## H1786 conservation\\nNOT COMPUTED: no validated dataset produced.\\n")
+                  if log.exists():
+                      f.write("Check the conservation-run diagnostic artifact for the error.\\n")
+          PY
       - name: Merge validated conservation evidence when available
         run: |
           python - <<'PY'
