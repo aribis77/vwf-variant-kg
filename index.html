@@ -294,13 +294,13 @@ function render(){
 get('vrshow').onclick=render;
 get('vrshare').onclick=async()=>{if(!current)render();const url=new URL(location.href);url.searchParams.set('variant',get('vrvariant').value.trim().toUpperCase());url.searchParams.set('view','report');try{await navigator.clipboard.writeText(url.href);get('vrmessage').textContent='Report link copied. Imported Workbench data is local and will not be included in the link.';}catch(e){get('vrmessage').textContent=url.href;}};
 get('vrdownload').onclick=()=>{if(!current)render();if(!current)return;const b=new Blob([JSON.stringify(current,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='VWF_'+current.variant+'_integrated_report.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);};
-try{const recovered=JSON.parse(sessionStorage.getItem('vwf-last-workbench-report')||'null');if(recovered&&recovered.schema==='protein-workbench-mechanistic-report/0.1'){state.reports=[recovered];state.imported=recovered;get('vrvariant').value=recovered.mutation;render();get('vrmessage').textContent='Recovered previous Workbench result from this browser session.';}}catch(e){}
+try{const recovered=JSON.parse(sessionStorage.getItem('vwf-last-workbench-report')||'null');if(recovered&&recovered.schema==='protein-workbench-mechanistic-report/0.1'){state.reports=[recovered];state.imported=recovered;if(recovered.mutation===get('vrvariant').value.trim().toUpperCase()){render();get('vrmessage').textContent='Recovered previous Workbench result from this browser session.';}}}catch(e){}
 window.addEventListener('vwf-workbench-result',function(event){
  const j=event.detail;
  if(!j||j.schema!=='protein-workbench-mechanistic-report/0.1')return;
  state.reports=state.reports.filter(r=>!(r.pdb===j.pdb&&r.mutation===j.mutation));
  state.reports.push(j);state.imported=j;get('vrvariant').value=j.mutation;
- render();get('vrmessage').textContent='Automatic Workbench result received for '+j.pdb+' · '+j.mutation+'. '+state.reports.length+' report(s) available in this session.';get('variant-report').scrollIntoView({behavior:'smooth',block:'start'});
+ render();get('vrmessage').textContent='Automatic Workbench result received for '+j.pdb+' · '+j.mutation+'. '+state.reports.length+' report(s) available in this session.';const message=document.getElementById('simple-message');if(message)message.textContent='Structural report received for '+j.mutation+'. Review the updated summary below.';
 });
 get('vrfile').onchange=async function(){
  const files=[...(this.files||[])];if(!files.length)return;
@@ -426,7 +426,7 @@ const valid=v=>/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(v
 function sync(){const v=variant.value.trim().toUpperCase();if(!valid(v)){msg.textContent='Enter a variant such as H1786D.';return false;}document.getElementById('vrvariant').value=v;document.getElementById('pwvariant').value=v;document.getElementById('vrshow').click();history.replaceState(null,'',location.pathname+'?variant='+encodeURIComponent(v)+'&view=report');msg.textContent='Showing the current evidence for '+v+'. Missing evidence is explicitly identified.';return true;}
 document.getElementById('simple-analyze').onclick=sync;
 variant.addEventListener('keydown',e=>{if(e.key==='Enter')sync()});
-document.getElementById('simple-run').onclick=()=>{if(!sync())return;document.getElementById('pwmode').value='combined';document.getElementById('pwlaunch').click();msg.textContent='Structural analysis opened in a new tab. Leave this KG tab open; results will appear here when returned.';};
+document.getElementById('simple-run').onclick=()=>{if(!sync())return;document.getElementById('pwmode').value='combined';document.getElementById('pwlaunch').click();const status=document.getElementById('pwstatus');msg.textContent=status?.textContent||'Requested structural analysis. Check the Workbench tab for progress or mapping errors.';};
 advanced.onclick=()=>{const simple=document.body.classList.toggle('simple-mode');advanced.textContent=simple?'Show research tools and network graph':'Hide research tools and network graph';advanced.setAttribute('aria-expanded',String(!simple));};
 const q=new URLSearchParams(location.search),v=q.get('variant');if(v&&valid(v.toUpperCase()))variant.value=v.toUpperCase();
 window.addEventListener('vwf-workbench-result',()=>{msg.textContent='Structural results received. The evidence summary below has been updated.';});
