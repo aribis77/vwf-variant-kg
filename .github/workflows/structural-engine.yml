@@ -4,6 +4,7 @@ on:
     paths:
       - 'analysis/structural_contacts.py'
       - 'analysis/model_h1786d.py'
+      - 'analysis/render_variant_report.py'
       - 'tests/test_structural_contacts.py'
       - '.github/workflows/structural-engine.yml'
   workflow_dispatch:
@@ -45,6 +46,21 @@ jobs:
           python -m pip install git+https://github.com/openmm/pdbfixer.git
       - name: Generate H1786D model and compare coordinates
         run: python analysis/model_h1786d.py
+      - name: Render readable H1786D report
+        if: always()
+        run: |
+          if [ -s analysis/H1786D_model_comparison.json ]; then
+            python analysis/render_variant_report.py --input analysis/H1786D_model_comparison.json --output analysis/H1786D_report.html
+          elif [ -s analysis/H1786D_contacts.json ]; then
+            python analysis/render_variant_report.py --input analysis/H1786D_contacts.json --output analysis/H1786D_report.html
+          fi
+      - name: Upload readable H1786D report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: H1786D-readable-structural-report
+          path: analysis/H1786D_report.html
+          if-no-files-found: warn
       - name: Preserve WT-mutant model comparison
         if: always()
         uses: actions/upload-artifact@v4
