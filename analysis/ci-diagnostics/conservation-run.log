@@ -1,9 +1,9 @@
 Traceback (most recent call last):
   File "<frozen runpy>", line 198, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/home/runner/work/vwf-variant-kg/vwf-variant-kg/analysis/build_h1786d_conservation.py", line 112, in <module>
+  File "/home/runner/work/vwf-variant-kg/vwf-variant-kg/analysis/build_h1786d_conservation.py", line 120, in <module>
     print(json.dumps(run(args.output),indent=2))
                      ^^^^^^^^^^^^^^^^
-  File "/home/runner/work/vwf-variant-kg/vwf-variant-kg/analysis/build_h1786d_conservation.py", line 65, in run
+  File "/home/runner/work/vwf-variant-kg/vwf-variant-kg/analysis/build_h1786d_conservation.py", line 73, in run
     raise ValueError("Fewer than five curated orthologs retrieved: "+repr(failures))
-ValueError: Fewer than five curated orthologs retrieved: {'rat': 'Taxon 10116: expected one unambiguous full-length VWF, got 5', 'cow': 'Taxon 9913: expected one unambiguous full-length VWF, got 4', 'rabbit': 'Taxon 9986: expected one unambiguous full-length VWF, got 2', 'chimpanzee': 'Taxon 9598: expected one unambiguous full-length VWF, got 2', 'macaque': 'Taxon 9544: expected one unambiguous full-length VWF, got 4', 'horse': 'Taxon 9796: expected one unambiguous full-length VWF, got 9', 'sheep': 'Taxon 9940: expected one unambiguous full-length VWF, got 2', 'cat': 'Taxon 9685: expected one unambiguous full-length VWF, got 3', 'chicken': 'Taxon 9031: expected one unambiguous full-length VWF, got 5'}
+ValueError: Fewer than five curated orthologs retrieved: {'rat': 'HTTP Error 500: Internal Server Error', 'cow': 'Taxon 9913: expected one unambiguous full-length VWF, got 4', 'rabbit': 'Taxon 9986: expected one unambiguous full-length VWF, got 2', 'chimpanzee': 'Taxon 9598: expected one unambiguous full-length VWF, got 2', 'macaque': 'Taxon 9544: expected one unambiguous full-length VWF, got 4', 'horse': 'Taxon 9796: expected one unambiguous full-length VWF, got 9', 'sheep': 'Taxon 9940: expected one unambiguous full-length VWF, got 2', 'cat': 'Taxon 9685: expected one unambiguous full-length VWF, got 3', 'chicken': 'Taxon 9031: expected one unambiguous full-length VWF, got 5'}
