@@ -137,12 +137,32 @@ jobs:
           mkdir -p data/variants
           if [ -s analysis/H1786D_model_comparison.json ]; then
             cp analysis/H1786D_model_comparison.json data/variants/H1786D.json
+          elif [ -s data/variants/H1786D.json ] && python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("data/variants/H1786D.json").read_text())
+          assert d.get("mutant_contacts") and d.get("site",{}).get("wild_type_verified")
+          PY
+          then
+            echo "Existing verified mutant comparison preserved; no downgrade to WT-only data."
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          old=Path("data/variants/H1786D.json")
+          d=json.loads(old.read_text())
+          conservation=json.loads(Path("analysis/H1786D_conservation.json").read_text())
+          d["conservation"]=conservation
+          old.write_text(json.dumps(d,indent=2)+"\\n")
+          PY
+            python analysis/render_variant_report.py --input data/variants/H1786D.json --output H1786D_report.html
           else
-            cp analysis/H1786D_contacts.json data/variants/H1786D.json
+            echo "No validated mutant comparison available; refusing WT-only publication."
+            exit 1
           fi
+          cp analysis/H1786D_conservation.json data/variants/H1786D_conservation.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add H1786D_report.html data/variants/H1786D.json
+          git add H1786D_report.html data/variants/H1786D.json data/variants/H1786D_conservation.json
           git diff --cached --quiet || (git commit -m "Publish H1786D structural evidence" && git push)
       - name: Publish failure diagnostics for remote inspection
         if: failure()
