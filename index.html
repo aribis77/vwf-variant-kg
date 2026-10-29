@@ -376,7 +376,7 @@ function render(){
  const residueInfo='<section style="border:1px solid #cbd5e1;border-radius:12px;padding:18px;margin-bottom:14px"><h3>Residue and molecular context</h3><p><b>Substitution:</b> '+safe(aaNames[residueMatch?.[1]]||residueMatch?.[1])+' ('+safe(residueMatch?.[1])+') → '+safe(aaNames[residueMatch?.[3]]||residueMatch?.[3])+' ('+safe(residueMatch?.[3])+') at canonical VWF residue '+residueNumber+' (UniProt P04275).</p><p><b>Domain:</b> '+safe(domain)+'.</p><p><b>Experimental coordinate mapping:</b> '+(v==='H1786D'?'4DMU VWF chains B/D/F/H/J/L, author residue 1786; 1AO3 chains A/B, author residue 101 (previously verified coordinate mappings).':'Select a PDB below and run residue mapping; no coordinate-specific identity is asserted here.')+'</p><p><b>Residue-level interaction partners:</b> '+(v==='H1786D'?'Local contact counts are available, but the individual interacting residue identities have not been recovered from the archived summary.':'Not resolved from an atomic contact analysis.')+'</p></section>';
  const reportsForVariant=state.reports.filter(x=>x.mutation===v);
  const metricReports=[...reportsForVariant,...(w?[w]:[])];
- const latestMetric=(name)=>metricReports.find(x=>x?.metrics?.[name])?.metrics?.[name]||null;
+ const latestMetric=(name)=>{const candidates=metricReports.filter(x=>x?.metrics?.[name]&&x?.coordinate_mapping?.verified_in_loaded_coordinates!==false).sort((a,b)=>Date.parse(b.created||0)-Date.parse(a.created||0));return candidates[0]?.metrics?.[name]||null;};
  const freeEnergy=latestMetric('energetics');
  const conservation=latestMetric('conservation');
  const displayMetric=(x)=>typeof x==='number'&&Number.isFinite(x)?String(Number(x.toPrecision(5))):typeof x==='string'?x:null;
@@ -396,7 +396,7 @@ try{const recovered=JSON.parse(sessionStorage.getItem('vwf-last-workbench-report
 window.addEventListener('vwf-workbench-result',function(event){
  const j=event.detail;
  if(!j||j.schema!=='protein-workbench-mechanistic-report/0.1')return;
- state.reports=state.reports.filter(r=>!(r.pdb===j.pdb&&r.mutation===j.mutation));
+ state.reports=state.reports.filter(r=>!(r.pdb===j.pdb&&r.mutation===j.mutation&&JSON.stringify(Object.keys(r.metrics||{}).sort())===JSON.stringify(Object.keys(j.metrics||{}).sort())));
  state.reports.push(j);state.imported=j;saveWorkbenchReports();if(get('vrvariant').value.trim().toUpperCase()!==j.mutation){get('vrmessage').textContent='Received a report for '+j.mutation+'; the selected variant remains unchanged.';return;}
  render();get('vrmessage').textContent='Automatic Workbench result received for '+j.pdb+' · '+j.mutation+'. '+state.reports.length+' report(s) available in this session.';const message=document.getElementById('simple-message');if(message)message.textContent='Structural report received for '+j.mutation+'. Review the updated summary below.';
 });
