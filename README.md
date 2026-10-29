@@ -15,12 +15,12 @@ The interface currently supports the following requests:
 | Interface contacts | Runs structural contact mapping and mutant construction after validating the PDB residue mapping |
 | Relative binding energy | Runs empirical energy scoring; this **does not establish a binding ΔΔG** |
 | Conformational sampling | Runs an exploratory quick ensemble, not validated production MD |
-| Sequence conservation | Requires an accessible HTTPS FASTA/CLUSTAL multiple-sequence alignment; no automatic homolog search or alignment construction |
+| Sequence conservation | Attempts automatic RCSB PDB homologue search and query-anchored alignment; a custom HTTPS FASTA/CLUSTAL alignment is optional |
 | Combined | Attempts contact, mutant, empirical-energy and quick-ensemble analyses, optionally conservation, and exports a machine-readable analysis-status report |
 
 ### How to use
 
-Select a variant, enter a validated four-character PDB accession, optionally supply the chain and an HTTPS alignment URL, choose the analysis and click **Load structure in Workbench**. A PDB residue number can differ from the numbering of full-length VWF. The Workbench validates the expected wild-type amino acid and requires an unambiguous residue match before attempting mutation analysis.
+Select a variant, enter a validated four-character PDB accession, optionally supply the chain; a custom HTTPS alignment URL is available under Advanced, choose the analysis and click **Load structure in Workbench**. A PDB residue number can differ from the numbering of full-length VWF. The Workbench validates the expected wild-type amino acid and requires an unambiguous residue match before attempting mutation analysis.
 
 The **Export request JSON** action is a separate metadata-only export, not an executable computational job. The standalone **Open Protein Workbench** link opens Workbench without a configured job.
 
@@ -29,7 +29,7 @@ The **Export request JSON** action is a separate metadata-only export, not an ex
 - The KG does not yet maintain a validated automatic variant-to-PDB residue mapping. The PDB ID must be supplied by the user.
 - The workflow is a cross-site URL handoff, not embedded computing or server-side job orchestration.
 - Results do not automatically return to the KG or update evidence records.
-- Conservation requires a supplied, methodologically suitable alignment; browser cross-origin restrictions may prevent fetching it.
+- Automatic conservation uses structurally characterized PDB homologues and may be biased by PDB coverage. A curated alignment is recommended for evolutionary conclusions. Network or cross-origin restrictions may prevent automatic retrieval.
 - Combined reports record which analyses ran, but do not yet generate an evidence-weighted causal explanation from KG literature.
 - Exploratory conformational ensembles and empirical scores should not be described as production MD or validated binding free energies.
 - The implementation has been committed, but no independently documented end-to-end live-browser validation has been completed.
