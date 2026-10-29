@@ -446,7 +446,7 @@ async function discover(){
      }
      const cr=await fetch('https://files.rcsb.org/download/'+pdb+'.pdb');
      if(!cr.ok)throw Error('coordinate HTTP '+cr.status);
-     const rows=(await cr.text()).split(/\\r?\\n/);
+     const rows=(await cr.text()).split(/\r?\n/);
      const aa3={ALA:'A',ARG:'R',ASN:'N',ASP:'D',CYS:'C',GLN:'Q',GLU:'E',GLY:'G',HIS:'H',ILE:'I',LEU:'L',LYS:'K',MET:'M',PHE:'F',PRO:'P',SER:'S',THR:'T',TRP:'W',TYR:'Y',VAL:'V'};
      const matches=[];
      for(const m of hits){
@@ -484,7 +484,7 @@ async function discover(){
  }catch(e){msg('Automatic PDB discovery unavailable: '+e.message)}
 }
 get('pwdiscover').onclick=discover;
-get('pwbatch').onclick=()=>{const options=[...get('pwchoices').options].filter(o=>o.value&&o.dataset.verified==='true');const list=get('pwbatchlist');list.replaceChildren();if(!options.length){msg('No mapped candidates available. Run discovery first.');return;}const seen=new Set();for(const opt of options){if(seen.has(opt.value)||seen.size>=8)continue;seen.add(opt.value);const a=document.createElement('a');const u=new URL('https://aribis77.github.io/protein-workbench/');u.searchParams.set('pdb',opt.value);u.searchParams.set('mutation',get('pwvariant').value.trim().toUpperCase());u.searchParams.set('analysis','combined');a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';a.addEventListener('click',e=>{e.preventDefault();window.VWFLaunchWorkbench(u);});a.textContent='Run '+opt.value+' in Workbench';a.style.marginRight='16px';list.appendChild(a);}msg('Prepared '+seen.size+' independent Workbench launch links. Each structure must validate the mutation and be run separately; import their JSON reports together afterward.');};
+get('pwbatch').onclick=()=>{const options=[...get('pwchoices').options].filter(o=>o.value&&o.dataset.verified==='true');const list=get('pwbatchlist');list.replaceChildren();if(!options.length){msg('No mapped candidates available. Run discovery first.');return;}const seen=new Set();for(const opt of options){if(seen.has(opt.value)||seen.size>=8)continue;seen.add(opt.value);const a=document.createElement('a');const u=new URL('https://aribis77.github.io/protein-workbench/');u.searchParams.set('pdb',opt.value);u.searchParams.set('mutation',get('pwvariant').value.trim().toUpperCase());u.searchParams.set('analysis','combined');if(opt.dataset.chain)u.searchParams.set('chain',opt.dataset.chain);a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';a.addEventListener('click',e=>{e.preventDefault();window.VWFLaunchWorkbench(u);});a.textContent='Run '+opt.value+' in Workbench';a.style.marginRight='16px';list.appendChild(a);}msg('Prepared '+seen.size+' independent Workbench launch links. Each structure must validate the mutation and be run separately; completed results return automatically to the KG when launched from here.');};
 get('pwchoices').onchange=function(){if(this.value){get('pwpdb').value=this.value;get('pwchain').value=this.selectedOptions[0]?.dataset.chain||'';}};
 })();
 </script><script id="simple-experience-script">
