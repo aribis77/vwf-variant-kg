@@ -22,9 +22,20 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m unittest discover -s tests -p 'test_structural_contacts.py' -v
-      - run: python -m unittest discover -s tests -p 'test_variant_report.py' -v
-      - run: python -m unittest discover -s tests -p 'test_conservation.py' -v
+      - name: Execute unit tests and retain diagnostic output
+        id: tests
+        run: |
+          mkdir -p analysis/ci-diagnostics
+          set +e
+          python -m unittest discover -s tests -p 'test_structural_contacts.py' -v > analysis/ci-diagnostics/structural-tests.log 2>&1
+          structural=$?
+          python -m unittest discover -s tests -p 'test_variant_report.py' -v > analysis/ci-diagnostics/report-tests.log 2>&1
+          report=$?
+          python -m unittest discover -s tests -p 'test_conservation.py' -v > analysis/ci-diagnostics/conservation-tests.log 2>&1
+          conservation=$?
+          for file in analysis/ci-diagnostics/*.log; do echo "===== $file ====="; cat "$file"; done
+          printf 'structural=%s report=%s conservation=%s\\n' "$structural" "$report" "$conservation" > analysis/ci-diagnostics/summary.txt
+          if [ "$structural" -ne 0 ] || [ "$report" -ne 0 ] || [ "$conservation" -ne 0 ]; then exit 1; fi
       - name: Analyse experimental H1786D site in 4DMU
         run: python analysis/run_h1786d.py
       - name: Verify real structure report and publish readable summary
@@ -80,6 +91,22 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add H1786D_report.html data/variants/H1786D.json
           git diff --cached --quiet || (git commit -m "Publish H1786D structural evidence" && git push)
+      - name: Publish failure diagnostics for remote inspection
+        if: failure()
+        run: |
+          mkdir -p analysis/ci-diagnostics
+          echo "Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" > analysis/ci-diagnostics/run.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add analysis/ci-diagnostics/
+          git diff --cached --quiet || (git commit -m "Record structural CI failure diagnostics [skip ci]" && git push)
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: structural-ci-diagnostics
+          path: analysis/ci-diagnostics/
+          if-no-files-found: warn
       - name: Upload readable H1786D report
         if: always()
         uses: actions/upload-artifact@v4
