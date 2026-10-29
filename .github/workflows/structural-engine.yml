@@ -58,6 +58,20 @@ jobs:
           elif [ -s analysis/H1786D_contacts.json ]; then
             python analysis/render_variant_report.py --input analysis/H1786D_contacts.json --output analysis/H1786D_report.html
           fi
+      - name: Copy validated report into website
+        if: success()
+        run: |
+          cp analysis/H1786D_report.html H1786D_report.html
+          mkdir -p data/variants
+          if [ -s analysis/H1786D_model_comparison.json ]; then
+            cp analysis/H1786D_model_comparison.json data/variants/H1786D.json
+          else
+            cp analysis/H1786D_contacts.json data/variants/H1786D.json
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add H1786D_report.html data/variants/H1786D.json
+          git diff --cached --quiet || (git commit -m "Publish H1786D structural evidence" && git push)
       - name: Upload readable H1786D report
         if: always()
         uses: actions/upload-artifact@v4
