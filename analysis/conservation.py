@@ -30,7 +30,10 @@ def assess(records,reference,position,expected="H",minimum_orthologs=5):
     lengths={len(s) for s in records.values()}
     if len(lengths)!=1:raise ValueError("Input must be an aligned FASTA of equal-length sequences")
     ref=records[reference]
-    residues=[i for i,c in enumerate(ref) if c in AMINO]
+    # UniProt numbering advances at every reference residue, including X/U/O/B/Z;
+    # only alignment gaps are excluded. Filtering to canonical amino acids here
+    # would silently shift downstream positions in otherwise valid alignments.
+    residues=[i for i,c in enumerate(ref) if c!="-"]
     if position<1 or position>len(residues):raise ValueError("Reference position out of range")
     col=residues[position-1]
     if ref[col]!=expected:raise ValueError("Reference wild-type residue mismatch")
