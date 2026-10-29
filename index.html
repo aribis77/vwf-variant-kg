@@ -51,6 +51,15 @@ const blob=new Blob([JSON.stringify(job,null,2)],{type:'application/json'});cons
 (function(){
 const get=id=>document.getElementById(id),safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&#39;'}[c]));
 const state={imported:null,reports:[]};let current=null;
+const savedReportsKey='vwf-validated-workbench-reports-v1';
+function saveWorkbenchReports(){
+ try{localStorage.setItem(savedReportsKey,JSON.stringify(state.reports.slice(-30)));}catch(e){}
+}
+try{
+ const previous=JSON.parse(localStorage.getItem(savedReportsKey)||'[]');
+ if(Array.isArray(previous))state.reports=previous.filter(x=>x&&x.schema==='protein-workbench-mechanistic-report/0.1'&&/^[A-Z][0-9]{1,5}[A-Z]$/.test(x.mutation||'')&&/^[A-Z0-9]{4}$/.test(x.pdb||'')&&x.coordinate_mapping?.verified_in_loaded_coordinates===true).slice(-30);
+}catch(e){}
+
 const archiveCache=new Map();
 async function loadStructuralArchive(variant){
  if(!/^[A-Z][0-9]{1,5}[A-Z]$/.test(variant))return;
@@ -235,7 +244,7 @@ function assessEvidence(observations,workbench){
  return {classification:'Insufficient evidence for clinical classification',source_quality:sourceQuality,clinical,functional,structural,missing,counts:{records:records.length,audited:audited.length,linked:linked.length,distinct_sources:distinctSources.size,endpoint_types:endpointTypes.size,clinical_records:patientRecords.length,functional_records:functionalRecords.length},limitations:['Keyword-based evidence grouping is a navigation aid, not expert adjudication','A source-audit label is metadata, not proof of validity','Multiple records from one study are not independent confirmations','No automated pathogenicity or severity scoring']};
 }
 function report(v){
- const m=matching(v),imported=state.imported&&state.imported.mutation===v?state.imported:null;
+ const m=matching(v),imported=(state.imported&&state.imported.mutation===v?state.imported:state.reports.filter(x=>x.mutation===v).at(-1))||null;
  const audits=m.direct.reduce((a,o)=>(a[auditStatus(o)]=(a[auditStatus(o)]||0)+1,a),{});
  const sourceUrls=[...new Set(m.direct.map(o=>o.source_url).filter(u=>/^https:\/\//.test(u)))];
  const evidence={
@@ -388,7 +397,7 @@ window.addEventListener('vwf-workbench-result',function(event){
  const j=event.detail;
  if(!j||j.schema!=='protein-workbench-mechanistic-report/0.1')return;
  state.reports=state.reports.filter(r=>!(r.pdb===j.pdb&&r.mutation===j.mutation));
- state.reports.push(j);state.imported=j;if(get('vrvariant').value.trim().toUpperCase()!==j.mutation){get('vrmessage').textContent='Received a report for '+j.mutation+'; the selected variant remains unchanged.';return;}
+ state.reports.push(j);state.imported=j;saveWorkbenchReports();if(get('vrvariant').value.trim().toUpperCase()!==j.mutation){get('vrmessage').textContent='Received a report for '+j.mutation+'; the selected variant remains unchanged.';return;}
  render();get('vrmessage').textContent='Automatic Workbench result received for '+j.pdb+' · '+j.mutation+'. '+state.reports.length+' report(s) available in this session.';const message=document.getElementById('simple-message');if(message)message.textContent='Structural report received for '+j.mutation+'. Review the updated summary below.';
 });
 get('vrfile').onchange=async function(){
