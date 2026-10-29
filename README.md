@@ -41,3 +41,7 @@ Keep primary experimental observations, published computational claims, and new 
 ## Related project
 
 [The Protein Workbench](https://github.com/aribis77/protein-workbench) is developed and maintained as an independent, general-purpose structural biology application.
+
+### Quantitative evidence profile
+
+When a compatible Workbench combined JSON report contains `metrics`, the variant report displays measured contact turnover and conservation fractions and records available empirical energy and sampling evidence. The downloadable integrated JSON includes a `derived_quantitative_profile` and `analysis_coverage`. No functional-impact, evidence-confidence, mechanistic-concordance or overall 0–100 score is assigned until calibration and evidence auditing. Imported results remain local to the browser.
