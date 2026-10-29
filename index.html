@@ -635,6 +635,23 @@ window.addEventListener('load',()=>{const q=new URLSearchParams(location.search)
       }
       const wt=data.wild_type_contacts;
       const mutant=data.mutant_contacts;
+      const wtInter=wt.partner_residues.filter(p=>p.inter_chain);
+      const mutInter=mutant?.partner_residues?.filter(p=>p.inter_chain)||[];
+      const partnerKey=p=>p.chain+':'+p.author_residue+(p.insertion_code||'');
+      const mutantKeys=new Set(mutInter.map(partnerKey));
+      const lost=wtInter.filter(p=>!mutantKeys.has(partnerKey(p)));
+      const interpretation=document.createElement('p');
+      interpretation.style.cssText='margin-top:10px;line-height:1.55';
+      if(mutant){
+        interpretation.textContent='Structural assessment: local interface contacts are altered in the modeled variant ('+
+          wtInter.length+' to '+mutInter.length+' interchain residue partners; '+
+          wt.atom_pair_count+' to '+mutant.atom_pair_count+' total atom-pair contacts). '+
+          (lost.length?'Lost interface partners: '+lost.map(p=>partnerKey(p)+' ('+p.residue+')').join(', ')+'. ':'')+
+          'This supports a possible structural effect, but the unrelaxed mutant model does not establish reduced collagen binding or clinical pathogenicity.';
+      }else{
+        interpretation.textContent='Structural assessment: experimental wild-type residue environment verified. A mutation effect cannot be determined from WT coordinates alone.';
+      }
+      link.appendChild(interpretation);
       status.textContent=variant+': experimental WT residue '+data.site.chain+':'+data.site.author_residue+
         ' has '+wt.partner_count+' neighboring residues ('+wt.interchain_partner_count+
         ' interchain). '+(mutant?'A modeled mutant comparison is available.':'No mutant model has been validated.')+
