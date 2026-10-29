@@ -80,6 +80,24 @@ def compare_models(wild_type_path, mutant_path, chain, position, wt, mut, cutoff
         raise ValueError("Mutant coordinate model is missing the requested site")
     if AA3.get(names[site])!=mut:
         raise ValueError(f"Mutant coordinate mismatch: expected {mut}, found {names[site]}")
+    # Reject comparisons if preprocessing has silently altered the local
+    # backbone or removed neighbors; otherwise contact deltas are misleading.
+    wt_residues,wt_names=atoms_from_pdb(wild_type_path)
+    def ca_atom(atom_list):
+        return next((xyz for name,xyz in atom_list if name=="CA"),None)
+    for key,wt_atoms in wt_residues.items():
+        wt_ca=ca_atom(wt_atoms)
+        if wt_ca is None:continue
+        distance_to_site=min((math.sqrt(sum((a-b)**2 for a,b in zip(wt_ca,xyz)))
+                              for _,xyz in wt_residues[site]),default=float("inf"))
+        if distance_to_site>cutoff+10:continue
+        if key not in residues:
+            raise ValueError(f"Mutant model removed nearby residue {key}")
+        if key!=site and names[key]!=wt_names[key]:
+            raise ValueError(f"Mutant model changed neighboring residue {key}")
+        mut_ca=ca_atom(residues[key])
+        if mut_ca is None or math.dist(wt_ca,mut_ca)>0.5:
+            raise ValueError(f"Mutant model changed local backbone at {key}")
     partners=[]
     for key,atoms in residues.items():
         if key==site:continue
