@@ -37,6 +37,19 @@ class ConservationPipelineTests(unittest.TestCase):
             self.assertEqual(len(result["ortholog_accessions_used"]),12)
             self.assertAlmostEqual(result["reference_residue_fraction"],0.5)
 
+    def test_unreviewed_unique_full_length_fallback(self):
+        entry={"primaryAccession":"A12345","entryType":"UniProtKB unreviewed (TrEMBL)",
+               "sequence":{"length":2813}}
+        with patch.object(pipeline,"get_json",return_value={"results":[entry]}):
+            self.assertEqual(pipeline.select_ortholog(10116),"A12345")
+
+    def test_ambiguous_unreviewed_orthologs_rejected(self):
+        entries=[{"primaryAccession":a,"entryType":"UniProtKB unreviewed (TrEMBL)",
+                  "sequence":{"length":2813}} for a in ("A12345","B12345")]
+        with patch.object(pipeline,"get_json",return_value={"results":entries}):
+            with self.assertRaisesRegex(ValueError,"unambiguous"):
+                pipeline.select_ortholog(10116)
+
     def test_alignment_sequence_mutation_rejected(self):
         reference="A"*1785+"H"+"A"*300
         accessions={taxon:"TEST"+str(taxon) for taxon in pipeline.TAXA.values()}
