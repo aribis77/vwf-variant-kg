@@ -50,6 +50,24 @@ class ConservationPipelineTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"unambiguous"):
                 pipeline.select_ortholog(10116)
 
+    def test_stronger_protein_evidence_breaks_tie(self):
+        entries=[
+            {"primaryAccession":"A12345","entryType":"UniProtKB unreviewed (TrEMBL)",
+             "sequence":{"length":2813},"proteinExistence":"Predicted"},
+            {"primaryAccession":"B12345","entryType":"UniProtKB unreviewed (TrEMBL)",
+             "sequence":{"length":2813},"proteinExistence":"Evidence at protein level"}]
+        with patch.object(pipeline,"get_json",return_value={"results":entries}):
+            self.assertEqual(pipeline.select_ortholog(10116),"B12345")
+
+    def test_equal_protein_evidence_remains_ambiguous(self):
+        entries=[
+            {"primaryAccession":a,"entryType":"UniProtKB unreviewed (TrEMBL)",
+             "sequence":{"length":2813},"proteinExistence":"Predicted"}
+            for a in ("A12345","B12345")]
+        with patch.object(pipeline,"get_json",return_value={"results":entries}):
+            with self.assertRaisesRegex(ValueError,"unambiguous"):
+                pipeline.select_ortholog(10116)
+
     def test_alignment_sequence_mutation_rejected(self):
         reference="A"*1785+"H"+"A"*300
         accessions={taxon:"TEST"+str(taxon) for taxon in pipeline.TAXA.values()}
