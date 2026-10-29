@@ -30,6 +30,27 @@ def render(data):
     content=table("Experimental wild-type environment",wt)
     if mutant and delta:
         content+=table("Modeled "+esc(data["mutation"])+" environment",mutant)
+        wt_inter={ (p["chain"],p["author_residue"],p.get("insertion_code","")):p
+                   for p in wt["partner_residues"] if p["inter_chain"] }
+        mut_inter={ (p["chain"],p["author_residue"],p.get("insertion_code","")):p
+                    for p in mutant["partner_residues"] if p["inter_chain"] }
+        lost_inter=sorted(wt_inter.keys()-mut_inter.keys())
+        gained_inter=sorted(mut_inter.keys()-wt_inter.keys())
+        content+="<h2>Interface interpretation</h2><p>Interchain residue partners: "+esc(len(wt_inter))+\
+                 " in WT versus "+esc(len(mut_inter))+" in the modeled mutant. "
+        if lost_inter:
+            content+="Lost interchain partners: "+esc(", ".join(
+                k[0]+":"+str(k[1])+k[2]+" ("+wt_inter[k]["residue"]+")" for k in lost_inter))+". "
+        if gained_inter:
+            content+="Gained interchain partners: "+esc(", ".join(
+                k[0]+":"+str(k[1])+k[2]+" ("+mut_inter[k]["residue"]+")" for k in gained_inter))+". "
+        content+="This is evidence of a geometric change in an unrelaxed model, not evidence of a quantified binding-affinity change.</p>"
+        content+="<h3>Interchain residue-by-residue comparison</h3><table><thead><tr><th>Partner</th><th>WT atom pairs</th><th>Mutant atom pairs</th><th>Change</th></tr></thead><tbody>"
+        for key in sorted(wt_inter.keys()|mut_inter.keys()):
+            before=wt_inter.get(key,{}).get("atom_pairs",0)
+            after=mut_inter.get(key,{}).get("atom_pairs",0)
+            content+="<tr><td>"+esc(key[0]+":"+str(key[1])+key[2])+"</td><td>"+esc(before)+"</td><td>"+esc(after)+"</td><td>"+esc(after-before)+"</td></tr>"
+        content+="</tbody></table>"
         content+="<h2>WT versus mutant</h2><p>Atom-pair contact change: "+esc(delta["delta_atom_pairs"])+                 "; lost residue partners: "+esc(len(delta["lost_partner_residues"]))+                 "; gained residue partners: "+esc(len(delta["gained_partner_residues"]))+".</p>"
         content+="<h3>Lost residue contacts</h3>"+table("WT-only partners",{
             "partner_count":len(delta["lost_partner_residues"]),
