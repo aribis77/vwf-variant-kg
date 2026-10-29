@@ -45,3 +45,7 @@ Keep primary experimental observations, published computational claims, and new 
 ### Quantitative evidence profile
 
 When a compatible Workbench combined JSON report contains `metrics`, the variant report displays measured contact turnover and conservation fractions and records available empirical energy and sampling evidence. The downloadable integrated JSON includes a `derived_quantitative_profile` and `analysis_coverage`. No functional-impact, evidence-confidence, mechanistic-concordance or overall 0–100 score is assigned until calibration and evidence auditing. Imported results remain local to the browser.
+
+### Multi-structure workflow (experimental)
+
+Use **Discover suitable PDBs**, then **Prepare multi-PDB runs** to obtain up to eight separate combined-analysis links. Each PDB must independently validate residue mapping in Workbench. Download its combined JSON result and import multiple JSON files simultaneously into the variant report. The report displays per-structure measurements and descriptive ranges for contact turnover and conservation. This is **not yet unattended batch execution**: the browser-based Workbench runs remain separate, RCSB discovery and mapping require live validation, and structures must not be treated as independent biological replicates. Reports are session-local; export the integrated JSON to preserve results.
