@@ -1,0 +1,11 @@
+test_duplicate_orthologs_are_excluded (test_conservation.ConservationTests.test_duplicate_orthologs_are_excluded) ... ok
+test_reference_gap_mapping_and_fraction (test_conservation.ConservationTests.test_reference_gap_mapping_and_fraction) ... ok
+test_reference_numbering_counts_unknown_residues (test_conservation.ConservationTests.test_reference_numbering_counts_unknown_residues) ... ok
+test_reject_insufficient_coverage (test_conservation.ConservationTests.test_reject_insufficient_coverage) ... ok
+test_reject_unaligned_input (test_conservation.ConservationTests.test_reject_unaligned_input) ... ok
+test_reject_wrong_reference_residue (test_conservation.ConservationTests.test_reject_wrong_reference_residue) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.000s
+
+OK

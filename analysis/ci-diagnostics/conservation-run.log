@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/runner/work/vwf-variant-kg/vwf-variant-kg/analysis/build_h1786d_conservation.py", line 111, in <module>
+    print(json.dumps(run(args.output),indent=2))
+                     ^^^^^^^^^^^^^^^^
+  File "/home/runner/work/vwf-variant-kg/vwf-variant-kg/analysis/build_h1786d_conservation.py", line 64, in run
+    raise ValueError("Fewer than five curated orthologs retrieved: "+repr(failures))
+ValueError: Fewer than five curated orthologs retrieved: {'rat': 'Taxon 10116: expected one reviewed full-length VWF, got 0', 'cow': 'Taxon 9913: expected one reviewed full-length VWF, got 0', 'rabbit': 'Taxon 9986: expected one reviewed full-length VWF, got 0', 'chimpanzee': 'Taxon 9598: expected one reviewed full-length VWF, got 0', 'macaque': 'Taxon 9544: expected one reviewed full-length VWF, got 0', 'horse': 'Taxon 9796: expected one reviewed full-length VWF, got 0', 'sheep': 'Taxon 9940: expected one reviewed full-length VWF, got 0', 'cat': 'Taxon 9685: expected one reviewed full-length VWF, got 0', 'chicken': 'Taxon 9031: expected one reviewed full-length VWF, got 0'}

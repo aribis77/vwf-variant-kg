@@ -1,0 +1,12 @@
+test_contacts_and_no_invented_mutant (test_structural_contacts.StructuralTests.test_contacts_and_no_invented_mutant) ... ok
+test_heavy_atom_named_hg_is_not_dropped (test_structural_contacts.StructuralTests.test_heavy_atom_named_hg_is_not_dropped) ... ok
+test_local_backbone_movement_rejected (test_structural_contacts.StructuralTests.test_local_backbone_movement_rejected) ... ok
+test_missing_site_rejected (test_structural_contacts.StructuralTests.test_missing_site_rejected) ... ok
+test_mutant_comparison (test_structural_contacts.StructuralTests.test_mutant_comparison) ... ok
+test_unmutated_model_rejected (test_structural_contacts.StructuralTests.test_unmutated_model_rejected) ... ok
+test_wrong_wild_type_rejected (test_structural_contacts.StructuralTests.test_wrong_wild_type_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.003s
+
+OK

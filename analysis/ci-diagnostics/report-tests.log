@@ -1,0 +1,9 @@
+test_escapes_untrusted_interpretation (test_variant_report.ReportTests.test_escapes_untrusted_interpretation) ... ok
+test_mutant_report_has_comparison_and_caveat (test_variant_report.ReportTests.test_mutant_report_has_comparison_and_caveat) ... ok
+test_rejects_unverified_mapping (test_variant_report.ReportTests.test_rejects_unverified_mapping) ... ok
+test_wild_type_report_has_residue_and_no_false_mutant (test_variant_report.ReportTests.test_wild_type_report_has_residue_and_no_false_mutant) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.001s
+
+OK
