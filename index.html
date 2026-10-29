@@ -67,6 +67,34 @@ function compareStructures(reports){
  const summarize=a=>({count:a.length,per_structure:a,minimum:a.length?Math.min(...a.map(x=>x.value)):null,maximum:a.length?Math.max(...a.map(x=>x.value)):null,range:a.length?Math.max(...a.map(x=>x.value))-Math.min(...a.map(x=>x.value)):null});
  return {structures:values.map(r=>({pdb:r.pdb,chain:r.chain||null,created:r.created||null,analysis_status:r.analysis_status||{}})),contact_turnover:summarize(turnover),residue_conservation:summarize(cons),note:'Descriptive cross-structure ranges; structural models are not independent biological replicates. No pooled pathogenicity score.'};
 }
+function assessConcordance(observations,workbench){
+ const rows=(observations||[]).map(o=>{
+  const endpoint=String(o.endpoint||''),result=String(o.result||''),type=String(o.unit_or_type||'');
+  const relevant=/collagen|binding|activity|multimer|ristocetin|platelet|bleed|phenotype/i.test(endpoint+' '+type);
+  // Only classify explicitly directional descriptions; numerical values need assay-specific reference ranges.
+  const down=/\b(reduced|decreased|impaired|deficient|lower|loss of function|abolished|absent)\b/i.test(result);
+  const up=/\b(increased|elevated|enhanced|higher|gain of function)\b/i.test(result);
+  const normal=/\b(normal|unchanged|unaffected|preserved|comparable to wild.type)\b/i.test(result);
+  const direction=down&&!up&&!normal?'decreased':up&&!down&&!normal?'increased':normal&&!up&&!down?'unchanged':'unresolved';
+  return {endpoint,result,direction,relevant,source_url:o.source_url||null,audit_status:String(o.source_audit_status||'unknown'),observation_id:o.observation_id||null};
+ }).filter(x=>x.relevant);
+ const directional=rows.filter(x=>x.direction!=='unresolved');
+ const bySource=new Map();
+ for(const x of directional){const key=x.source_url||('unlinked:'+String(x.observation_id||x.endpoint));if(!bySource.has(key))bySource.set(key,[]);bySource.get(key).push(x);}
+ const sourcePositions=[...bySource].map(([source,items])=>({source,directions:[...new Set(items.map(x=>x.direction))],endpoints:[...new Set(items.map(x=>x.endpoint))],observations:items.length}));
+ const collagen=directional.filter(x=>/collagen|binding/i.test(x.endpoint));
+ const collagenDirections=[...new Set(collagen.map(x=>x.direction))];
+ const conflict=collagenDirections.includes('decreased')&&(collagenDirections.includes('unchanged')||collagenDirections.includes('increased'));
+ const contacts=workbench?.metrics?.contacts;
+ const structuralAvailable=!!(contacts&&['lost','gained','kept'].every(k=>Number.isFinite(contacts[k])));
+ const assessment=conflict?'Potential disagreement among collagen-binding observations; inspect assay conditions and primary sources.'
+  :collagenDirections.length===1?'One directional collagen-related finding is recorded, but independent replication and assay comparability have not been established.'
+  :collagenDirections.length>1?'Collagen-related observations have different directions; check endpoint definitions and source independence.'
+  :directional.length?'Directional evidence exists for other endpoints, but no interpretable collagen-specific finding is identified.'
+  :'No explicit direction of functional effect can be reliably extracted from the linked observations.';
+ const relationship=structuralAvailable?'The structural model reports contact rearrangement, which has no validated one-to-one mapping to collagen-binding strength. Structural–functional agreement cannot yet be determined.':'Structural–functional agreement cannot be evaluated without a validated structural effect prediction.';
+ return {status:conflict?'potential_functional_disagreement':collagenDirections.length===1?'directional_functional_observation':'not_determined',assessment,structural_functional_relationship:relationship,structure_available:structuralAvailable,source_positions:sourcePositions,findings:rows,limits:['Directional words are extracted from result text, not expert-verified','No inference from raw numeric assay values without a validated reference','Observations from the same source are not counted as independent studies','Structural contact changes do not directly predict collagen-binding activity']};
+}
 function assessEvidence(observations,workbench){
  const records=observations||[];
  const audited=records.filter(o=>/^(verified|reviewed|curated|confirmed|passed)$/i.test(String(o.source_audit_status||'')));
@@ -98,6 +126,7 @@ function report(v){
   observations_detail:m.direct,relations:m.relations
  };
  const evidenceAssessment=assessEvidence(m.direct,imported);
+ const concordance=assessConcordance(m.direct,imported);
  const allReports=state.reports.filter(r=>r.mutation===v);
  const metrics=imported?.metrics||null;
  const derived={};
@@ -123,7 +152,7 @@ function report(v){
  evidence_confidence:{value:null,status:'not_calibrated',reason:'Requires source auditing, independence assessment and validated weighting'},
  mechanistic_concordance:{value:null,status:'not_calibrated',reason:'Requires quantitative structural measurements and experimentally anchored agreement testing'},
  overall:{value:null,status:'withheld',reason:'No validated composite scoring model'}};
- return {schema:'vwf-variant-integrated-report/0.1',variant:v,variant_node_id:m.id,generated:new Date().toISOString(),research_only:true,evidence_assessment:evidenceAssessment,kg:evidence,workbench:imported,workbench_reports:allReports,structure_comparison:compareStructures(allReports),quantitative_metrics:metrics,derived_quantitative_profile:derived,analysis_coverage:assessed,scores,limitations:['No clinical pathogenicity inference','Unreviewed KG observations are not independent confirmations','Workbench analysis-status fields do not represent measured effects','Report import is local and not independently verified']};
+ return {schema:'vwf-variant-integrated-report/0.1',variant:v,variant_node_id:m.id,generated:new Date().toISOString(),research_only:true,evidence_assessment:evidenceAssessment,evidence_concordance:concordance,kg:evidence,workbench:imported,workbench_reports:allReports,structure_comparison:compareStructures(allReports),quantitative_metrics:metrics,derived_quantitative_profile:derived,analysis_coverage:assessed,scores,limitations:['No clinical pathogenicity inference','Unreviewed KG observations are not independent confirmations','Workbench analysis-status fields do not represent measured effects','Report import is local and not independently verified']};
 }
 function render(){
  const v=get('vrvariant').value.trim().toUpperCase();if(!/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(v)){get('vrmessage').textContent='Enter a valid protein substitution, e.g. H1786D.';return;}
@@ -158,13 +187,15 @@ function render(){
   '<article class="interpret-card"><h4>What remains uncertain?</h4><p>Whether this variant changes collagen binding or causes a clinical phenotype cannot be concluded from contact counts alone.</p><p class="sub">Useful next evidence: functional collagen-binding assays, independently verified clinical observations, and validated WT–variant structural comparisons.</p></article></div>';
  const a=current.evidence_assessment;
  const evidenceAssessmentHtml='<section class="evidence-assessment"><h4>Evidence assessment</h4><p><b>Current conclusion:</b> '+safe(a.classification)+'</p><div class="assessment-items"><p><b>Clinical:</b> '+safe(a.clinical)+'</p><p><b>Functional:</b> '+safe(a.functional)+'</p><p><b>Structural:</b> '+safe(a.structural)+'</p><p><b>Source reliability:</b> '+safe(a.source_quality)+'</p></div><p><b>Evidence still needed:</b> '+safe(a.missing.length?a.missing.join('; '):'Independent expert assessment of evidence consistency and effect sizes')+'.</p><details><summary>How was this assessed?</summary><p>Evidence types are identified from linked record labels, traceable URLs and audit flags. These checks do not establish clinical validity, independent replication, or a functional effect.</p><p>'+safe(a.counts.records)+' linked records; '+safe(a.counts.audited)+' marked audited; '+safe(a.counts.distinct_sources)+' distinct linked source URLs.</p></details></section>';
+ const concord=current.evidence_concordance;
+ const concordHtml='<section class="evidence-assessment"><h4>Do the findings agree?</h4><p>'+safe(concord.assessment)+'</p><p>'+safe(concord.structural_functional_relationship)+'</p><details><summary>Review extracted findings and source-level comparisons</summary>'+(concord.findings.length?concord.findings.map(f=>'<div class="record"><b>'+safe(f.endpoint)+'</b>: '+safe(f.result)+' <span class="sub">('+safe(f.direction)+')</span>'+(f.source_url&&/^https:\/\//.test(f.source_url)?' · <a target="_blank" rel="noopener noreferrer" href="'+safe(f.source_url)+'">Source</a>':'')+'</div>').join(''):'<p>No directional functional or clinical evidence extracted.</p>')+'<p class="sub">Text-derived directions are preliminary; different assay endpoints are not directly comparable. No clinical score is assigned.</p></details></section>';
  const technical='<details class="technical-details"><summary>Show technical evidence, metrics and source audit</summary>'+
  '<h4>Analysis status</h4><p>'+status+'</p>'+
  '<h4>Structure reports</h4><p>'+safe(current.structure_comparison.structures.length)+' PDB reports. Contact turnover: '+safe(current.structure_comparison.contact_turnover.minimum===null?'unavailable':current.structure_comparison.contact_turnover.minimum.toFixed(3)+'–'+current.structure_comparison.contact_turnover.maximum.toFixed(3))+'.</p>'+
  '<h4>Quantitative structural metrics</h4>'+(Object.keys(current.derived_quantitative_profile).length?'<div class="record">'+Object.entries(current.derived_quantitative_profile).map(([k,val])=>'<div><b>'+safe(k.replaceAll('_',' '))+'</b>: '+safe(typeof val==='number'?val.toFixed(3):val)+'</div>').join('')+'</div>':'<p>No measured structural metrics imported.</p>')+
  '<p class="sub">Missing analyses: '+safe(current.analysis_coverage.missing.join(', ')||'none')+'. These are descriptive research outputs, not a clinical score.</p>'+
  '</details>';
- get('vrcontent').innerHTML='<section class="interpretation"><div class="interpret-heading"><span class="interpret-eyebrow">VARIANT EVIDENCE SUMMARY</span><h3>VWF '+safe(v)+'</h3></div><h4>What does the evidence tell us?</h4><p class="interpret-conclusion">'+safe(summary)+'</p><p class="interpret-caution">Clinical significance: not determined by this report. Missing evidence is not evidence of no effect.</p>'+evidenceCards+evidenceAssessmentHtml+technical+'</section>';
+ get('vrcontent').innerHTML='<section class="interpretation"><div class="interpret-heading"><span class="interpret-eyebrow">VARIANT EVIDENCE SUMMARY</span><h3>VWF '+safe(v)+'</h3></div><h4>What does the evidence tell us?</h4><p class="interpret-conclusion">'+safe(summary)+'</p><p class="interpret-caution">Clinical significance: not determined by this report. Missing evidence is not evidence of no effect.</p>'+evidenceCards+evidenceAssessmentHtml+concordHtml+technical+'</section>';
  get('vrmessage').textContent=w?'Imported Workbench analysis-status report displayed alongside KG evidence.':'KG evidence displayed; structural report not imported.';
  const url=new URL(location.href);url.searchParams.set('variant',v);url.searchParams.set('view','report');history.replaceState(null,'',url.href);
 }
