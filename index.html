@@ -305,7 +305,7 @@ function render(){
   // Domain-based hypothesis generation is independent of availability of assays.
   // The A3 domain (mature VWF ~1687–1874) mediates collagen recognition.
   // A hypothesis is a prioritization, not proof of impaired function.
-  const site=Number(v.match(/\\d+/)?.[0]);
+  const site=Number(v.match(/[0-9]+/)?.[0]);
   const inA3=Number.isInteger(site)&&site>=1687&&site<=1874;
   if(name==='Collagen binding'&&inA3&&!measures.length){
     prediction='Possible collagen-binding effect (hypothesis)';
