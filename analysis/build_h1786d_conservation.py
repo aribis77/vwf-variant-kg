@@ -32,12 +32,20 @@ def select_ortholog(taxon):
     query=f"(gene_exact:VWF) AND (organism_id:{taxon})"
     url="https://rest.uniprot.org/uniprotkb/search?"+urllib.parse.urlencode({
         "query":query,"format":"json","size":100,
-        "fields":"accession,reviewed,length,gene_primary,organism_id"})
+        "fields":"accession,reviewed,length,gene_primary,organism_id,protein_existence"})
     entries=get_json(url).get("results",[])
     # Prefer reviewed entries, but permit an unambiguous full-length unreviewed entry.
     full=[entry for entry in entries if 1500<=entry.get("sequence",{}).get("length",0)<=4000]
     reviewed=[entry for entry in full if entry.get("entryType")=="UniProtKB reviewed (Swiss-Prot)"]
     candidates=reviewed if reviewed else full
+    # Prefer direct protein-level evidence over transcript-level or predicted records.
+    # Never break ties by API order or arbitrary accession ordering.
+    if len(candidates)>1:
+        levels={"Evidence at protein level":1,"Evidence at transcript level":2,
+                "Inferred from homology":3,"Predicted":4,"Uncertain":5}
+        scored=[(levels.get(e.get("proteinExistence"),99),e) for e in candidates]
+        best=min(score for score,_ in scored)
+        candidates=[e for score,e in scored if score==best]
     if len(candidates)!=1:
         raise ValueError(f"Taxon {taxon}: expected one unambiguous full-length VWF, got {len(candidates)}")
     return candidates[0]["primaryAccession"]
@@ -98,7 +106,7 @@ def run(output):
         raise ValueError("Ortholog provenance does not match conservation denominator")
     result["ortholog_accessions_used"]=sorted(used)
     result["excluded_taxa"]=failures
-    result["ortholog_selection_policy"]="Unique full-length VWF per taxon, reviewed preferred; exact aligned sequence deduplication"
+    result["ortholog_selection_policy"]="Reviewed preferred; otherwise unique best protein-existence evidence among full-length VWF candidates; unresolved ties excluded; exact aligned sequence deduplication"
     result["alignment_reference_verified"]=True
     Path(output).parent.mkdir(parents=True,exist_ok=True)
     Path(output).write_text(json.dumps(result,indent=2)+"\n")
