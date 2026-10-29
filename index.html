@@ -244,7 +244,7 @@ function assessEvidence(observations,workbench){
  return {classification:'Insufficient evidence for clinical classification',source_quality:sourceQuality,clinical,functional,structural,missing,counts:{records:records.length,audited:audited.length,linked:linked.length,distinct_sources:distinctSources.size,endpoint_types:endpointTypes.size,clinical_records:patientRecords.length,functional_records:functionalRecords.length},limitations:['Keyword-based evidence grouping is a navigation aid, not expert adjudication','A source-audit label is metadata, not proof of validity','Multiple records from one study are not independent confirmations','No automated pathogenicity or severity scoring']};
 }
 function report(v){
- const m=matching(v),imported=(state.imported&&state.imported.mutation===v?state.imported:state.reports.filter(x=>x.mutation===v).at(-1))||null;
+ const m=matching(v),variantReports=state.reports.filter(x=>x.mutation===v&&x.coordinate_mapping?.verified_in_loaded_coordinates===true).sort((a,b)=>Date.parse(b.created||0)-Date.parse(a.created||0)),base=variantReports[0]||null,imported=base?{...base,metrics:{...base.metrics,conservation:variantReports.find(x=>x.metrics?.conservation)?.metrics.conservation||null,energetics:variantReports.find(x=>x.metrics?.energetics)?.metrics.energetics||null,contacts:variantReports.find(x=>x.metrics?.contacts)?.metrics.contacts||null}}:null;
  const audits=m.direct.reduce((a,o)=>(a[auditStatus(o)]=(a[auditStatus(o)]||0)+1,a),{});
  const sourceUrls=[...new Set(m.direct.map(o=>o.source_url).filter(u=>/^https:\/\//.test(u)))];
  const evidence={
