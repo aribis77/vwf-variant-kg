@@ -49,3 +49,7 @@ When a compatible Workbench combined JSON report contains `metrics`, the variant
 ### Multi-structure workflow (experimental)
 
 Use **Discover suitable PDBs**, then **Prepare multi-PDB runs** to obtain up to eight separate combined-analysis links. Each PDB must independently validate residue mapping in Workbench. Download its combined JSON result and import multiple JSON files simultaneously into the variant report. The report displays per-structure measurements and descriptive ranges for contact turnover and conservation. This is **not yet unattended batch execution**: the browser-based Workbench runs remain separate, RCSB discovery and mapping require live validation, and structures must not be treated as independent biological replicates. Reports are session-local; export the integrated JSON to preserve results.
+
+### Automatic KG result return (experimental)
+
+When Workbench is launched from the KG with a one-time random launch token and an approved return origin, its combined JSON report is sent back to the originating KG browser tab via `postMessage`. The KG validates the message origin, token, PDB and mutation before adding the result to its session-local variant report. Keep the KG tab open. This is a browser-to-browser handoff, not a server-side job queue or durable storage; it has not yet been validated in a live browser. Standalone Workbench remains independent and still exports JSON. Manual import/reset in the KG is under Advanced.
