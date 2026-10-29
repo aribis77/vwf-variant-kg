@@ -5,6 +5,8 @@ on:
       - 'analysis/structural_contacts.py'
       - 'analysis/model_h1786d.py'
       - 'analysis/render_variant_report.py'
+      - 'analysis/conservation.py'
+      - 'tests/test_conservation.py'
       - 'tests/test_variant_report.py'
       - 'tests/test_structural_contacts.py'
       - '.github/workflows/structural-engine.yml'
@@ -21,6 +23,7 @@ jobs:
           python-version: '3.11'
       - run: python -m unittest discover -s tests -p 'test_structural_contacts.py' -v
       - run: python -m unittest discover -s tests -p 'test_variant_report.py' -v
+      - run: python -m unittest discover -s tests -p 'test_conservation.py' -v
       - name: Analyse experimental H1786D site in 4DMU
         run: python analysis/run_h1786d.py
       - name: Verify real structure report and publish readable summary
