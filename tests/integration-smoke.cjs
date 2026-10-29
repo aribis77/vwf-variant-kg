@@ -8,7 +8,7 @@ const assert = require('node:assert/strict');
  kg.on('pageerror',e=>errors.push('KG: '+e.message));
  try {
   await kg.goto('https://aribis77.github.io/vwf-variant-kg/',{waitUntil:'domcontentloaded',timeout:90000});
-  await kg.locator('#pwvariant').fill('H1786D');
+  await kg.locator('#simple-variant').fill('H1786D');
   const popupPromise=context.waitForEvent('page',{timeout:30000});
   await kg.locator('#simple-run').click();
   const wb=await popupPromise;
@@ -30,7 +30,7 @@ const assert = require('node:assert/strict');
   assert.ok(report.metrics?.energetics,'Energetic scoring must be present');
   assert.ok(report.metrics?.conservation,'Conservation must be present');
   assert.equal(report.metrics?.sampling,null,'MD and sampling must not run');
-  await kg.waitForFunction(()=>{try{return JSON.parse(localStorage.getItem('vwf-workbench-reports-v1')||'[]').some(r=>r.mutation==='H1786D');}catch{return false;}},null,{timeout:30000}).catch(()=>{});
+  await kg.waitForFunction(()=>{try{return JSON.parse(localStorage.getItem('vwf-validated-workbench-reports-v1')||'[]').some(r=>r.mutation==='H1786D'&&r.pdb==='4DMU');}catch{return false;}},null,{timeout:30000});
   const state=await kg.evaluate(()=>({storedKeys:Object.keys(localStorage).filter(k=>k.includes('workbench')),body:document.body.innerText.slice(-3000)}));
   assert.ok(state.body.includes('H1786D'),'KG must show selected variant');
   assert.deepEqual(errors,[],'Unexpected browser errors');
