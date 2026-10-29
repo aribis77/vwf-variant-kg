@@ -1,9 +1,11 @@
 test_alignment_sequence_mutation_rejected (test_conservation_pipeline.ConservationPipelineTests.test_alignment_sequence_mutation_rejected) ... ok
 test_ambiguous_unreviewed_orthologs_rejected (test_conservation_pipeline.ConservationPipelineTests.test_ambiguous_unreviewed_orthologs_rejected) ... ok
 test_complete_pipeline_with_mocked_uniprot_and_mafft (test_conservation_pipeline.ConservationPipelineTests.test_complete_pipeline_with_mocked_uniprot_and_mafft) ... ok
+test_equal_protein_evidence_remains_ambiguous (test_conservation_pipeline.ConservationPipelineTests.test_equal_protein_evidence_remains_ambiguous) ... ok
+test_stronger_protein_evidence_breaks_tie (test_conservation_pipeline.ConservationPipelineTests.test_stronger_protein_evidence_breaks_tie) ... ok
 test_unreviewed_unique_full_length_fallback (test_conservation_pipeline.ConservationPipelineTests.test_unreviewed_unique_full_length_fallback) ... ok
 
 ----------------------------------------------------------------------
-Ran 4 tests in 0.006s
+Ran 6 tests in 0.006s
 
 OK

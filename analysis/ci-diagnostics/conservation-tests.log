@@ -6,6 +6,6 @@ test_reject_unaligned_input (test_conservation.ConservationTests.test_reject_una
 test_reject_wrong_reference_residue (test_conservation.ConservationTests.test_reject_wrong_reference_residue) ... ok
 
 ----------------------------------------------------------------------
-Ran 6 tests in 0.001s
+Ran 6 tests in 0.000s
 
 OK
