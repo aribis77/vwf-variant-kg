@@ -612,7 +612,7 @@ window.addEventListener('load',()=>{const q=new URLSearchParams(location.search)
   const status=host.querySelector('#published-structural-status');
   const link=host.querySelector('#published-structural-link');
   const params=new URLSearchParams(location.search);
-  const variant=(params.get('variant')||document.getElementById('simple-variant')?.value||'').trim().toUpperCase();
+  const variant=(params.get('variant')||document.getElementById('simple-variant')?.value||document.getElementById('vrvariant')?.value||'').trim().toUpperCase();
   if(!/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(variant)){
     status.textContent='Enter a variant above to check for published structural evidence.';
     return;
