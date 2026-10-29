@@ -1,11 +1,13 @@
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 (async () => {
  const browser = await chromium.launch({headless:true,args:['--no-sandbox']});
  const context = await browser.newContext();
- const errors=[];
+ const errors=[];const requests=[];
  const kg=await context.newPage();
  kg.on('pageerror',e=>errors.push('KG: '+e.message));
+ kg.on('response',r=>{if(r.status()>=400)requests.push('KG '+r.status()+' '+r.url());});
  try {
   await kg.goto('https://aribis77.github.io/vwf-variant-kg/',{waitUntil:'domcontentloaded',timeout:90000});
   await kg.locator('#simple-variant').fill('H1786D');
@@ -13,6 +15,7 @@ const assert = require('node:assert/strict');
   await kg.locator('#simple-run').click();
   const wb=await popupPromise;
   wb.on('pageerror',e=>errors.push('Workbench: '+e.message));
+  wb.on('response',r=>{if(r.status()>=400)requests.push('Workbench '+r.status()+' '+r.url());});
   await wb.waitForLoadState('domcontentloaded');
   assert.match(wb.url(),/analysis=kg_integrated/,'The KG must launch integrated analysis');
   await wb.waitForFunction(()=>document.querySelector('#automatic-mechanistic-report')!==null,null,{timeout:240000});
@@ -39,6 +42,11 @@ const assert = require('node:assert/strict');
   console.error('INTEGRATION FAILURE:',e.stack||e);
   console.error('KG URL:',kg.url());
   console.error('BROWSER ERRORS:',JSON.stringify(errors));
+  console.error('FAILED REQUESTS:',JSON.stringify(requests));
+  fs.mkdirSync('test-results',{recursive:true});
+  await kg.screenshot({path:'test-results/kg-failure.png',fullPage:true}).catch(()=>{});
+  for(const page of context.pages())if(page!==kg){await page.screenshot({path:'test-results/workbench-failure.png',fullPage:true}).catch(()=>{});fs.writeFileSync('test-results/workbench-text.txt',(await page.locator('body').innerText().catch(()=>'' )).slice(-12000));}
+  fs.writeFileSync('test-results/errors.json',JSON.stringify({errors,requests},null,2));
   process.exitCode=1;
  } finally {await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1});
