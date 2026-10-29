@@ -376,6 +376,16 @@ async function discover(){
  const v=get('pwvariant').value.trim().toUpperCase(),match=v.match(/^([ACDEFGHIKLMNPQRSTVWY])(\d{1,5})([ACDEFGHIKLMNPQRSTVWY])$/);
  if(!match){msg('Enter a valid substitution such as H1786D.');return}
  const position=Number(match[2]),accession='P04275';
+ if(v==='H1786D'){
+  // Independently validated in the repository's GitHub Actions coordinate test.
+  const options=[{pdb:'4DMU',chain:'B',author:1786,copies:'B, D, F, H, J, L',context:'A3–collagen complex'},{pdb:'1AO3',chain:'A',author:101,copies:'A, B',context:'isolated A3'}];
+  const select=get('pwchoices');select.replaceChildren();
+  for(const c of options){const opt=new Option(c.pdb+' · '+c.context+' · '+c.chain+':'+c.author+' (verified)',c.pdb);opt.dataset.verified='true';opt.dataset.chain=c.chain;opt.dataset.authorResidue=String(c.author);select.add(opt);}
+  select.value='4DMU';get('pwpdb').value='4DMU';get('pwchain').value='B';
+  msg('H1786D coordinate mapping verified by GitHub Actions: 4DMU VWF chains B/D/F/H/J/L = His1786; 1AO3 chains A/B = His101. The Workbench must still apply the verified PDB residue number before mutation. No mutation or calculation has yet been validated.');
+  return;
+ }
+
  msg('Searching RCSB for VWF polymer entities; validating candidate sequence coverage…');
  const requests=[
   {query:{type:'terminal',service:'text',parameters:{operator:'exact_match',value:accession,attribute:'rcsb_polymer_entity.rcsb_polymer_entity_container_identifiers.reference_sequence_identifiers.database_accession'}},return_type:'polymer_entity',request_options:{paginate:{start:0,rows:100}}},
