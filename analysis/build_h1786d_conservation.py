@@ -71,6 +71,11 @@ def run(output):
         aligned=Path(tmp)/"aligned.fasta"
         aligned.write_text(proc.stdout)
         records=read_fasta(aligned)
+        if set(records)!=set(sequences):
+            raise ValueError("Alignment lost an input accession")
+        for accession,sequence in sequences.items():
+            if records[accession].replace("-","")!=sequence:
+                raise ValueError("Alignment altered sequence "+accession)
         result=assess(records,REFERENCE,1786,"H")
     result["source"]="UniProtKB REST; reviewed full-length VWF orthologs"
     result["alignment_method"]="MAFFT --auto"
