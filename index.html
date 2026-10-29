@@ -287,7 +287,7 @@ function render(){
  '<h4>Quantitative structural metrics</h4>'+(Object.keys(current.derived_quantitative_profile).length?'<div class="record">'+Object.entries(current.derived_quantitative_profile).map(([k,val])=>'<div><b>'+safe(k.replaceAll('_',' '))+'</b>: '+safe(typeof val==='number'?val.toFixed(3):val)+'</div>').join('')+'</div>':'<p>No measured structural metrics imported.</p>')+
  '<p class="sub">Missing analyses: '+safe(current.analysis_coverage.missing.join(', ')||'none')+'. These are descriptive research outputs, not a clinical score.</p>'+
  '</details>';
- get('vrcontent').innerHTML='<section class="interpretation"><div class="interpret-heading"><span class="interpret-eyebrow">VARIANT EVIDENCE SUMMARY</span><h3>VWF '+safe(v)+'</h3></div><h4>What does the evidence tell us?</h4><p class="interpret-conclusion">'+safe(summary)+'</p><p class="interpret-caution">Clinical significance: not determined by this report. Missing evidence is not evidence of no effect.</p>'+evidenceCards+evidenceAssessmentHtml+concordHtml+numericHtml+technical+'</section>';
+ get('vrcontent').innerHTML='<section class="interpretation"><div class="interpret-heading"><span class="interpret-eyebrow">VARIANT EVIDENCE SUMMARY</span><h3>VWF '+safe(v)+'</h3></div><h4>What does the evidence tell us?</h4><p class="interpret-conclusion">'+safe(summary)+'</p><p class="interpret-caution">Clinical significance: not determined by this report. Missing evidence is not evidence of no effect.</p>'+synthesisHtml+evidenceCards+evidenceAssessmentHtml+concordHtml+numericHtml+provenanceHtml+technical+'</section>';
  get('vrmessage').textContent=w?'Imported Workbench analysis-status report displayed alongside KG evidence.':'KG evidence displayed; structural report not imported.';
  const url=new URL(location.href);url.searchParams.set('variant',v);url.searchParams.set('view','report');history.replaceState(null,'',url.href);
 }
@@ -337,6 +337,19 @@ render();if(q.get('view')==='report')get('variant-report').scrollIntoView();
   const status=document.getElementById('pwstatus');if(status)status.textContent='Structural report received from Workbench for '+report.mutation+' in '+report.pdb+'. See integrated variant report above.';
  }
  if(channel)channel.onmessage=e=>accept(e.data);
+ // Both GitHub Pages applications share an origin; use storage as a reliable fallback.
+ function recoverPending(){
+  try{
+   const raw=localStorage.getItem('vwf-workbench-result-v1');
+   if(!raw)return;
+   const packet=JSON.parse(raw);
+   if(packet&&pending.has(packet.token)){accept(packet);localStorage.removeItem('vwf-workbench-result-v1');}
+  }catch(e){}
+ }
+ window.addEventListener('storage',e=>{if(e.key==='vwf-workbench-result-v1')recoverPending();});
+ window.addEventListener('focus',recoverPending);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)recoverPending();});
+ recoverPending();
 
  window.VWFLaunchWorkbench=function(input){
   const u=new URL(input.href||input);
@@ -417,5 +430,6 @@ document.getElementById('simple-run').onclick=()=>{if(!sync())return;document.ge
 advanced.onclick=()=>{const simple=document.body.classList.toggle('simple-mode');advanced.textContent=simple?'Show research tools and network graph':'Hide research tools and network graph';advanced.setAttribute('aria-expanded',String(!simple));};
 const q=new URLSearchParams(location.search),v=q.get('variant');if(v&&valid(v.toUpperCase()))variant.value=v.toUpperCase();
 window.addEventListener('vwf-workbench-result',()=>{msg.textContent='Structural results received. The evidence summary below has been updated.';});
+window.addEventListener('load',()=>{const q=new URLSearchParams(location.search);if(q.get('view')==='report')document.getElementById('simple-hero').scrollIntoView({block:'start'});});
 })();
 </script></body></html>
