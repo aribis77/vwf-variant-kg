@@ -17,6 +17,26 @@ jobs:
       - run: python -m unittest discover -s tests -p 'test_structural_contacts.py' -v
       - name: Analyse experimental H1786D site in 4DMU
         run: python analysis/run_h1786d.py
+      - name: Verify real structure report and publish readable summary
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          d=json.loads(Path("analysis/H1786D_contacts.json").read_text())
+          assert d["mutation"]=="H1786D" and d["site"]["wild_type_verified"] is True
+          assert d["wild_type_contacts"]["partner_count"]>0, "No structural neighbors measured"
+          assert d["energetics"] is None and d["mutant_contacts"] is None
+          lines=["## H1786D experimental WT structural contacts",
+                 "PDB: 4DMU, chain B, author residue 1786 (H)",
+                 "",
+                 "| Partner | Residue | Minimum distance (Å) | Atom pairs | Interchain |",
+                 "|---|---|---:|---:|---|"]
+          for p in d["wild_type_contacts"]["partner_residues"]:
+              lines.append(f'| {p["chain"]}:{p["author_residue"]}{p["insertion_code"]} | {p["residue"]} | {p["minimum_distance_angstrom"]} | {p["atom_pairs"]} | {p["inter_chain"]} |')
+          lines+=["","**Scope:** wild-type contacts only; no modeled H1786D or ΔΔG yet."]
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text("\\n".join(lines)+"\\n")
+          print("\\n".join(lines))
+          PY
       - name: Preserve measured contact report
         uses: actions/upload-artifact@v4
         with:
