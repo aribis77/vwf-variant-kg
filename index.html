@@ -652,6 +652,23 @@ window.addEventListener('load',()=>{const q=new URLSearchParams(location.search)
         interpretation.textContent='Structural assessment: experimental wild-type residue environment verified. A mutation effect cannot be determined from WT coordinates alone.';
       }
       link.appendChild(interpretation);
+      const evidence=document.createElement('p');
+      evidence.style.cssText='margin-top:8px;font-size:.94rem';
+      const conservation=data.conservation;
+      if(conservation && typeof conservation.reference_residue_fraction==='number' && conservation.ortholog_count>=5){
+        evidence.textContent='Evolutionary conservation: '+(100*conservation.reference_residue_fraction).toFixed(1)+
+          '% of '+conservation.ortholog_count+' nonredundant ortholog sequences retain the WT residue. ';
+      }else{
+        evidence.textContent='Evolutionary conservation: not measured. ';
+      }
+      const energy=data.energetics;
+      if(energy && typeof energy.binding_ddg_kcal_mol==='number' && energy.method && energy.quality_control_passed===true){
+        evidence.textContent+='Computed binding ΔΔG: '+energy.binding_ddg_kcal_mol.toFixed(2)+
+          ' kcal/mol ('+energy.method+'); interpret with method-specific uncertainty.';
+      }else{
+        evidence.textContent+='Binding free energy: not calculated or not validated; no ΔΔG estimate is available.';
+      }
+      link.appendChild(evidence);
       status.textContent=variant+': experimental WT residue '+data.site.chain+':'+data.site.author_residue+
         ' has '+wt.partner_count+' neighboring residues ('+wt.interchain_partner_count+
         ' interchain). '+(mutant?'A modeled mutant comparison is available.':'No mutant model has been validated.')+
