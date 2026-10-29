@@ -9,6 +9,8 @@ on:
       - 'tests/test_structural_contacts.py'
       - '.github/workflows/structural-engine.yml'
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   structural-engine:
     runs-on: ubuntu-latest
