@@ -1,0 +1,88 @@
+{
+  "schema": "vwf-workbench-pdf-extract/1.0",
+  "variant": "H1786D",
+  "pdb": "4DMU",
+  "chain": "B",
+  "source": "User-provided Protein Workbench PDF, generated 2026-10-30 07:46:29",
+  "method": "Empirical minimized-structure energy score; Monte Carlo sampled score at 300 K",
+  "energy": {
+    "wild_type": -5343.23,
+    "mutant": -5339.51,
+    "delta": 3.72,
+    "units": "kcal/mol",
+    "sampled_delta": 0.56,
+    "sampled_uncertainty": 0.51,
+    "sampled_temperature_kelvin": 300,
+    "terms": [
+      {
+        "name": "van der Waals attraction",
+        "wt": -5737.79,
+        "mutant": -5739.18,
+        "delta": -1.39
+      },
+      {
+        "name": "Steric repulsion",
+        "wt": 874.44,
+        "mutant": 874.71,
+        "delta": 0.27
+      },
+      {
+        "name": "Electrostatics (epsilon = 4r)",
+        "wt": -332.45,
+        "mutant": -326.25,
+        "delta": 6.2
+      },
+      {
+        "name": "Hydrogen bonding",
+        "wt": -1055.7,
+        "mutant": -1055.46,
+        "delta": 0.24
+      },
+      {
+        "name": "Solvation",
+        "wt": 24.71,
+        "mutant": 22.87,
+        "delta": -1.84
+      },
+      {
+        "name": "Side-chain conformational entropy on burial",
+        "wt": 883.55,
+        "mutant": 883.81,
+        "delta": 0.26
+      }
+    ]
+  },
+  "contacts": {
+    "lost": 10,
+    "gained": 2,
+    "unchanged": 5242,
+    "lost_partners": [
+      "VAL17:A",
+      "MET18:A",
+      "PHE20:A",
+      "TYR1780:B",
+      "SER1783:B"
+    ],
+    "gained_partners": [
+      "GLY1787:B",
+      "ALA1788:B"
+    ]
+  },
+  "mutation": {
+    "rotamers_scanned": 56,
+    "local_minimization_rmsd_angstrom": 0.35,
+    "backbone_fixed": true
+  },
+  "conservation": {
+    "alignment_sequences": 12,
+    "alignment_columns": 188,
+    "query_chain": "B",
+    "mutation_site_fraction": null
+  },
+  "limitations": [
+    "Empirical score is not a measured binding free energy",
+    "Short Monte Carlo sampling; uncertainty reported for sampled score",
+    "Fixed backbone, implicit solvent, fixed protonation states",
+    "PDF extraction contains summary values, not full machine-readable Workbench settings"
+  ]
+}
