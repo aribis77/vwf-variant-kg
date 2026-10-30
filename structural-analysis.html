@@ -92,16 +92,56 @@ async function calculateObservedContacts(v,structures){
 }
 $('run').onclick=()=>{const v=$('variant').value.trim().toUpperCase();if(!selected.length)return;const container=document.getElementById('workbench-runs')||document.createElement('section');container.id='workbench-runs';container.replaceChildren();const h=document.createElement('h3');h.textContent='Combined Workbench analyses · '+v;container.append(h);for(const c of selected.slice(0,6)){const title=document.createElement('p');title.textContent=c.pdb+' · chain '+c.chain+' · author residue '+c.residue;container.append(title);const frame=document.createElement('iframe');const u=new URL('./workbench-bridge.html',location.href);u.searchParams.set('variant',v);u.searchParams.set('pdb',c.pdb);u.searchParams.set('chain',c.chain);u.searchParams.set('author_residue',c.residue);u.searchParams.set('analysis','combined');frame.src=u.href;frame.title='Workbench '+c.pdb;frame.style.height='760px';container.append(frame);}document.getElementById('status').after(container);$('status').textContent='Started '+Math.min(selected.length,6)+' embedded combined Workbench sessions. Each session must finish its own calculations; reports are captured when exported.';};
 const consensusReports=new Map();
+function consensusMeasurement(report,kind){
+ const paths={
+ contacts:[['metrics','contacts'],['results','contacts'],['contacts']],
+ energetics:[['metrics','energetics'],['results','energetics'],['energetics'],['metrics','energy'],['energy']],
+ sampling:[['metrics','sampling'],['results','sampling'],['sampling']],
+ conservation:[['metrics','conservation'],['results','conservation'],['conservation']]
+ };
+ for(const path of paths[kind]){let x=report;for(const part of path)x=x?.[part];if(x&&typeof x==='object'&&!['unavailable','failed','not_run','pending'].includes(x.status))return x;}
+ return null;
+}
+function consensusNumber(obj,names){
+ for(const name of names){const v=obj?.[name];if(typeof v==='number'&&Number.isFinite(v))return v;}
+ return null;
+}
 function summarizeConsensus(){
  const v=$('variant').value.trim().toUpperCase(),all=[...consensusReports.values()].filter(r=>r.mutation===v);
  let host=document.getElementById('consensus-summary');if(!host){host=document.createElement('section');host.id='consensus-summary';document.getElementById('viewer').after(host);}
- host.replaceChildren();const h=document.createElement('h3');h.textContent='Cross-structure evidence consensus · '+v;host.append(h);
- const p=document.createElement('p');p.textContent=all.length+' independent structure report(s) captured. '+selected.length+' verified candidate structure(s) discovered. Duplicate reports from the same PDB and chain count once.';host.append(p);
- if(!all.length){host.append('No completed Workbench reports yet. A structural consensus cannot be calculated from WT contacts alone.');return;}
- const fields=[['Contacts','contacts'],['Energetics','energetics'],['Sampling','sampling'],['Conservation','conservation']];
- for(const [label,key] of fields){const available=all.filter(r=>{const x=r[key]||r.results?.[key]||r.metrics?.[key]||r.analyses?.[key];return x&&typeof x==='object'&&!['unavailable','failed','not_run'].includes(x.status)});const line=document.createElement('p');line.textContent=label+': '+available.length+'/'+all.length+' reports with structured results. '+(available.length?'Review individual values and methods below.':'No validated values captured.');host.append(line);}
- const warning=document.createElement('p');warning.textContent='Consensus status: descriptive evidence aggregation only. No numerical effect score or binding ΔΔG is inferred from mixed empirical energies; correlated PDB structures are not treated as independent experiments.';host.append(warning);
- for(const report of all){const d=document.createElement('details'),sum=document.createElement('summary');sum.textContent='Structure '+(report.pdb||report.structure?.pdb_id||'unknown')+' · '+(report.chain||report.coordinate_mapping?.chain||'chain unspecified');d.append(sum);const pre=document.createElement('pre');pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere';pre.textContent=JSON.stringify(report,null,2);d.append(pre);host.append(d);}
+ host.replaceChildren();
+ const add=(tag,value)=>{const el=document.createElement(tag);el.textContent=value;host.append(el);return el;};
+ add('h3','Cross-structure structural consensus · '+v);
+ add('p',all.length+' distinct PDB/chain reports received; '+selected.length+' discovered candidate structures. Results from the same experimental entry may be correlated.');
+ if(!all.length){add('p','Awaiting structured Workbench reports. No consensus is available yet.');return;}
+ const groups=[['contacts','Local interactions'],['energetics','Energetic estimates'],['sampling','Conformational sampling'],['conservation','Evolutionary conservation']];
+ const measures={};
+ for(const [key,label] of groups){
+  const rows=all.map(r=>({r,x:consensusMeasurement(r,key)})).filter(t=>t.x);
+  measures[key]=rows;
+  add('h4',label+' · '+rows.length+'/'+all.length+' reports');
+  if(!rows.length){add('p','No usable structured measurement reported.');continue;}
+  if(key==='contacts'){
+   const diffs=rows.map(({x})=>consensusNumber(x,['delta_contacts','contact_delta','net_contact_change','delta'])).filter(x=>x!==null);
+   if(diffs.length){const lost=diffs.filter(x=>x<0).length,gained=diffs.filter(x=>x>0).length,unchanged=diffs.filter(x=>x===0).length;add('p','Reported net contact changes: '+lost+' negative, '+gained+' positive, '+unchanged+' unchanged ('+diffs.length+' comparable values). '+(lost&&gained?'Different directions across structures; investigate context.':'Direction is descriptive, not a functional effect estimate.'));}
+   else add('p','Contact results exist, but a standardized net contact-change field was not found. No direction assigned.');
+  }else if(key==='energetics'){
+   const vals=rows.map(({x})=>({n:consensusNumber(x,['delta_delta_g','ddg','delta_g','delta_energy','energy_delta']),method:x.method||x.energy_method||'',unit:x.units||x.unit||''})).filter(x=>x.n!==null);
+   if(!vals.length)add('p','Energy reports present, but no recognized numerical change was found.');
+   else {const methods=[...new Set(vals.map(x=>(x.method||'unspecified')+' / '+(x.unit||'unspecified')))];add('p',vals.length+' numerical energy changes; '+vals.filter(x=>x.n>0).length+' positive, '+vals.filter(x=>x.n<0).length+' negative. Methods/units: '+methods.join('; ')+'.');add('p','Values are not averaged across different methods or units. Positive energy changes do not necessarily establish impaired binding or protein function.');}
+  }else if(key==='sampling'){
+   add('p','Sampling reports captured. Ensemble convergence, replicate independence and compatible observables must be established before a cross-structure numerical conclusion.');
+  }else{
+   const scores=rows.map(({x})=>consensusNumber(x,['score','conservation_score','normalized_score'])).filter(x=>x!==null);
+   add('p',scores.length?'Conservation scores reported from '+scores.length+' structure sessions; these are repeated views of the same sequence position, not independent evolutionary evidence.':'Conservation evidence present without a standardized numerical score.');
+  }
+ }
+ const covered=groups.filter(([k])=>measures[k].length>0).map(([,label])=>label);
+ const missing=groups.filter(([k])=>!measures[k].length).map(([,label])=>label);
+ add('h4','Integrated interpretation');
+ add('p',covered.length===4?'All four evidence categories have reported data, but agreement and measurement validity still require evaluation.':'Partial evidence: '+covered.join(', ')+(missing.length?'. Missing: '+missing.join(', '):'')+'.');
+ add('p','Structural effect classification: not assigned until comparable WT–mutant measurements and cross-structure agreement can be verified. Confidence: provisional; no calibrated 0–100 score. Clinical pathogenicity cannot be inferred from these calculations alone.');
+ for(const report of all){const d=document.createElement('details'),sum=document.createElement('summary');sum.textContent='Inspect '+(report.pdb||report.structure?.pdb_id||'unknown')+' · '+(report.chain||report.coordinate_mapping?.chain||'chain unspecified');d.append(sum);const pre=document.createElement('pre');pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere';pre.textContent=JSON.stringify(report,null,2);d.append(pre);host.append(d);}
 }
 window.addEventListener('message',event=>{if(event.origin!==location.origin||event.data?.type!=='vwf-workbench-report')return;const report=event.data.report,v=$('variant').value.trim().toUpperCase();if(report?.mutation!==v)return;const key=(report.pdb||report.structure?.pdb_id||'unknown')+':'+(report.chain||report.coordinate_mapping?.chain||'unknown');consensusReports.set(key,report);summarizeConsensus();try{sessionStorage.setItem('vwf-last-workbench-report',JSON.stringify(report));localStorage.setItem('vwf-last-workbench-report',JSON.stringify(report));}catch(e){}const box=document.getElementById('automatic-report')||document.createElement('section');box.id='automatic-report';box.replaceChildren();const title=document.createElement('h3');title.textContent='Captured Workbench results · '+v;box.append(title);const pre=document.createElement('pre');pre.style.whiteSpace='pre-wrap';pre.style.overflowWrap='anywhere';pre.textContent=JSON.stringify(report.metrics||report,null,2);box.append(pre);document.getElementById('viewer').after(box);$('interpretation').textContent='Workbench completed a variant-specific report. Review the reported contacts, energetics, sampling and conservation alongside the stated uncertainties; empirical energy scores are not validated binding free energies.';window.parent.postMessage({type:'vwf-workbench-report',report},location.origin);});
 $('pdf').onchange=()=>{const f=$('pdf').files?.[0];if(!f)return;const url=URL.createObjectURL(f),frame=document.createElement('iframe');frame.src=url;frame.title='Workbench PDF report';$('viewer').replaceChildren(frame);$('interpretation').textContent='PDF displayed. This browser-only PDF viewer does not extract or validate results automatically; numerical interpretation requires structured JSON or curated extraction.';};
