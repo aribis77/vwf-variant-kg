@@ -40,3 +40,8 @@ Run `node benchmark/audit.mjs benchmark/candidate_reference_panel.json`.
 Pending records are listed but never marked eligible. For verified records, the audit requires `reviewer`, `independent_reviewer`, `review_date`, `assay_type`, `organism`, `numbering_reference`, `effect_measure` and `comparator`. This is a completeness gate, not independent verification of a paper's contents. Audit records remain pending until the actual experimental evidence has been checked. Never turn a candidate into a negative control based on absence of a reported effect.
 
 The evaluator matches reference and prediction records by the compound key `variant + endpoint`. The endpoint string must be identical after case/whitespace normalization in both inputs. Do not merge distinct functional endpoints into a single label.
+
+## Assay-specific evidence candidates
+`assay_evidence_candidates.json` contains literature-derived assay comparisons including collagen I/III versus collagen IV for H1786D and S1731T. These are **pending curation**, not frozen verified references. Qualitative 'unaltered' reports are candidates for `no_demonstrated_effect`, not proof of equivalence. Before verification, capture effect size, variability, assay sensitivity, biological replicates, species, collagen type, and DOI/figure/table. Preserve the human-versus-mouse distinction for R1597W.
+
+This file deliberately separates endpoint-specific negative controls from variant-wide benign assertions. No benchmark accuracy may be calculated using pending records.
