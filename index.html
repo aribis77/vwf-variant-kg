@@ -707,7 +707,7 @@ window.addEventListener('load',()=>{const q=new URLSearchParams(location.search)
   window.addEventListener('popstate',refresh);
   refresh();
 })();
-</script><script id="kg-structural-tab-sync">(function(){
+</script><script id="vwf-embedded-report-receiver">(function(){window.addEventListener('message',function(event){if(event.origin!==location.origin||event.source!==document.getElementById('kg-structural-analysis')?.contentWindow||event.data?.type!=='vwf-workbench-report')return;const report=event.data.report;const selected=document.getElementById('vrvariant')?.value.trim().toUpperCase();if(!report||report.mutation!==selected||report.schema!=='protein-workbench-mechanistic-report/0.1')return;try{sessionStorage.setItem('vwf-last-workbench-report',JSON.stringify(report));}catch(e){}window.dispatchEvent(new CustomEvent('vwf-workbench-result',{detail:report}));document.getElementById('vrshow')?.click();});})();</script><script id="kg-structural-tab-sync">(function(){
 const frame=document.getElementById('kg-structural-analysis'),field=document.getElementById('vrvariant'),search=document.getElementById('search'),evidence=document.getElementById('osearch'),show=document.getElementById('vrshow');
 if(!frame||!field||!search)return;
 const valid=v=>/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(v);
