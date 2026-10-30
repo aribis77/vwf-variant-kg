@@ -1,0 +1,62 @@
+[
+  {
+    "variant": "H1786D",
+    "region": "A3",
+    "endpoint": "collagen binding",
+    "expected_direction": "reduced",
+    "reference_label": "functional_effect",
+    "source": "https://pubmed.ncbi.nlm.nih.gov/25051961/",
+    "review_status": "pending",
+    "notes": "Mouse VWF construct; distinguish species/model from human variant assays"
+  },
+  {
+    "variant": "R1597W",
+    "region": "A2",
+    "endpoint": "ADAMTS13 proteolysis",
+    "expected_direction": "increased",
+    "reference_label": "functional_effect",
+    "source": "https://pubmed.ncbi.nlm.nih.gov/16322474/",
+    "review_status": "pending",
+    "notes": "Recombinant human VWF proteolysis"
+  },
+  {
+    "variant": "R854Q",
+    "region": "D-prime",
+    "endpoint": "FVIII binding",
+    "expected_direction": "reduced",
+    "reference_label": "functional_effect",
+    "source": "https://www.sciencedirect.com/science/article/pii/S0006497123092066",
+    "review_status": "pending",
+    "notes": "Conference abstract; verify against peer-reviewed primary assay before freezing"
+  },
+  {
+    "variant": "D879N",
+    "region": "D3",
+    "endpoint": "FVIII binding",
+    "expected_direction": "reduced",
+    "reference_label": "functional_effect",
+    "source": "https://www.sciencedirect.com/science/article/pii/S0006497123092066",
+    "review_status": "pending",
+    "notes": "Conference abstract; verify against peer-reviewed primary assay before freezing"
+  },
+  {
+    "variant": "R1306W",
+    "region": "A1",
+    "endpoint": "platelet GPIb interaction",
+    "expected_direction": "type 2B phenotype",
+    "reference_label": "functional_effect",
+    "source": "https://www.jthjournal.org/article/S1538-7836%2824%2900555-5/fulltext",
+    "review_status": "pending",
+    "notes": "Clinical cohort; requires endpoint-matched gain-of-function assay before validation"
+  },
+  {
+    "variant": "R1308C",
+    "region": "A1",
+    "endpoint": "platelet GPIb interaction",
+    "expected_direction": "type 2B phenotype",
+    "reference_label": "functional_effect",
+    "source": "https://www.jthjournal.org/article/S1538-7836%2824%2900555-5/fulltext",
+    "review_status": "pending",
+    "notes": "NOT a negative control; clinical cohort requires functional assay confirmation"
+  }
+]
