@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const known={'H1786D':[{pdb:'4DMU',chain:'B',residue:1786},{pdb:'1AO3',chain:'A',residue:101}]};let selected=[];
 const aa3={ALA:'A',ARG:'R',ASN:'N',ASP:'D',CYS:'C',GLN:'Q',GLU:'E',GLY:'G',HIS:'H',ILE:'I',LEU:'L',LYS:'K',MET:'M',PHE:'F',PRO:'P',SER:'S',THR:'T',TRP:'W',TYR:'Y',VAL:'V'};
 async function discover(v){
- const match=v.match(/^([ACDEFGHIKLMNPQRSTVWY])(\\d{1,5})([ACDEFGHIKLMNPQRSTVWY])$/);
+ const match=v.match(/^([ACDEFGHIKLMNPQRSTVWY])(\d{1,5})([ACDEFGHIKLMNPQRSTVWY])$/);
  if(!match)throw Error('Enter a valid VWF substitution, e.g. R1315L');
  const position=Number(match[2]),wt=match[1];
  const query={query:{type:'terminal',service:'text',parameters:{operator:'exact_match',value:'P04275',attribute:'rcsb_polymer_entity.rcsb_polymer_entity_container_identifiers.reference_sequence_identifiers.database_accession'}},return_type:'polymer_entity',request_options:{paginate:{start:0,rows:100}}};
@@ -31,7 +31,7 @@ async function discover(v){
    }
    const coordRes=await fetch('https://files.rcsb.org/download/'+pdb+'.pdb');
    if(!coordRes.ok)continue;
-   const lines=(await coordRes.text()).split(/\\r?\\n/);
+   const lines=(await coordRes.text()).split(/\r?\n/);
    for(const m of mappings){
     const first=Number(m.start?.residue_number),last=Number(m.end?.residue_number);
     if(!Number.isInteger(first)||!Number.isInteger(last)||last-first!==Number(m.unp_end)-Number(m.unp_start))continue;
@@ -62,6 +62,7 @@ $('find').onclick=async()=>{
 $('run').onclick=()=>{const v=$('variant').value.trim().toUpperCase();for(const c of selected){const u=new URL('https://aribis77.github.io/protein-workbench/');u.searchParams.set('pdb',c.pdb);u.searchParams.set('mutation',v);u.searchParams.set('chain',c.chain);u.searchParams.set('analysis','combined');window.open(u.href,'_blank','noopener');}$('status').textContent='Opened '+selected.length+' Workbench runs. Complete analysis and export each PDF. Browser pop-up blocking may require allowing multiple tabs.';};
 $('pdf').onchange=()=>{const f=$('pdf').files?.[0];if(!f)return;const url=URL.createObjectURL(f),frame=document.createElement('iframe');frame.src=url;frame.title='Workbench PDF report';$('viewer').replaceChildren(frame);$('interpretation').textContent='PDF displayed. This browser-only PDF viewer does not extract or validate results automatically; numerical interpretation requires structured JSON or curated extraction.';};
 if(new URLSearchParams(location.search).get('variant'))$('variant').value=new URLSearchParams(location.search).get('variant').toUpperCase();
+let pending; $('variant').addEventListener('input',()=>{clearTimeout(pending);pending=setTimeout(()=>{selected=[];$('run').disabled=true;$('interpretation').textContent='No calculated results yet for '+$('variant').value.toUpperCase()+'.';$('find').click();},450);});
 $('find').click();
 if($('variant').value==='H1786D'){fetch('./data/workbench/H1786D_4DMU_pdf.json').then(r=>r.ok?r.json():null).then(d=>{if(!d)return;const e=d.energy;$('interpretation').textContent='In 4DMU, H1786D lost '+d.contacts.lost+' contacts and gained '+d.contacts.gained+'. The empirical minimized score changed from '+e.wild_type+' to '+e.mutant+' kcal/mol (+'+e.delta+'); the sampled change was +'+e.sampled_delta+' ± '+e.sampled_uncertainty+' kcal/mol at 300 K. This suggests local perturbation but does not establish a change in collagen-binding affinity.';}).catch(()=>{});}
 </script></html>
