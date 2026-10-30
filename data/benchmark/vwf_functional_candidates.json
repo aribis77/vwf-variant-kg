@@ -1,8 +1,8 @@
 {
   "schema": "vwf-benchmark-candidates/0.1",
-  "status": "literature_candidate_not_calibrated",
+  "status": "partially_curated_no_calibrated_model",
   "reference_sequence": "UniProt P04275 precursor numbering; verify each against transcript and primary publication",
-  "limitations": "These are literature-reported phenotype labels, not individually adjudicated ground truth or quantitative assay measurements. Do not use as training labels until primary studies, assays, variants and independence are verified.",
+  "limitations": "Only R1205H currently has manually extracted quantitative primary functional records. Others remain candidates. Quantitative clearance is not interchangeable with platelet binding, FVIII binding or multimer outcomes; no pooled structural classifier is calibrated.",
   "variants": [
     {
       "variant": "R1306W",
@@ -94,11 +94,42 @@
       "domain": "D3",
       "reported_function": "altered VWF clearance",
       "source": "https://air.unimi.it/retrieve/dfa8b994-394c-748b-e053-3a05fe0a3a96/s-0031-1281037.pdf",
-      "curation_status": "candidate_requires_primary_functional_validation",
-      "measured_effect": null,
-      "assay": null,
+      "curation_status": "primary_quantitative_functional_evidence_extracted",
+      "measured_effect": {
+        "direction": "accelerated_clearance",
+        "clinical_context": "VWD Vicenza",
+        "quantitative_primary_records": 2
+      },
+      "assay": "clearance",
       "cohort_independence": null,
-      "benchmark_split": null
+      "benchmark_split": null,
+      "primary_functional_evidence": [
+        {
+          "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3863617/",
+          "assay": "plasma VWF antigen half-life following DDAVP versus exogenous wild-type VWF (Haemate P)",
+          "population": "3 VWD Vicenza patients",
+          "mutant_mean": 0.81,
+          "mutant_sd": 0.2,
+          "reference_mean": 7.25,
+          "reference_sd": 2.38,
+          "unit": "hours",
+          "comparison_caveat": "Endogenous mutant versus administered plasma-derived WT within patients; not a recombinant matched-pair experiment",
+          "direction": "accelerated_clearance",
+          "validated_as": "primary_publication_measured_function",
+          "phenotype_axis": "clearance"
+        },
+        {
+          "source": "https://pubmed.ncbi.nlm.nih.gov/14613933/",
+          "assay": "VWF-deficient mouse mean residence time",
+          "mutant_mean": 0.3,
+          "reference_mean": 2.8,
+          "unit": "hours",
+          "direction": "accelerated_clearance",
+          "comparison_caveat": "Animal experimental system; separate from patient pharmacokinetic assay",
+          "validated_as": "primary_publication_measured_function",
+          "phenotype_axis": "clearance"
+        }
+      ]
     }
   ]
 }
