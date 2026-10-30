@@ -7,9 +7,11 @@ async function discover(v){
  if(!match)throw Error('Enter a valid VWF substitution, e.g. R1315L');
  const position=Number(match[2]),wt=match[1];
  const query={query:{type:'terminal',service:'text',parameters:{operator:'exact_match',value:'P04275',attribute:'rcsb_polymer_entity.rcsb_polymer_entity_container_identifiers.reference_sequence_identifiers.database_accession'}},return_type:'polymer_entity',request_options:{paginate:{start:0,rows:100}}};
- const search=await fetch('https://search.rcsb.org/rcsbsearch/v2/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(query)});
- if(!search.ok)throw Error('RCSB search HTTP '+search.status);
- const hits=(await search.json()).result_set||[];
+ let hits=[],errors=[];
+ for(const request of [query,{query:{type:'terminal',service:'full_text',parameters:{value:'P04275'}},return_type:'polymer_entity',request_options:{paginate:{start:0,rows:100}}}]){
+  try{const search=await fetch('https://search.rcsb.org/rcsbsearch/v2/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request)});if(!search.ok){errors.push('HTTP '+search.status);continue;}hits=(await search.json()).result_set||[];if(hits.length)break;}catch(e){errors.push(e.message);}
+ }
+ if(!hits.length)throw Error('RCSB returned no structures ('+errors.join(', ')+')');
  const pdbs=[...new Set(hits.map(x=>String(x.identifier).split('_')[0]).filter(x=>/^[A-Za-z0-9]{4}$/.test(x)))].slice(0,35);
  const candidates=[];
  for(const pdb of pdbs){
