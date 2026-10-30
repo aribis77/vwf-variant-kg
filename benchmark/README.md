@@ -23,7 +23,7 @@ Do not assume that lack of reported effect is evidence of no effect. Avoid reusi
 7. Treat multiple PDB structures of one variant as correlated evidence, not independent replicates.
 
 ## Input and evaluation
-`predictions.json` is an array with `variant`, `label`, optional `score` and `version`. Labels must be `functional_effect`, `no_demonstrated_effect`, or `uncertain`.
+`predictions.json` is an array with `variant`, `endpoint`, `label`, optional `score` and `version`. Labels must be `functional_effect`, `no_demonstrated_effect`, or `uncertain`.
 
 Run:
 ```sh
@@ -39,4 +39,4 @@ Export variant-independent consensus results from the KG as predictions.json. As
 Run `node benchmark/audit.mjs benchmark/candidate_reference_panel.json`.
 Pending records are listed but never marked eligible. For verified records, the audit requires `reviewer`, `independent_reviewer`, `review_date`, `assay_type`, `organism`, `numbering_reference`, `effect_measure` and `comparator`. This is a completeness gate, not independent verification of a paper's contents. Audit records remain pending until the actual experimental evidence has been checked. Never turn a candidate into a negative control based on absence of a reported effect.
 
-The evaluator currently accepts one reference record per variant. Endpoint-specific repeated variants must be evaluated as separate endpoint-stratified runs until the evaluator is upgraded to match compound variant/endpoint keys. Do not merge distinct functional endpoints into a single label.
+The evaluator matches reference and prediction records by the compound key `variant + endpoint`. The endpoint string must be identical after case/whitespace normalization in both inputs. Do not merge distinct functional endpoints into a single label.
