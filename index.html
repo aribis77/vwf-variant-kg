@@ -539,23 +539,34 @@ get('vrshow').onclick=render;
 
 get('vrshare').onclick=async()=>{if(!current)render();const url=new URL(location.href);url.searchParams.set('variant',get('vrvariant').value.trim().toUpperCase());url.searchParams.set('view','report');try{await navigator.clipboard.writeText(url.href);get('vrmessage').textContent='Report link copied. Imported Workbench data is local and will not be included in the link.';}catch(e){get('vrmessage').textContent=url.href;}};
 // Export existing integrated KG reports without inventing functional classifications.
-get('vrbenchmark').onclick=()=>{
- const variants=[...new Set((DATA.nodes||[]).flatMap(n=>{
-  const candidates=[n.variant,n.substitution,n.label,n.node_id].filter(x=>typeof x==='string');
-  return candidates.map(x=>x.trim().toUpperCase()).filter(x=>/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(x));
- }))].sort();
- const selected=get('vrvariant').value.trim().toUpperCase();
- if(/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(selected)&&!variants.includes(selected))variants.push(selected);
- const predictions=variants.map(v=>{
-  const r=report(v);
-  return {variant:v,endpoint:'unspecified',label:'uncertain',score:null,version:'KG-integrated-report/0.1',
-   evidence_summary:{observations:r.kg.observations,linked_relations:r.kg.linked_relations,
-    analysis_coverage:r.analysis_coverage,source_audit:r.kg.audit_status_counts},
-   prediction_status:'not_calibrated',reason:'Endpoint not adjudicated. This exploratory export must be matched to a curated functional endpoint before evaluation; no label inferred from evidence counts'};
- });
- const blob=new Blob([JSON.stringify(predictions,null,2)],{type:'application/json'});
- const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='vwf_benchmark_predictions.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
- get('vrmessage').textContent='Exported '+predictions.length+' variant records. All predictions remain uncertain until a validated endpoint-specific classifier is available.';
+get('vrbenchmark').onclick=async()=>{
+ const button=get('vrbenchmark');
+ button.disabled=true;
+ try{
+  const response=await fetch('./benchmark/candidate_reference_panel.json',{cache:'no-store'});
+  if(!response.ok)throw Error('Candidate panel HTTP '+response.status);
+  const candidates=await response.json();
+  if(!Array.isArray(candidates))throw Error('Invalid candidate panel');
+  const valid=/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/;
+  const selected=get('vrvariant').value.trim().toUpperCase();
+  const rows=candidates.filter(c=>valid.test(c.variant||'')&&typeof c.endpoint==='string'&&c.endpoint.trim())
+   .filter(c=>!valid.test(selected)||c.variant===selected);
+  const predictions=rows.map(c=>{
+   const r=report(c.variant);
+   const matchingObs=r.kg.observations_detail.filter(o=>String(o.endpoint||'').trim().toLowerCase()===c.endpoint.trim().toLowerCase());
+   return {variant:c.variant,endpoint:c.endpoint,label:'uncertain',score:null,version:'KG-integrated-report/0.1',
+    prediction_status:'not_calibrated',
+    evidence_summary:{endpoint_matched_observations:matchingObs.length,
+     endpoint_source_urls:[...new Set(matchingObs.map(o=>o.source_url).filter(u=>/^https:\/\//.test(u)))],
+     source_audit:r.kg.audit_status_counts,analysis_coverage:r.analysis_coverage,
+     structural_reports:r.workbench_reports.length},
+    reason:'Evidence coverage only; endpoint-specific classifier not calibrated. Reference labels are not used to generate predictions.'};
+  });
+  const blob=new Blob([JSON.stringify(predictions,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='vwf_endpoint_benchmark_predictions.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  get('vrmessage').textContent='Exported '+predictions.length+' endpoint-matched candidate records. No reference labels were copied into predictions; functional classifications remain uncertain.';
+ }catch(error){get('vrmessage').textContent='Benchmark export unavailable: '+error.message;}
+ finally{button.disabled=false;}
 };
 get('vrdownload').onclick=()=>{if(!current)render();if(!current)return;const b=new Blob([JSON.stringify(current,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='VWF_'+current.variant+'_integrated_report.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);};
 try{const recovered=JSON.parse(sessionStorage.getItem('vwf-last-workbench-report')||'null');if(recovered&&recovered.schema==='protein-workbench-mechanistic-report/0.1'){state.reports=[recovered];state.imported=recovered;if(recovered.mutation===get('vrvariant').value.trim().toUpperCase()){render();get('vrmessage').textContent='Recovered previous Workbench result from this browser session.';}}}catch(e){}
