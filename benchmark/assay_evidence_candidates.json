@@ -1,0 +1,119 @@
+[
+  {
+    "variant": "H1786D",
+    "endpoint": "collagen I binding",
+    "organism": "human",
+    "assay_type": "recombinant full-length VWF collagen-binding assay",
+    "effect_measure": "<1% of wild-type recombinant VWF",
+    "comparator": "wild-type recombinant VWF",
+    "source": "https://onlinelibrary.wiley.com/doi/full/10.1111/j.1538-7836.2010.03869.x",
+    "review_status": "pending",
+    "reference_label": "functional_effect",
+    "notes": "Collagen I and III both <1% in recombinant assay; do not conflate with heterozygous patient plasma."
+  },
+  {
+    "variant": "H1786D",
+    "endpoint": "collagen III binding",
+    "organism": "human",
+    "assay_type": "recombinant full-length VWF collagen-binding assay",
+    "effect_measure": "<1% of wild-type recombinant VWF",
+    "comparator": "wild-type recombinant VWF",
+    "source": "https://onlinelibrary.wiley.com/doi/full/10.1111/j.1538-7836.2010.03869.x",
+    "review_status": "pending",
+    "reference_label": "functional_effect"
+  },
+  {
+    "variant": "H1786D",
+    "endpoint": "collagen IV binding",
+    "organism": "human",
+    "assay_type": "recombinant VWF collagen IV binding assay",
+    "effect_measure": "No detectable change relative to WT reported",
+    "comparator": "wild-type recombinant VWF",
+    "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4383803/",
+    "review_status": "pending",
+    "reference_label": "no_demonstrated_effect",
+    "notes": "Endpoint-specific negative candidate, NOT global benign classification; effect threshold and precision require figure review."
+  },
+  {
+    "variant": "S1731T",
+    "endpoint": "collagen I binding",
+    "organism": "human",
+    "assay_type": "recombinant VWF collagen-binding assay",
+    "effect_measure": "45% of wild-type",
+    "comparator": "wild-type recombinant VWF",
+    "source": "https://onlinelibrary.wiley.com/doi/full/10.1111/j.1538-7836.2010.03869.x",
+    "review_status": "pending",
+    "reference_label": "functional_effect"
+  },
+  {
+    "variant": "S1731T",
+    "endpoint": "collagen III binding",
+    "organism": "human",
+    "assay_type": "recombinant VWF collagen-binding assay",
+    "effect_measure": "50% of wild-type",
+    "comparator": "wild-type recombinant VWF",
+    "source": "https://onlinelibrary.wiley.com/doi/full/10.1111/j.1538-7836.2010.03869.x",
+    "review_status": "pending",
+    "reference_label": "functional_effect"
+  },
+  {
+    "variant": "S1731T",
+    "endpoint": "collagen IV binding",
+    "organism": "human",
+    "assay_type": "recombinant VWF collagen IV binding assay",
+    "effect_measure": "No detectable change relative to WT reported",
+    "comparator": "wild-type recombinant VWF",
+    "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4383803/",
+    "review_status": "pending",
+    "reference_label": "no_demonstrated_effect",
+    "notes": "Endpoint-specific negative candidate only; verify assay precision."
+  },
+  {
+    "variant": "R1597W",
+    "endpoint": "ADAMTS13 proteolysis",
+    "organism": "mouse",
+    "assay_type": "full-length recombinant mouse VWF digestion",
+    "effect_measure": "68% lower mADAMTS13 concentration required compared with WT",
+    "comparator": "wild-type mouse VWF",
+    "source": "https://pubmed.ncbi.nlm.nih.gov/22372972/",
+    "review_status": "pending",
+    "reference_label": "functional_effect",
+    "notes": "Do not pool mouse and human assay effects."
+  },
+  {
+    "variant": "R1597W",
+    "endpoint": "collagen binding",
+    "organism": "human",
+    "assay_type": "recombinant VWF binding",
+    "effect_measure": "Unaltered versus WT (qualitative statement)",
+    "comparator": "wild-type human VWF",
+    "source": "https://ashpublications.org/bloodadvances/article/3/7/957/247279/von-Willebrand-factor-self-association-is",
+    "review_status": "pending",
+    "reference_label": "no_demonstrated_effect",
+    "notes": "Requires endpoint-specific collagen subtype and uncertainty assessment before freezing."
+  },
+  {
+    "variant": "R854Q",
+    "endpoint": "FVIII binding",
+    "organism": "human",
+    "assay_type": "mammalian cell surface display",
+    "effect_measure": "Marked impairment, quantitative effect not extracted",
+    "comparator": "reference displayed VWF",
+    "source": "https://www.sciencedirect.com/science/article/pii/S0006497123092066",
+    "review_status": "pending",
+    "reference_label": "functional_effect",
+    "notes": "Conference abstract; independently verify full paper."
+  },
+  {
+    "variant": "D879N",
+    "endpoint": "FVIII binding",
+    "organism": "human",
+    "assay_type": "mammalian cell surface display",
+    "effect_measure": "Marked impairment, quantitative effect not extracted",
+    "comparator": "reference displayed VWF",
+    "source": "https://www.sciencedirect.com/science/article/pii/S0006497123092066",
+    "review_status": "pending",
+    "reference_label": "functional_effect",
+    "notes": "Conference abstract; independently verify full paper."
+  }
+]
