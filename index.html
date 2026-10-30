@@ -534,8 +534,24 @@ async function kgLoadCollagenEvidence(variant){
    tr.append(td);table.append(tr);
   }
   host.append(table);
+  const byEndpoint=new Map();
+  for(const r of rows){
+   const endpoint=r.endpoint.trim().toLowerCase();
+   const group=byEndpoint.get(endpoint)||[];
+   group.push(r);byEndpoint.set(endpoint,group);
+  }
+  const heading2=document.createElement('h4');heading2.textContent='Endpoint-specific interpretation';host.append(heading2);
+  for(const [endpoint,group] of byEndpoint){
+   const labels=new Set(group.map(r=>r.reference_label));
+   const p=document.createElement('p');
+   const description=labels.size!==1?'Conflicting candidate assay labels; unresolved':
+    labels.has('functional_effect')?'Published assay candidates report an effect':
+    labels.has('no_demonstrated_effect')?'No effect demonstrated in the cited assay conditions':'Functional effect unresolved';
+   p.textContent=endpoint+': '+description+'. '+group.length+' candidate record(s), '+group.filter(r=>r.review_status==='verified').length+' verified.';
+   host.append(p);
+  }
   const caution=document.createElement('p');caution.className='sub';
-  caution.textContent='These are pending literature-curation candidates, not independent validated reference labels. Collagen I, III and IV effects must not be pooled. Structural contact and empirical-energy estimates are not subtype-specific binding assays.';
+  caution.textContent='Interpretations above summarize literature candidate labels, not an independent KG prediction. No clinical classification follows from these assay reports. Collagen I, III and IV effects must not be pooled; structural contacts and empirical energies are not subtype-specific binding assays.';
   host.append(caution);
  }catch(e){host.textContent='Collagen subtype evidence unavailable: '+e.message;}
 }
