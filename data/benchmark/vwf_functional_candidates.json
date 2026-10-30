@@ -1,0 +1,104 @@
+{
+  "schema": "vwf-benchmark-candidates/0.1",
+  "status": "literature_candidate_not_calibrated",
+  "reference_sequence": "UniProt P04275 precursor numbering; verify each against transcript and primary publication",
+  "limitations": "These are literature-reported phenotype labels, not individually adjudicated ground truth or quantitative assay measurements. Do not use as training labels until primary studies, assays, variants and independence are verified.",
+  "variants": [
+    {
+      "variant": "R1306W",
+      "reported_subtype": "2B",
+      "domain": "A1",
+      "reported_function": "increased platelet GPIb binding",
+      "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12858306/",
+      "curation_status": "candidate_requires_primary_functional_validation",
+      "measured_effect": null,
+      "assay": null,
+      "cohort_independence": null,
+      "benchmark_split": null
+    },
+    {
+      "variant": "R1306L",
+      "reported_subtype": "2B",
+      "domain": "A1",
+      "reported_function": "increased platelet GPIb binding",
+      "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12858306/",
+      "curation_status": "candidate_requires_primary_functional_validation",
+      "measured_effect": null,
+      "assay": null,
+      "cohort_independence": null,
+      "benchmark_split": null
+    },
+    {
+      "variant": "R1308C",
+      "reported_subtype": "2B",
+      "domain": "A1",
+      "reported_function": "increased platelet GPIb binding",
+      "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12858306/",
+      "curation_status": "candidate_requires_primary_functional_validation",
+      "measured_effect": null,
+      "assay": null,
+      "cohort_independence": null,
+      "benchmark_split": null
+    },
+    {
+      "variant": "R1315L",
+      "reported_subtype": "2M",
+      "domain": "A1",
+      "reported_function": "reduced platelet-dependent VWF activity",
+      "source": "https://air.unimi.it/retrieve/dfa8b994-394c-748b-e053-3a05fe0a3a96/s-0031-1281037.pdf",
+      "curation_status": "candidate_requires_primary_functional_validation",
+      "measured_effect": null,
+      "assay": null,
+      "cohort_independence": null,
+      "benchmark_split": null
+    },
+    {
+      "variant": "R1315C",
+      "reported_subtype": "2M",
+      "domain": "A1",
+      "reported_function": "reduced platelet-dependent VWF activity",
+      "source": "https://air.unimi.it/retrieve/dfa8b994-394c-748b-e053-3a05fe0a3a96/s-0031-1281037.pdf",
+      "curation_status": "candidate_requires_primary_functional_validation",
+      "measured_effect": null,
+      "assay": null,
+      "cohort_independence": null,
+      "benchmark_split": null
+    },
+    {
+      "variant": "R1597W",
+      "reported_subtype": "2A",
+      "domain": "A2",
+      "reported_function": "abnormal high-molecular-weight multimer profile / proteolysis pathway",
+      "source": "https://air.unimi.it/retrieve/dfa8b994-394c-748b-e053-3a05fe0a3a96/s-0031-1281037.pdf",
+      "curation_status": "candidate_requires_primary_functional_validation",
+      "measured_effect": null,
+      "assay": null,
+      "cohort_independence": null,
+      "benchmark_split": null
+    },
+    {
+      "variant": "R854Q",
+      "reported_subtype": "2N",
+      "domain": "D-prime",
+      "reported_function": "reduced FVIII binding",
+      "source": "https://air.unimi.it/retrieve/dfa8b994-394c-748b-e053-3a05fe0a3a96/s-0031-1281037.pdf",
+      "curation_status": "candidate_requires_primary_functional_validation",
+      "measured_effect": null,
+      "assay": null,
+      "cohort_independence": null,
+      "benchmark_split": null
+    },
+    {
+      "variant": "R1205H",
+      "reported_subtype": "1 Vicenza",
+      "domain": "D3",
+      "reported_function": "altered VWF clearance",
+      "source": "https://air.unimi.it/retrieve/dfa8b994-394c-748b-e053-3a05fe0a3a96/s-0031-1281037.pdf",
+      "curation_status": "candidate_requires_primary_functional_validation",
+      "measured_effect": null,
+      "assay": null,
+      "cohort_independence": null,
+      "benchmark_split": null
+    }
+  ]
+}
