@@ -463,6 +463,38 @@ function kgConsensusPanel(variant){
  const distinctMapped=new Set(contactRows.map(o=>o.pdb)).size;
  const status=opposing?'Conflicting local contact changes across modeled structures.':agreement&&distinctMapped>=2?'Local contact changes show consistent direction across at least two distinct PDB entries.':contactRows.length?'Local structural perturbation measured; independent cross-PDB confirmation is insufficient.':'Structural perturbation cannot yet be classified from verified WT–mutant comparisons.';
  html+='<p><b>Mechanistic synthesis:</b> '+escHtml(status)+' Energetic and conservation evidence remain separately qualified; a change in function or pathogenicity is not established by this structural audit.</p>';
+ // Quality-weighted directional evidence, explicitly uncalibrated.
+ // One representative per PDB prevents duplicated crystallographic chains from inflating confidence.
+ const byPdb=new Map();
+ for(const o of observations.filter(o=>o.mapping)){
+  const q=o.resolution!==null&&o.resolution>0?Math.max(.25,Math.min(1,2.5/o.resolution)):.5;
+  const existing=byPdb.get(o.pdb);
+  if(!existing||q>existing.q)byPdb.set(o.pdb,{...o,q});
+ }
+ const independent=[...byPdb.values()];
+ const directional=independent.filter(o=>o.contact!==null&&o.contact!==0);
+ const weightTotal=directional.reduce((sum,o)=>sum+o.q,0);
+ const weightedDirection=weightTotal?directional.reduce((sum,o)=>sum+o.q*Math.sign(o.contact),0)/weightTotal:null;
+ const concordance=weightedDirection===null?null:Math.abs(weightedDirection);
+ html+='<h4>Resolution-weighted directional consistency · exploratory</h4>';
+ html+='<p>One representative chain per PDB; verified coordinate mapping required. Quality weights use min(1, 2.5 Å / reported resolution), bounded below at 0.25. Missing resolution receives a provisional 0.5 weight. This is a transparent heuristic, not a validated likelihood or confidence probability.</p>';
+ html+='<p><b>Distinct mapped PDBs:</b> '+independent.length+'. <b>With nonzero numerical contact changes:</b> '+directional.length+'.</p>';
+ if(concordance!==null){
+  const category=concordance>=.75?'high directional agreement':concordance>=.4?'partial directional agreement':'conflicting directions';
+  html+='<p><b>Weighted contact-direction concordance:</b> '+(100*concordance).toFixed(1)+'% ('+category+'). Predominant direction: '+(weightedDirection<0?'contact loss':'contact gain')+'.</p>';
+  html+='<p>This percentage measures directional agreement among available reports, <b>not</b> the probability of functional damage, variant pathogenicity or an effect-size score.</p>';
+ }else html+='<p>No numerical directional concordance is calculable from verified, distinct PDB entries.</p>';
+ const eligibleE=independent.filter(o=>o.energy!==null&&o.method&&o.unit);
+ const energyFamilies=new Map();
+ for(const o of eligibleE){const key=o.method+' | '+o.unit;if(!energyFamilies.has(key))energyFamilies.set(key,[]);energyFamilies.get(key).push(o);}
+ for(const [method,rows] of energyFamilies){
+  const sum=rows.reduce((a,o)=>a+o.q,0),mean=rows.reduce((a,o)=>a+o.q*o.energy,0)/sum;
+  const spread=rows.length>1?Math.sqrt(rows.reduce((a,o)=>a+o.q*(o.energy-mean)**2,0)/sum):null;
+  html+='<p><b>Within-method energy summary ('+escHtml(method)+'):</b> weighted mean '+mean.toPrecision(4)+(spread!==null?' and between-structure weighted SD '+spread.toPrecision(3):' (single structure; no between-structure SD)')+'; '+rows.length+' distinct PDB(s). These are descriptive empirical quantities, not binding ΔΔG unless the source method establishes that interpretation.</p>';
+ }
+ if(!eligibleE.length)html+='<p>Quantitative energy synthesis withheld: verified numerical values with explicit methods and units are required.</p>';
+ const insufficient=independent.length<2||directional.length<2;
+ html+='<p><b>Evidence confidence:</b> '+(insufficient?'insufficient independent structural comparisons':concordance>=.75?'directionally consistent, provisional':concordance>=.4?'mixed, provisional':'conflicting, provisional')+'. No calibrated confidence score or effect-severity score is assigned without benchmark validation.</p>';
  html+='<h4>Integrated structural interpretation</h4><p>'+covered.length+'/4 evidence categories represented. '+(covered.length===4?'All categories are present; mechanistic agreement still requires method-aware validation.':'Evidence incomplete; no definitive structural-effect classification.')+'</p><p><b>Confidence:</b> provisional, not numerically calibrated. <b>Clinical pathogenicity:</b> not established by structural calculations alone.</p>';
  html+='<details><summary>Structures contributing to this assessment</summary><p>'+all.map(r=>escHtml((r.pdb||r.structure?.pdb_id||'Unknown PDB')+' / '+(r.chain||r.coordinate_mapping?.chain||'unspecified chain'))).join('; ')+'</p></details></section>';
  return html;
