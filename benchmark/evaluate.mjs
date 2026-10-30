@@ -11,18 +11,21 @@ export function evaluate(reference, predictions) {
   if (!Array.isArray(reference) || !Array.isArray(predictions)) throw Error('Expected arrays');
   const refs = new Map();
   for (const r of reference) {
-    if (!r.variant || refs.has(r.variant)) throw Error('Missing/duplicate reference variant');
+    const key = String(r.variant||'')+'|'+normalize(r.endpoint);
+    if (!r.variant || !r.endpoint || refs.has(key)) throw Error('Missing/duplicate reference variant-endpoint');
     if (!LABELS.has(normalize(r.label))) throw Error('Invalid reference label: '+r.variant);
     if (!r.source || !r.endpoint || !r.review_status || r.review_status !== 'verified') throw Error('Unverified reference: '+r.variant);
-    refs.set(r.variant,r);
+    refs.set(key,r);
   }
   const pred = new Map();
   for (const p of predictions) {
-    if (!p.variant || pred.has(p.variant)) throw Error('Missing/duplicate prediction variant');
-    pred.set(p.variant,p);
+    const key=String(p.variant||'')+'|'+normalize(p.endpoint);
+    if (!p.variant || !p.endpoint || pred.has(key)) throw Error('Missing/duplicate prediction variant-endpoint');
+    pred.set(key,p);
   }
   const rows = [...refs.values()].map(r => {
-    const p = pred.get(r.variant);
+    const key=String(r.variant)+'|'+normalize(r.endpoint);
+    const p = pred.get(key);
     const label = normalize(p?.label);
     const valid = LABELS.has(label);
     const abstained = !valid || label === 'uncertain';
@@ -48,7 +51,7 @@ export function evaluate(reference, predictions) {
     negative_coverage:fraction(negative.length,allNegative.length),
     confusion_matrix_called:{true_positive:tp,false_negative:fn,true_negative:tn,false_positive:fp},
     warning:'Sensitivity and specificity are conditional on non-abstained predictions; inspect class-specific coverage.',
-    missing_predictions:rows.filter(r=>!pred.has(r.variant)).map(r=>r.variant),
+    missing_predictions:rows.filter(r=>!pred.has(String(r.variant)+'|'+normalize(r.endpoint))).map(r=>({variant:r.variant,endpoint:r.endpoint})),
     rows};
 }
 if (process.argv[1] && import.meta.url === new URL('file://'+process.argv[1]).href) {
