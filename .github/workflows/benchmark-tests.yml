@@ -1,0 +1,21 @@
+name: Benchmark tests
+on:
+  push:
+    paths:
+      - 'benchmark/**'
+      - '.github/workflows/benchmark-tests.yml'
+  pull_request:
+    paths:
+      - 'benchmark/**'
+      - '.github/workflows/benchmark-tests.yml'
+  workflow_dispatch:
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run evaluator regression tests
+        run: node --test benchmark/evaluate.test.mjs
