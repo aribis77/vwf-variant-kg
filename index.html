@@ -715,7 +715,7 @@ function choose(value,source){
  const v=String(value||'').trim().toUpperCase();if(!valid(v))return;
  if(v===active)return;active=v;
  if(field.value!==v)field.value=v;
- if(source!=='graph'){search.value=v;search.dispatchEvent(new Event('input',{bubbles:true}));}
+ search.value=v;search.dispatchEvent(new Event('input',{bubbles:true}));
  frame.src='./structural-analysis.html?variant='+encodeURIComponent(v);
  const url=new URL(location.href);url.searchParams.set('variant',v);history.replaceState(null,'',url);
  if(source!=='report')show?.click();
