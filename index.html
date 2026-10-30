@@ -432,6 +432,37 @@ function kgConsensusPanel(variant){
   }else if(k==='conservation')html+='<p>Conservation results available. Counted once as evolutionary evidence, not once per structure.</p>';
   else html+='<p>Sampling results received; ensemble convergence and replicate independence require validation.</p>';
  }
+ // Mechanistic concordance: compare only explicit WT–mutant directions, never invent missing scores.
+ const observations=[];
+ for(const r of all){
+  const c=find(r,'contacts'),e=find(r,'energetics');
+  const contact=num(c,['delta_contacts','contact_delta','net_contact_change','delta']);
+  const energy=num(e,['delta_delta_g','ddg','delta_g','delta_energy','energy_delta']);
+  const method=String(e?.method||e?.energy_method||'').trim(),unit=String(e?.units||e?.unit||'').trim();
+  const resolution=num(r,['resolution_angstrom','resolution','experimental_resolution'])??num(r.structure,['resolution_angstrom','resolution']);
+  const mapping=r.coordinate_mapping?.verified_in_loaded_coordinates===true||r.coordinate_mapping?.verified_in_loaded_structure===true;
+  const pdb=String(r.pdb||r.structure?.pdb_id||'unknown'),chain=String(r.chain||r.coordinate_mapping?.chain||'?');
+  observations.push({pdb,chain,contact,energy,method,unit,resolution,mapping});
+ }
+ const pdbs=new Set(observations.map(o=>o.pdb));
+ const mapped=observations.filter(o=>o.mapping);
+ const contactRows=observations.filter(o=>o.mapping&&o.contact!==null);
+ const loss=contactRows.filter(o=>o.contact<0).length,gain=contactRows.filter(o=>o.contact>0).length,flat=contactRows.filter(o=>o.contact===0).length;
+ const opposing=loss>0&&gain>0;
+ const agreement=contactRows.length>=2&&!opposing;
+ html+='<h4>Quality and agreement audit</h4>';
+ html+='<p><b>Verified coordinate mappings:</b> '+mapped.length+'/'+observations.length+' reports. <b>Distinct PDB entries:</b> '+pdbs.size+'. Repeated chains within a PDB are not independent structural experiments.</p>';
+ const resolutionRows=observations.filter(o=>o.resolution!==null);
+ html+='<p><b>Experimental resolution:</b> '+(resolutionRows.length?resolutionRows.map(o=>escHtml(o.pdb)+' '+o.resolution.toFixed(2)+' Å').join('; '):'Not supplied in structured reports; no resolution-based weighting applied.')+'</p>';
+ if(contactRows.length)html+='<p><b>Mapped WT–mutant contact direction:</b> '+loss+' losses, '+gain+' gains, '+flat+' unchanged across '+contactRows.length+' report(s). '+(opposing?'Conflicting directions; a single uniform contact mechanism is not supported.':agreement?'Directionally consistent in available reports, subject to structural independence.':'Too few comparable reports for cross-structure agreement.')+'</p>';
+ else html+='<p><b>Mapped WT–mutant contact agreement:</b> Not assessable. Coordinate verification or comparable numerical differences are missing.</p>';
+ const energyRows=observations.filter(o=>o.mapping&&o.energy!==null);
+ const groups=new Map();for(const o of energyRows){const key=(o.method||'unspecified')+' | '+(o.unit||'unspecified');if(!groups.has(key))groups.set(key,[]);groups.get(key).push(o);}
+ for(const [key,rows] of groups){const plus=rows.filter(o=>o.energy>0).length,minus=rows.filter(o=>o.energy<0).length;html+='<p><b>Energy direction ('+escHtml(key)+'):</b> '+plus+' positive, '+minus+' negative, '+rows.filter(o=>o.energy===0).length+' unchanged; '+rows.length+' report(s). '+(plus&&minus?'Directionally conflicting.':'No cross-method energy pooling performed.')+'</p>';}
+ if(!energyRows.length)html+='<p><b>Energy agreement:</b> Not assessable from verified, numerical reports.</p>';
+ const distinctMapped=new Set(contactRows.map(o=>o.pdb)).size;
+ const status=opposing?'Conflicting local contact changes across modeled structures.':agreement&&distinctMapped>=2?'Local contact changes show consistent direction across at least two distinct PDB entries.':contactRows.length?'Local structural perturbation measured; independent cross-PDB confirmation is insufficient.':'Structural perturbation cannot yet be classified from verified WT–mutant comparisons.';
+ html+='<p><b>Mechanistic synthesis:</b> '+escHtml(status)+' Energetic and conservation evidence remain separately qualified; a change in function or pathogenicity is not established by this structural audit.</p>';
  html+='<h4>Integrated structural interpretation</h4><p>'+covered.length+'/4 evidence categories represented. '+(covered.length===4?'All categories are present; mechanistic agreement still requires method-aware validation.':'Evidence incomplete; no definitive structural-effect classification.')+'</p><p><b>Confidence:</b> provisional, not numerically calibrated. <b>Clinical pathogenicity:</b> not established by structural calculations alone.</p>';
  html+='<details><summary>Structures contributing to this assessment</summary><p>'+all.map(r=>escHtml((r.pdb||r.structure?.pdb_id||'Unknown PDB')+' / '+(r.chain||r.coordinate_mapping?.chain||'unspecified chain'))).join('; ')+'</p></details></section>';
  return html;
