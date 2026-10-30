@@ -352,7 +352,7 @@ function render(){
  const categories=['Collagen I binding','Collagen II binding','Collagen III binding','Collagen IV binding','Collagen binding (subtype unspecified)','Platelet interaction','Multimerization','Secretion / abundance','FVIII binding'];
  const functionalRows=categories.map(name=>{
   const measures=numeric.filter(x=>endpointGroupDetailed(x.endpoint)===name&&Number.isFinite(x.percent_of_control)&&x.percent_of_control>=0);
-  const textRows=directional.filter(x=>endpointGroup(x.endpoint)===name);
+  const textRows=directional.filter(x=>endpointGroupDetailed(x.endpoint)===name);
   const impaired=measures.filter(x=>x.percent_of_control<70);
   const preserved=measures.filter(x=>x.percent_of_control>=80&&x.percent_of_control<=120);
   let prediction='Not yet predicted',basis='No usable endpoint-specific measurement';
@@ -377,7 +377,7 @@ function render(){
   }
   return {name,prediction,basis,measurements:measures.length,extracted:textRows.length};
  });
- const candidate=functionalRows.find(x=>x.prediction.includes('hypothesis'))||functionalRows.find(x=>x.prediction==='Likely impaired')||functionalRows.find(x=>x.prediction==='Possibly impaired')||functionalRows.find(x=>x.prediction==='Likely preserved')||functionalRows.find(x=>x.prediction==='Possibly preserved');
+ const candidate=functionalRows.find(x=>x.prediction==='Likely impaired')||functionalRows.find(x=>x.prediction==='Possibly impaired')||functionalRows.find(x=>x.prediction==='Likely preserved')||functionalRows.find(x=>x.prediction==='Possibly preserved')||functionalRows.find(x=>x.prediction.includes('hypothesis'));
  const headline=candidate?candidate.name+': '+candidate.prediction.toLowerCase():'No directional functional prediction supported yet';
  const note=candidate?'Mechanism-based hypotheses identify which VWF function to investigate. A domain match does not establish whether activity increases or decreases; assay-based labels are provisional.':'A molecular substitution or contact change alone cannot tell us whether function increases or decreases. Additional calibrated functional evidence is needed.';
  const functionalTable='<table style="width:100%;border-collapse:collapse;margin:14px 0"><thead><tr><th style="text-align:left">VWF function</th><th style="text-align:left">Predicted effect</th><th style="text-align:left">Evidence basis</th></tr></thead><tbody>'+functionalRows.map(x=>'<tr><td style="padding:9px;border-top:1px solid #ddd">'+safe(x.name)+'</td><td style="padding:9px;border-top:1px solid #ddd"><b>'+safe(x.prediction)+'</b></td><td style="padding:9px;border-top:1px solid #ddd">'+safe(x.basis)+'</td></tr>').join('')+'</tbody></table>';
