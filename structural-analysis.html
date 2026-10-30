@@ -1,6 +1,62 @@
 <!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VWF structural analysis</title><style>body{font:15px system-ui;color:#203349;margin:16px}button,input{font:inherit;padding:9px;border:1px solid #cbd5e1;border-radius:7px}button{cursor:pointer;background:#1767a5;color:white}section{padding:16px;border:1px solid #d5dfe9;border-radius:10px;margin:12px 0}label{display:block;margin:8px 0}small{color:#566}iframe{width:100%;height:620px;border:1px solid #ddd}li{margin:9px 0}</style><h2>Structural analysis</h2><p>Find verified PDB structures, then run contacts, mutation energetics, exploratory sampling and conservation in Protein Workbench.</p><label>VWF variant <input id="variant" value="H1786D"></label><button id="find">Find suitable PDB structures</button><section><b>Verified structures</b><div id="candidates">Select Find suitable PDB structures.</div><button id="run" disabled>Run all analyses</button><p id="status" role="status"></p></section><section><h3>Workbench report</h3><p>Open a run above to generate the report. To display the PDF here, select the PDF exported by Workbench.</p><label>Workbench PDF <input id="pdf" type="file" accept="application/pdf"></label><div id="viewer"></div><h3>Interpretation</h3><p id="interpretation">The interpretation will appear for the archived H1786D report. For other variants, a report must be reviewed before a biological conclusion can be stated.</p></section><script>
-const $=id=>document.getElementById(id),known={'H1786D':[{pdb:'4DMU',chain:'B',residue:1786},{pdb:'1AO3',chain:'A',residue:101}]};let selected=[];
-$('find').onclick=()=>{const v=$('variant').value.trim().toUpperCase();selected=known[v]||[];$('candidates').replaceChildren();if(!selected.length){$('candidates').textContent='No verified structure mapping is archived for '+v+'. Automated RCSB discovery and coordinate validation are not available in this simplified interface.';$('run').disabled=true;return;}const ul=document.createElement('ul');selected.forEach(c=>{const li=document.createElement('li');li.textContent=c.pdb+' · chain '+c.chain+' · verified PDB residue '+c.residue;ul.append(li)});$('candidates').append(ul);$('run').disabled=false;$('status').textContent=selected.length+' verified structure(s) ready.';};
+const $=id=>document.getElementById(id);
+const known={'H1786D':[{pdb:'4DMU',chain:'B',residue:1786},{pdb:'1AO3',chain:'A',residue:101}]};let selected=[];
+const aa3={ALA:'A',ARG:'R',ASN:'N',ASP:'D',CYS:'C',GLN:'Q',GLU:'E',GLY:'G',HIS:'H',ILE:'I',LEU:'L',LYS:'K',MET:'M',PHE:'F',PRO:'P',SER:'S',THR:'T',TRP:'W',TYR:'Y',VAL:'V'};
+async function discover(v){
+ const match=v.match(/^([ACDEFGHIKLMNPQRSTVWY])(\\d{1,5})([ACDEFGHIKLMNPQRSTVWY])$/);
+ if(!match)throw Error('Enter a valid VWF substitution, e.g. R1315L');
+ const position=Number(match[2]),wt=match[1];
+ const query={query:{type:'terminal',service:'text',parameters:{operator:'exact_match',value:'P04275',attribute:'rcsb_polymer_entity.rcsb_polymer_entity_container_identifiers.reference_sequence_identifiers.database_accession'}},return_type:'polymer_entity',request_options:{paginate:{start:0,rows:100}}};
+ const search=await fetch('https://search.rcsb.org/rcsbsearch/v2/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(query)});
+ if(!search.ok)throw Error('RCSB search HTTP '+search.status);
+ const hits=(await search.json()).result_set||[];
+ const pdbs=[...new Set(hits.map(x=>String(x.identifier).split('_')[0]).filter(x=>/^[A-Za-z0-9]{4}$/.test(x)))].slice(0,35);
+ const candidates=[];
+ for(const pdb of pdbs){
+  try{
+   const lower=pdb.toLowerCase();
+   const mappingRes=await fetch('https://www.ebi.ac.uk/pdbe/api/mappings/uniprot/'+lower);
+   if(!mappingRes.ok)continue;
+   const mappingDoc=await mappingRes.json();
+   const mappings=(mappingDoc[lower]?.UniProt?.P04275?.mappings||[]).filter(m=>position>=Number(m.unp_start)&&position<=Number(m.unp_end));
+   if(!mappings.length)continue;
+   const listingRes=await fetch('https://www.ebi.ac.uk/pdbe/api/pdb/entry/residue_listing/'+lower);
+   if(!listingRes.ok)continue;
+   const listing=await listingRes.json(),chains=new Map();
+   for(const molecule of listing[lower]?.molecules||[])for(const chain of molecule.chains||[]){
+    const residues=new Map();for(const res of chain.residues||[])residues.set(Number(res.residue_number),res);
+    chains.set(chain.chain_id,residues);
+   }
+   const coordRes=await fetch('https://files.rcsb.org/download/'+pdb+'.pdb');
+   if(!coordRes.ok)continue;
+   const lines=(await coordRes.text()).split(/\\r?\\n/);
+   for(const m of mappings){
+    const first=Number(m.start?.residue_number),last=Number(m.end?.residue_number);
+    if(!Number.isInteger(first)||!Number.isInteger(last)||last-first!==Number(m.unp_end)-Number(m.unp_start))continue;
+    const entityResidue=first+position-Number(m.unp_start);
+    const residue=chains.get(m.chain_id)?.get(entityResidue);
+    if(!residue||residue.author_residue_number==null)continue;
+    const author=Number(residue.author_residue_number),ins=String(residue.author_insertion_code||'').trim();
+    const verified=lines.some(line=>line.startsWith('ATOM  ')&&line.slice(21,22)===m.chain_id&&Number(line.slice(22,26))===author&&line.slice(26,27).trim()===ins&&aa3[line.slice(17,20).trim()]===wt);
+    if(verified&&!candidates.some(c=>c.pdb===pdb&&c.chain===m.chain_id))candidates.push({pdb,chain:m.chain_id,residue:author});
+   }
+  }catch(e){}
+ }
+ return candidates;
+}
+$('find').onclick=async()=>{
+ const v=$('variant').value.trim().toUpperCase();
+ $('find').disabled=true;$('run').disabled=true;$('status').textContent='Searching RCSB and validating UniProt-to-coordinate mappings…';
+ try{
+  selected=await discover(v);
+  if(!selected.length&&known[v])selected=known[v];
+  $('candidates').replaceChildren();
+  if(!selected.length){$('candidates').textContent='No coordinate-verified PDB structure found for '+v+'. No unverified structure will be run.';$('status').textContent='Search completed without verified candidates.';return;}
+  const ul=document.createElement('ul');
+  selected.forEach(c=>{const li=document.createElement('li');li.textContent=c.pdb+' · chain '+c.chain+' · PDB residue '+c.residue+' (coordinate verified)';ul.append(li)});
+  $('candidates').append(ul);$('run').disabled=false;$('status').textContent=selected.length+' verified structure(s) ready.';
+ }catch(e){$('status').textContent='Structure discovery failed: '+e.message;}finally{$('find').disabled=false;}
+};
 $('run').onclick=()=>{const v=$('variant').value.trim().toUpperCase();for(const c of selected){const u=new URL('https://aribis77.github.io/protein-workbench/');u.searchParams.set('pdb',c.pdb);u.searchParams.set('mutation',v);u.searchParams.set('chain',c.chain);u.searchParams.set('analysis','combined');window.open(u.href,'_blank','noopener');}$('status').textContent='Opened '+selected.length+' Workbench runs. Complete analysis and export each PDF. Browser pop-up blocking may require allowing multiple tabs.';};
 $('pdf').onchange=()=>{const f=$('pdf').files?.[0];if(!f)return;const url=URL.createObjectURL(f),frame=document.createElement('iframe');frame.src=url;frame.title='Workbench PDF report';$('viewer').replaceChildren(frame);$('interpretation').textContent='PDF displayed. This browser-only PDF viewer does not extract or validate results automatically; numerical interpretation requires structured JSON or curated extraction.';};
 if(new URLSearchParams(location.search).get('variant'))$('variant').value=new URLSearchParams(location.search).get('variant').toUpperCase();
