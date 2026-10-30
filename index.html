@@ -708,22 +708,22 @@ window.addEventListener('load',()=>{const q=new URLSearchParams(location.search)
   refresh();
 })();
 </script><script id="kg-structural-tab-sync">(function(){
-const frame=document.getElementById('kg-structural-analysis'),field=document.getElementById('vrvariant'),search=document.getElementById('search'),show=document.getElementById('vrshow');if(!frame||!field||!search)return;
+const frame=document.getElementById('kg-structural-analysis'),field=document.getElementById('vrvariant'),search=document.getElementById('search'),evidence=document.getElementById('osearch'),show=document.getElementById('vrshow');
+if(!frame||!field||!search)return;
 const valid=v=>/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(v);
-let active='';
-function choose(value,source){
+let active='',timer;
+function choose(value){
  const v=String(value||'').trim().toUpperCase();if(!valid(v))return;
- if(v===active)return;active=v;
- if(field.value!==v)field.value=v;
- search.value=v;search.dispatchEvent(new Event('input',{bubbles:true}));
- frame.src='./structural-analysis.html?variant='+encodeURIComponent(v);
- const url=new URL(location.href);url.searchParams.set('variant',v);history.replaceState(null,'',url);
- if(source!=='report')show?.click();
+ const changed=v!==active;active=v;field.value=v;
+ if(search.value.trim().toUpperCase()!==v){search.value=v;search.dispatchEvent(new Event('input',{bubbles:true}));}
+ if(evidence&&evidence.value.trim().toUpperCase()!==v){evidence.value=v;evidence.dispatchEvent(new Event('input',{bubbles:true}));}
+ if(changed){frame.src='./structural-analysis.html?variant='+encodeURIComponent(v);const url=new URL(location.href);url.searchParams.set('variant',v);history.replaceState(null,'',url);}
+ show?.click();
 }
-field.addEventListener('change',()=>choose(field.value,'report'));
-show?.addEventListener('click',()=>choose(field.value,'report'));
-search.addEventListener('change',()=>{const v=search.value.trim().toUpperCase();if(valid(v))choose(v,'graph-search')});
-window.addEventListener('vwf-select-variant',e=>choose(e.detail?.variant,'graph'));
-window.addEventListener('popstate',()=>choose(new URLSearchParams(location.search).get('variant'),'url'));
-const initial=new URLSearchParams(location.search).get('variant')||field.value;choose(initial,'initial');
+field.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>choose(field.value),350);});
+show?.addEventListener('click',()=>{if(valid(field.value.trim().toUpperCase())&&field.value.trim().toUpperCase()!==active)choose(field.value);});
+search.addEventListener('input',()=>{clearTimeout(timer);const v=search.value.trim().toUpperCase();if(valid(v))timer=setTimeout(()=>choose(v),250);});
+window.addEventListener('vwf-select-variant',e=>choose(e.detail?.variant));
+window.addEventListener('popstate',()=>choose(new URLSearchParams(location.search).get('variant')));
+choose(new URLSearchParams(location.search).get('variant')||field.value);
 })();</script></body></html>
