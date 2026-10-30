@@ -33,13 +33,21 @@ export function evaluate(reference, predictions) {
   const determinate = rows.filter(r=>r.reference!=='uncertain');
   const called = determinate.filter(r=>!r.abstained);
   const positive = called.filter(r=>r.reference==='functional_effect');
+  const allPositive = determinate.filter(r=>r.reference==='functional_effect');
+  const allNegative = determinate.filter(r=>r.reference==='no_demonstrated_effect');
   const negative = called.filter(r=>r.reference==='no_demonstrated_effect');
+  const tp=positive.filter(r=>r.correct).length, fn=positive.length-tp;
+  const tn=negative.filter(r=>r.correct).length, fp=negative.length-tn;
   const fraction=(n,d)=>d?n/d:null;
   return {n_reference:rows.length,n_determinate:determinate.length,n_called:called.length,
     coverage:fraction(called.length,determinate.length),
     selective_accuracy:fraction(called.filter(r=>r.correct).length,called.length),
-    sensitivity:fraction(positive.filter(r=>r.correct).length,positive.length),
-    specificity:fraction(negative.filter(r=>r.correct).length,negative.length),
+    sensitivity:fraction(tp,positive.length),
+    specificity:fraction(tn,negative.length),
+    positive_coverage:fraction(positive.length,allPositive.length),
+    negative_coverage:fraction(negative.length,allNegative.length),
+    confusion_matrix_called:{true_positive:tp,false_negative:fn,true_negative:tn,false_positive:fp},
+    warning:'Sensitivity and specificity are conditional on non-abstained predictions; inspect class-specific coverage.',
     missing_predictions:rows.filter(r=>!pred.has(r.variant)).map(r=>r.variant),
     rows};
 }
