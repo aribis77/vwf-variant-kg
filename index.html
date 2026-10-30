@@ -548,10 +548,10 @@ get('vrbenchmark').onclick=()=>{
  if(/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(selected)&&!variants.includes(selected))variants.push(selected);
  const predictions=variants.map(v=>{
   const r=report(v);
-  return {variant:v,label:'uncertain',score:null,version:'KG-integrated-report/0.1',
+  return {variant:v,endpoint:'unspecified',label:'uncertain',score:null,version:'KG-integrated-report/0.1',
    evidence_summary:{observations:r.kg.observations,linked_relations:r.kg.linked_relations,
     analysis_coverage:r.analysis_coverage,source_audit:r.kg.audit_status_counts},
-   prediction_status:'not_calibrated',reason:'No independently calibrated endpoint-specific functional classifier; no label inferred from evidence counts'};
+   prediction_status:'not_calibrated',reason:'Endpoint not adjudicated. This exploratory export must be matched to a curated functional endpoint before evaluation; no label inferred from evidence counts'};
  });
  const blob=new Blob([JSON.stringify(predictions,null,2)],{type:'application/json'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='vwf_benchmark_predictions.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
