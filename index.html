@@ -353,14 +353,32 @@ function render(){
  const functionalRows=categories.map(name=>{
   const measures=numeric.filter(x=>endpointGroupDetailed(x.endpoint)===name&&Number.isFinite(x.percent_of_control)&&x.percent_of_control>=0);
   const textRows=directional.filter(x=>endpointGroupDetailed(x.endpoint)===name);
+  // Source-level grouping avoids counting multiple observations from one paper as independent replications.
+  // Unlinked measurements are not eligible to establish multi-study support.
+  const sourceGroups=new Map();
+  for(const m of measures){
+   const source=String(m.source_url||'').trim();
+   if(!/^https:\/\//.test(source))continue;
+   const key=source.toLowerCase();
+   if(!sourceGroups.has(key))sourceGroups.set(key,[]);
+   sourceGroups.get(key).push(m);
+  }
+  const independent=[...sourceGroups.values()].map(group=>{
+   const low=group.every(x=>x.percent_of_control<70);
+   const normal=group.every(x=>x.percent_of_control>=80&&x.percent_of_control<=120);
+   return {low,normal,count:group.length};
+  });
+  const independentLow=independent.filter(g=>g.low).length;
+  const independentNormal=independent.filter(g=>g.normal).length;
+  const allIndependentLow=independent.length>0&&independentLow===independent.length;
+  const allIndependentNormal=independent.length>0&&independentNormal===independent.length;
   const impaired=measures.filter(x=>x.percent_of_control<70);
   const preserved=measures.filter(x=>x.percent_of_control>=80&&x.percent_of_control<=120);
   let prediction='Not yet predicted',basis='No usable endpoint-specific measurement';
-  if(measures.length>=2&&impaired.length===measures.length){prediction='Likely impaired';basis=measures.length+' normalized assay measurements below 70% of matched control';}
-  else if(measures.length>=2&&preserved.length===measures.length){prediction='Likely preserved';basis=measures.length+' normalized assay measurements within 80–120% of matched control';}
-  else if(impaired.length){prediction='Possibly impaired';basis=impaired.length+' of '+measures.length+' normalized measurements below 70% of matched control';}
-  else if(preserved.length){prediction='Possibly preserved';basis=preserved.length+' of '+measures.length+' normalized measurements within 80–120% of matched control';}
-  else if(measures.length){prediction='Mixed / uncertain';basis='Normalized assay measurements do not support a consistent direction';}
+  if(independent.length>=2&&allIndependentLow){prediction='Consistent impairment across sources (provisional)';basis=independent.length+' distinct source URLs with all measurements below 70% of matched control; publication independence and assay comparability unverified';}
+  else if(independent.length>=2&&allIndependentNormal){prediction='Consistent preservation across sources (provisional)';basis=independent.length+' distinct source URLs with all measurements within 80–120% of matched control; publication independence and assay comparability unverified';}
+  else if(independent.length>=2){prediction='Mixed / uncertain';basis='Different sources or within-source observations do not consistently agree';}
+  else if(measures.length){prediction='Single-source / unverified functional signal';basis=measures.length+' normalized measurement(s), '+independent.length+' traceable source URL(s); no independent replication established';}
   // Domain-based hypothesis generation is independent of availability of assays.
   // The A3 domain (mature VWF ~1687–1874) mediates collagen recognition.
   // A hypothesis is a prioritization, not proof of impaired function.
@@ -377,7 +395,7 @@ function render(){
   }
   return {name,prediction,basis,measurements:measures.length,extracted:textRows.length};
  });
- const candidate=functionalRows.find(x=>x.prediction==='Likely impaired')||functionalRows.find(x=>x.prediction==='Possibly impaired')||functionalRows.find(x=>x.prediction==='Likely preserved')||functionalRows.find(x=>x.prediction==='Possibly preserved')||functionalRows.find(x=>x.prediction.includes('hypothesis'));
+ const candidate=functionalRows.find(x=>x.prediction.startsWith('Consistent impairment'))||functionalRows.find(x=>x.prediction.startsWith('Consistent preservation'))||functionalRows.find(x=>x.prediction==='Single-source / unverified functional signal')||functionalRows.find(x=>x.prediction.includes('hypothesis'));
  const headline=candidate?candidate.name+': '+candidate.prediction.toLowerCase():'No directional functional prediction supported yet';
  const note=candidate?'Mechanism-based hypotheses identify which VWF function to investigate. A domain match does not establish whether activity increases or decreases; assay-based labels are provisional.':'A molecular substitution or contact change alone cannot tell us whether function increases or decreases. Additional calibrated functional evidence is needed.';
  const functionalTable='<table style="width:100%;border-collapse:collapse;margin:14px 0"><thead><tr><th style="text-align:left">VWF function</th><th style="text-align:left">Predicted effect</th><th style="text-align:left">Evidence basis</th></tr></thead><tbody>'+functionalRows.map(x=>'<tr><td style="padding:9px;border-top:1px solid #ddd">'+safe(x.name)+'</td><td style="padding:9px;border-top:1px solid #ddd"><b>'+safe(x.prediction)+'</b></td><td style="padding:9px;border-top:1px solid #ddd">'+safe(x.basis)+'</td></tr>').join('')+'</tbody></table>';
