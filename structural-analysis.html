@@ -58,13 +58,42 @@ $('find').onclick=async()=>{
   if(!selected.length){$('candidates').textContent='No coordinate-verified PDB structure found for '+v+'. No unverified structure will be run.';$('status').textContent='Search completed without verified candidates.';return;}
   const ul=document.createElement('ul');
   selected.forEach(c=>{const li=document.createElement('li');li.textContent=c.pdb+' · chain '+c.chain+' · PDB residue '+c.residue+' (coordinate verified)';ul.append(li)});
-  $('candidates').append(ul);$('run').disabled=false;$('status').textContent=selected.length+' verified structure(s) ready.';
+  $('candidates').append(ul);$('run').disabled=false;$('status').textContent=selected.length+' verified structure(s) ready.';document.getElementById('computed-contacts')?.remove();calculateObservedContacts(v,selected);
  }catch(e){if(thisRequest===requestId)$('status').textContent='Structure discovery failed: '+e.message;}finally{if(thisRequest===requestId)$('find').disabled=false;}
 };
+async function calculateObservedContacts(v,structures){
+ const match=v.match(/^[A-Z](\\d{1,5})[A-Z]$/);if(!match)return;
+ const output=document.createElement('section');output.id='computed-contacts';output.innerHTML='<h3>Automatically measured wild-type structural contacts</h3><p>Calculating from experimental coordinates…</p>';document.getElementById('candidates').after(output);
+ const results=[];
+ for(const c of structures.slice(0,8)){
+  try{
+   const response=await fetch('https://files.rcsb.org/download/'+c.pdb+'.pdb');if(!response.ok)throw Error('PDB unavailable');
+   const rows=(await response.text()).split(/\\r?\\n/),atoms=[],site=[];
+   for(const line of rows){
+    if(!line.startsWith('ATOM  '))continue;
+    const x=Number(line.slice(30,38)),y=Number(line.slice(38,46)),z=Number(line.slice(46,54)),element=line.slice(76,78).trim().toUpperCase()||line.slice(12,16).trim()[0];
+    if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(z)||element==='H')continue;
+    const a={x,y,z,chain:line.slice(21,22),res:Number(line.slice(22,26)),name:line.slice(17,20).trim()};
+    atoms.push(a);if(a.chain===c.chain&&a.res===c.residue)site.push(a);
+   }
+   if(!site.length)throw Error('Site missing in coordinates');
+   const partners=new Map();for(const atom of atoms){
+    if(atom.chain===c.chain&&atom.res===c.residue)continue;
+    let min=Infinity;for(const a of site){const dx=a.x-atom.x,dy=a.y-atom.y,dz=a.z-atom.z;const d2=dx*dx+dy*dy+dz*dz;if(d2<min)min=d2;}
+    if(min<=25){const key=atom.chain+':'+atom.res+':'+atom.name;partners.set(key,Math.min(partners.get(key)||Infinity,Math.sqrt(min)));}
+   }
+   results.push({pdb:c.pdb,chain:c.chain,residue:c.residue,partners:[...partners.entries()].sort((a,b)=>a[1]-b[1])});
+  }catch(e){results.push({pdb:c.pdb,error:e.message});}
+ }
+ if($('variant').value.trim().toUpperCase()!==v){output.remove();return;}
+ output.replaceChildren();const title=document.createElement('h3');title.textContent='Automatically measured wild-type contacts · '+v;output.append(title);
+ for(const d of results){const p=document.createElement('p');p.textContent=d.error?d.pdb+': '+d.error:d.pdb+' chain '+d.chain+': '+d.partners.length+' neighboring residues within 5 Å; '+d.partners.slice(0,12).map(x=>x[0]+' ('+x[1].toFixed(1)+' Å)').join(', ');output.append(p);}
+ const note=document.createElement('p');note.textContent='Measured WT contacts only. Mutant contacts, sampled free energies and conservation are not calculated by this coordinate check; they require the Workbench engine.';output.append(note);
+}
 $('run').onclick=()=>{const v=$('variant').value.trim().toUpperCase();for(const c of selected){const u=new URL('https://aribis77.github.io/protein-workbench/');u.searchParams.set('pdb',c.pdb);u.searchParams.set('mutation',v);u.searchParams.set('chain',c.chain);u.searchParams.set('analysis','combined');window.open(u.href,'_blank','noopener');}$('status').textContent='Opened '+selected.length+' Workbench runs. Complete analysis and export each PDF. Browser pop-up blocking may require allowing multiple tabs.';};
 $('pdf').onchange=()=>{const f=$('pdf').files?.[0];if(!f)return;const url=URL.createObjectURL(f),frame=document.createElement('iframe');frame.src=url;frame.title='Workbench PDF report';$('viewer').replaceChildren(frame);$('interpretation').textContent='PDF displayed. This browser-only PDF viewer does not extract or validate results automatically; numerical interpretation requires structured JSON or curated extraction.';};
 if(new URLSearchParams(location.search).get('variant'))$('variant').value=new URLSearchParams(location.search).get('variant').toUpperCase();
-let pending; $('variant').addEventListener('input',()=>{clearTimeout(pending);pending=setTimeout(()=>{requestId++;selected=[];$('run').disabled=true;$('interpretation').textContent='No calculated results yet for '+$('variant').value.toUpperCase()+'.';$('find').click();},450);});
+let pending; $('variant').addEventListener('input',()=>{clearTimeout(pending);pending=setTimeout(()=>{requestId++;selected=[];document.getElementById('computed-contacts')?.remove();$('run').disabled=true;$('interpretation').textContent='No calculated results yet for '+$('variant').value.toUpperCase()+'.';$('find').click();},450);});
 $('find').click();
 if($('variant').value==='H1786D'){fetch('./data/workbench/H1786D_4DMU_pdf.json').then(r=>r.ok?r.json():null).then(d=>{if(!d)return;const e=d.energy;$('interpretation').textContent='In 4DMU, H1786D lost '+d.contacts.lost+' contacts and gained '+d.contacts.gained+'. The empirical minimized score changed from '+e.wild_type+' to '+e.mutant+' kcal/mol (+'+e.delta+'); the sampled change was +'+e.sampled_delta+' ± '+e.sampled_uncertainty+' kcal/mol at 300 K. This suggests local perturbation but does not establish a change in collagen-binding affinity.';}).catch(()=>{});}
 </script></html>
