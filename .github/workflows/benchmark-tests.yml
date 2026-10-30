@@ -3,6 +3,8 @@ on:
   push:
     paths:
       - 'benchmark/**'
+      - 'index.html'
+      - 'index.html'
       - '.github/workflows/benchmark-tests.yml'
   pull_request:
     paths:
@@ -18,4 +20,6 @@ jobs:
         with:
           node-version: '22'
       - name: Run evaluator regression tests
-        run: node --test benchmark/evaluate.test.mjs
+        run: node --test benchmark/*.test.mjs
+      - name: Check embedded KG JavaScript syntax
+        run: node benchmark/check-page-syntax.mjs
