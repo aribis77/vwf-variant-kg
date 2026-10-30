@@ -340,9 +340,18 @@ function render(){
  const directional=current.evidence_concordance?.findings||[];
  const numeric=current.numeric_evidence?.measurements||[];
  const endpointGroup=x=>{const t=String(x||'').toLowerCase();return /collagen|a3 domain/.test(t)?'Collagen binding':/platelet|gpib|gpiib|integrin/.test(t)?'Platelet interaction':/multimer|assembly/.test(t)?'Multimerization':/secretion|expression|antigen/.test(t)?'Secretion / abundance':/factor viii|fviii/.test(t)?'FVIII binding':'Other VWF function';};
- const categories=['Collagen binding','Platelet interaction','Multimerization','Secretion / abundance','FVIII binding'];
+ const collagenSubtype=endpoint=>{
+  const e=String(endpoint||'').toLowerCase();
+  if(!/collagen|vwf[:.]cb/.test(e))return null;
+  const roman=e.match(/(?:collagen(?:\s+type)?\s*|type\s+)(iv|iii|ii|i)(?![a-z])/i);
+  const digit=e.match(/collagen(?:\s+type)?\s*([1-4])(?![0-9])/);
+  const subtype=roman?.[1]?.toUpperCase()||({1:'I',2:'II',3:'III',4:'IV'}[digit?.[1]]);
+  return subtype?'Collagen '+subtype+' binding':'Collagen binding (subtype unspecified)';
+ };
+ const endpointGroupDetailed=endpoint=>collagenSubtype(endpoint)||endpointGroup(endpoint);
+ const categories=['Collagen I binding','Collagen II binding','Collagen III binding','Collagen IV binding','Collagen binding (subtype unspecified)','Platelet interaction','Multimerization','Secretion / abundance','FVIII binding'];
  const functionalRows=categories.map(name=>{
-  const measures=numeric.filter(x=>endpointGroup(x.endpoint)===name&&Number.isFinite(x.percent_of_control)&&x.percent_of_control>=0);
+  const measures=numeric.filter(x=>endpointGroupDetailed(x.endpoint)===name&&Number.isFinite(x.percent_of_control)&&x.percent_of_control>=0);
   const textRows=directional.filter(x=>endpointGroup(x.endpoint)===name);
   const impaired=measures.filter(x=>x.percent_of_control<70);
   const preserved=measures.filter(x=>x.percent_of_control>=80&&x.percent_of_control<=120);
@@ -357,13 +366,13 @@ function render(){
   // A hypothesis is a prioritization, not proof of impaired function.
   const site=Number(v.match(/[0-9]+/)?.[0]);
   const inA3=Number.isInteger(site)&&site>=1687&&site<=1874;
-  if(name==='Collagen binding'&&inA3&&!measures.length){
-    prediction='Possible collagen-binding effect (hypothesis)';
+  if(name.startsWith('Collagen ')&&inA3&&!measures.length){
+    prediction='Possible collagen-recognition effect (hypothesis)';
     basis='Substitution lies in the collagen-recognition A3 domain (VWF residue '+site+'). Direction and magnitude are not established; test collagen binding versus WT.';
     if(safeCount)basis+=' Structural model reports '+contact.lost+' lost and '+contact.gained+' gained contacts, without calibrated binding effect.';
   }
   // Structural contact turnover is not inherently directional for binding.
-  if(name==='Collagen binding'&&w?.pdb==='4DMU'&&safeCount){
+  if(name.startsWith('Collagen ')&&w?.pdb==='4DMU'&&safeCount){
    basis+=(measures.length?'; ':'')+'4DMU modeled contact turnover: '+contact.lost+' lost, '+contact.gained+' gained (not a calibrated collagen-binding prediction)';
   }
   return {name,prediction,basis,measurements:measures.length,extracted:textRows.length};
