@@ -63,8 +63,8 @@ function render(){let q=$('search').value.trim().toLowerCase(),t=$('type').value
 function kgEvidenceCategory(o){
  const e=String(o.endpoint||'').toLowerCase();
  if(/collagen/.test(e)){
-  const m=e.match(/(?:collagen(?:\\s+type)?\\s*|type\\s+)(iv|iii|ii|i)(?![a-z])/i);
-  const n=e.match(/collagen(?:\\s+type)?\\s*([1-4])(?![0-9])/);
+  const m=e.match(/(?:collagen(?:\s+type)?\s*|type\s+)(iv|iii|ii|i)(?![a-z])/i);
+  const n=e.match(/collagen(?:\s+type)?\s*([1-4])(?![0-9])/);
   const sub=m?.[1]?.toUpperCase()||({1:'I',2:'II',3:'III',4:'IV'}[n?.[1]]);
   return sub?'Collagen '+sub:'Collagen unspecified';
  }
@@ -82,11 +82,11 @@ for(const name of evidenceAudits){const el=document.createElement('option');el.v
 function kgSourceKey(o){
  const raw=String(o.doi||o.publication_doi||o.source_url||'').trim();
  if(!raw)return null;
- const doi=raw.match(/10\\.\\d{4,9}\\/[^\\s?#]+/i);
- if(doi)return 'doi:'+doi[0].toLowerCase().replace(/\\/$/,'');
+ const doi=raw.match(/10\\.\d{4,9}\/[^\s?#]+/i);
+ if(doi)return 'doi:'+doi[0].toLowerCase().replace(/\/$/,'');
  const pmid=String(o.pmid||o.pubmed_id||'').trim();
- if(/^\\d{5,9}$/.test(pmid))return 'pmid:'+pmid;
- try{const u=new URL(raw);const pm=u.hostname==='pubmed.ncbi.nlm.nih.gov'&&u.pathname.match(/^\\/(\\d{5,9})\\/?$/);if(pm)return 'pmid:'+pm[1];return 'url:'+u.hostname+u.pathname.replace(/\\/$/,'')}catch{return raw.toLowerCase()}
+ if(/^\d{5,9}$/.test(pmid))return 'pmid:'+pmid;
+ try{const u=new URL(raw);const pm=u.hostname==='pubmed.ncbi.nlm.nih.gov'&&u.pathname.match(/^\/(\d{5,9})\/?$/);if(pm)return 'pmid:'+pm[1];return 'url:'+u.hostname+u.pathname.replace(/\/$/,'')}catch{return raw.toLowerCase()}
 }
 function kgEvidenceBars(items,key,active,title){
  const counts=new Map();
@@ -109,7 +109,7 @@ function renderObs(){
  $('oevidence-dashboard').innerHTML=counts+'<div class="kg-browser-charts">'+categories+audits+variantChart+'</div><p class="sub">All charts reflect the current filters. A hit is one KG observation, not an independent experiment. Source identifiers may refer to overlapping studies; audit status is not a quality score.</p>';
  $('oevidence-dashboard').querySelectorAll('.kg-browser-chart:nth-child(1) .kg-browser-bar').forEach(b=>b.onclick=()=>{$('oevidence-endpoint').value=$('oevidence-endpoint').value===b.dataset.filter?'':b.dataset.filter;renderObs()});
  $('oevidence-dashboard').querySelectorAll('.kg-browser-chart:nth-child(2) .kg-browser-bar').forEach(b=>b.onclick=()=>{$('oevidence-audit').value=$('oevidence-audit').value===b.dataset.filter?'':b.dataset.filter;renderObs()});
- $('evidence').innerHTML='<p class="sub">Showing '+Math.min(80,matches.length)+' of '+matches.length+' matching evidence records</p>'+(matches.length?matches.slice(0,80).map(o=>'<div class="record"><strong>'+esc(o.subject_id)+' · '+esc(o.endpoint)+'</strong><p>'+esc(o.result)+' '+esc(o.unit_or_type)+'</p><div class="sub">'+esc(o.observation_id)+' · '+esc(o.source_audit_status||'Not recorded')+'</div>'+(o.source_url&&/^https:\\/\\//.test(o.source_url)?'<a href="'+esc(o.source_url)+'" target="_blank" rel="noopener noreferrer">Primary source</a>':'')+(o.limitations?'<div class="sub">'+esc(o.limitations)+'</div>':'')+'</div>').join(''):'<p>No evidence matches these filters.</p>');
+ $('evidence').innerHTML='<p class="sub">Showing '+Math.min(80,matches.length)+' of '+matches.length+' matching evidence records</p>'+(matches.length?matches.slice(0,80).map(o=>'<div class="record"><strong>'+esc(o.subject_id)+' · '+esc(o.endpoint)+'</strong><p>'+esc(o.result)+' '+esc(o.unit_or_type)+'</p><div class="sub">'+esc(o.observation_id)+' · '+esc(o.source_audit_status||'Not recorded')+'</div>'+(o.source_url&&/^https:\/\//.test(o.source_url)?'<a href="'+esc(o.source_url)+'" target="_blank" rel="noopener noreferrer">Primary source</a>':'')+(o.limitations?'<div class="sub">'+esc(o.limitations)+'</div>':'')+'</div>').join(''):'<p>No evidence matches these filters.</p>');
 }
 $('search').addEventListener('input',()=>{selected=null;render();detail()});$('type').addEventListener('change',()=>{selected=null;render()});$('osearch').addEventListener('input',renderObs);$('oevidence-endpoint').addEventListener('change',renderObs);$('oevidence-audit').addEventListener('change',renderObs);$('oevidence-clear').addEventListener('click',()=>{$('osearch').value='';$('oevidence-endpoint').value='';$('oevidence-audit').value='';renderObs()});$('reset').addEventListener('click',()=>{$('search').value='';$('type').value='';selected=null;render();detail()});render();renderObs();detail();
 
