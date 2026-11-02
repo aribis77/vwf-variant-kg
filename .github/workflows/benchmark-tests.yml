@@ -5,6 +5,7 @@ on:
       - 'benchmark/**'
       - 'index.html'
       - 'evidence-explorer.js'
+      - 'evidence-atlas.js'
       - '.github/workflows/benchmark-tests.yml'
   pull_request:
     paths:
@@ -26,3 +27,5 @@ jobs:
         run: node benchmark/check-page-syntax.mjs
       - name: Check evidence explorer JavaScript
         run: node --check evidence-explorer.js
+      - name: Check evidence atlas JavaScript
+        run: node --check evidence-atlas.js
