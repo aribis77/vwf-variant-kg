@@ -44,8 +44,8 @@ function phenotype(){
  const typesMap=new Map(types.map(t=>[t,subtypeRecords.filter(r=>r.t===t)]));
  const table=rows(['Subtype','Variant associations','Evidence links'],[...typesMap].map(([t,r])=>[esc(t),String(new Set(r.map(x=>x.v)).size),String(r.length)]));
  const points=ms.filter(m=>m.assay==='VWF:Ag'||m.assay==='VWF activity');
- const paired=[];for(const a of points.filter(m=>m.assay==='VWF:Ag'))for(const b of points.filter(m=>m.assay==='VWF activity'))if(a.variant&&a.variant===b.variant&&sourceKey(a.o)===sourceKey(b.o)&&a.unit===b.unit&&a.o.population===b.o.population)paired.push({a,b});
- const safePairs=paired.filter(p=>p.a.o.observation_id&&p.b.o.observation_id&&p.a.o.observation_id===p.b.o.observation_id);
+ 
+ const safePairs=[]; // Shared observation IDs do not establish matched patient-level measurements.
  return '<h4>Reported VWD subtype associations</h4>'+table+'<h4>Patient laboratory measurements</h4>'+rows(['Variant','Assay','Value','Units','Source / audit'],ms.slice(0,70).map(m=>[esc(m.variant||'Unlinked'),esc(m.assay),esc(m.value),esc(m.unit||'unspecified'),link(m.o)+' · '+esc(status(m.o))]))+'<h4>Activity versus antigen</h4><p class="sub">'+safePairs.length+' patient-level matched assay pairs with a shared observation identifier. Scatter plots and ratios are withheld when patient pairing cannot be established. Values from different patients or assays must not be paired merely because they share a variant.</p>'+(!ms.length?'<p>No structured, eligible patient-level numerical values in the current evidence set.</p>':'<p>'+ms.length+' individual numeric laboratory observations are available for review.</p>');
 }
 function heatmap(){
@@ -57,7 +57,7 @@ function domainsView(){
  const o=validObs(),counts=new Map();for(const r of o){const v=variant(r.subject_id);if(v){const d=domain(v);if(!counts.has(d))counts.set(d,new Set());counts.get(d).add(v)}}
  const vals=domains.map(d=>[d[0],counts.get(d[0])?.size||0]);
  const subset=o.filter(r=>!domainFilter||domain(variant(r.subject_id))===domainFilter);
- return '<h4>VWF domain–phenotype map</h4><p class="sub">Domain boundaries are approximate mature UniProt-position annotations for exploration and must be verified against a canonical domain reference before biological interpretation. Counts use distinct variant identifiers.</p><div class="kga-domainmap">'+domains.map(d=>'<button type="button" data-domain="'+esc(d[0])+'" class="'+(domainFilter===d[0]?'active':'')+'" title="Residues '+d[1]+'–'+d[2]+'">'+esc(d[0])+'<small>'+d[1]+'–'+d[2]+'</small></button>').join('')+'</div>'+plot(vals)+'<h4>'+(domainFilter?esc(domainFilter)+' domain':'All domains')+' evidence</h4>'+recordList(subset);
+ return '<h4>VWF domain–phenotype map</h4><p class="sub">Domain boundaries are approximate VWF precursor-sequence position annotations for exploration and must be verified against a canonical domain reference before biological interpretation. Counts use distinct variant identifiers.</p><div class="kga-domainmap">'+domains.map(d=>'<button type="button" data-domain="'+esc(d[0])+'" class="'+(domainFilter===d[0]?'active':'')+'" title="Residues '+d[1]+'–'+d[2]+'">'+esc(d[0])+'<small>'+d[1]+'–'+d[2]+'</small></button>').join('')+'</div>'+plot(vals)+'<h4>'+(domainFilter?esc(domainFilter)+' domain':'All domains')+' evidence</h4>'+recordList(subset);
 }
 function comparison(){
  const o=validObs();
