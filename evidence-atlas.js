@@ -24,7 +24,7 @@ const domain=v=>{const n=Number(v?.match(/\d+/)?.[0]);return domains.find(d=>n>=
 const subtypeRecords=[];
 for(const e of edges){const v=variant(e.subject_id)||variant(e.object_id),t=getType(e.subject_id)||getType(e.object_id);if(v&&t)subtypeRecords.push({v,t,source:e.source_id||'',record:null})}
 for(const o of observations){const v=variant(o.subject_id),m=[o.endpoint,o.result].join(' ').match(/\b(?:VWD\s*)?type\s*(1|2A|2B|2M|2N|3)\b/i);if(v&&m)subtypeRecords.push({v,t:'Type '+m[1].toUpperCase(),source:src(o),record:o})}
-const panel=document.createElement('section');panel.id='kg-visual-atlas';panel.className='kg-atlas';root.appendChild(panel);
+const panel=document.createElement('section');panel.id='kg-visual-atlas';panel.className='kg-atlas';root.parentNode.insertBefore(panel,root.nextSibling);
 let tab='overview',selected=[],focus='',domainFilter='',filter='',onlyReviewed=false;
 const types=['Type 1','Type 2A','Type 2B','Type 2M','Type 2N','Type 3'];
 const patterns=[['Type 1','Reduced','Usually proportional','Generally preserved','Quantitative reduction'],['Type 2A','Variable','Often disproportionately low','HMW reduced','Qualitative multimer defect'],['Type 2B','Variable','Often disproportionately low','HMW often reduced','Increased GPIb affinity'],['Type 2M','Variable','Often disproportionately low','Generally preserved','Binding dysfunction'],['Type 2N','Variable','Often preserved','Generally preserved','Reduced FVIII binding'],['Type 3','Very low / absent','Often not calculable','Absent / nearly absent','Severe quantitative deficiency']];
