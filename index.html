@@ -357,8 +357,8 @@ function kgEvidenceDashboard(r){
  const groupOf=o=>{
   const e=String(o.endpoint||'').toLowerCase();
   if(/collagen/.test(e)){
-   const roman=e.match(/(?:collagen(?:\\s+type)?\\s*|type\\s+)(iv|iii|ii|i)(?![a-z])/i);
-   const digit=e.match(/collagen(?:\\s+type)?\\s*([1-4])(?![0-9])/);
+   const roman=e.match(/(?:collagen(?:\s+type)?\s*|type\s+)(iv|iii|ii|i)(?![a-z])/i);
+   const digit=e.match(/collagen(?:\s+type)?\s*([1-4])(?![0-9])/);
    const sub=roman?.[1]?.toUpperCase()||({1:'I',2:'II',3:'III',4:'IV'}[digit?.[1]]);
    return sub?'Collagen '+sub:'Collagen (unspecified)';
   }
