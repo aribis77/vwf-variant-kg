@@ -33,25 +33,62 @@ const rows=(heads,body)=>'<div class="kga-scroll"><table><thead><tr>'+heads.map(
 const detail=o=>'<details class="kga-record"><summary>'+esc(variant(o.subject_id)||o.subject_id)+' · '+esc(o.endpoint)+' · '+esc(o.result)+'</summary><p>Population: '+esc(o.population||'not reported')+' · Unit: '+esc(o.unit_or_type||'not reported')+'</p><p>Audit: '+esc(status(o))+' · Record: '+esc(o.observation_id||'unidentified')+'</p><p>'+esc(o.limitations||'No limitations supplied')+'</p>'+link(o)+'</details>';
 const recordList=items=>'<div class="kga-records">'+(items.length?items.slice(0,100).map(detail).join(''):'<p class="sub">No matching observation records.</p>')+'</div>';
 const plot=(items,max=12)=>{const sorted=[...items].sort((a,b)=>b[1]-a[1]).slice(0,max),peak=Math.max(1,...sorted.map(x=>x[1]));return sorted.map(([name,count])=>'<div class="kga-bar"><span>'+esc(name)+'</span><div><i style="width:'+(count/peak*100).toFixed(1)+'%"></i></div><b>'+count+'</b></div>').join('')||'<p class="sub">No records.</p>'};
+
+// Cohort summaries are not individual patient observations.
+const cohort=o=>/cohort|pooled|combined|median|comparison group/i.test([o.subject_id,o.population,o.unit_or_type].join(' '));
+const clinicalAssay=o=>/^(VWF:Ag|FVIII:C|VWF:GPIbR\/VWF:Ag|VWF:CB\/VWF:Ag|VWF:RCo\/VWF:Ag|VWF:GPIbR|VWF:CB|VWF:RCo|Bleeding score|Clinical bleeding score)$/i.test(String(o.endpoint||'').trim());
+const cohortAssays=o=>validObs().filter(r=>cohort(r)&&clinicalAssay(r)&&/^\d+(?:\.\d+)?$/.test(String(r.result||'').trim()));
+const cohortLabel=o=>{const n=nmap.get(o.subject_id);return n?.label||String(o.subject_id).replaceAll('_',' ')};
+const typeFiltered=()=>{
+ const allowed=new Set(validObs().map(o=>o.observation_id));
+ const term=filter;
+ return subtypeRecords.filter(r=>(!onlyReviewed||(r.record&&allowed.has(r.record.observation_id)))&&(!term||[r.v,r.t,r.source].some(x=>String(x||'').toLowerCase().includes(term))||(r.record&&allowed.has(r.record.observation_id))));
+};
+const effect=o=>{
+ const result=String(o.result||'').trim().toLowerCase(),unit=String(o.unit_or_type||'').toLowerCase(),ep=String(o.endpoint||'').toLowerCase();
+ if(/pooled|range across|not individually|combined mutants/i.test([unit,o.limitations,o.population].join(' ')))return 'pooled';
+ if(/reduced|decreased|diminished|loss|deficient|absent|low|impaired/.test(result))return 'reduced';
+ if(/normal|preserved|unchanged|wild.?type.?like|no difference/.test(result))return 'preserved';
+ if(/increased|enhanced|elevated|gain/.test(result))return 'increased';
+ const val=numeric(o);
+ if(val!==null&&/% of wt|% of wild.?type/i.test(unit)&&!/median|cohort|patient/i.test([unit,o.population].join(' '))){
+   if(val<80)return 'reduced';if(val>120)return 'increased';return 'preserved';
+ }
+ return 'unclassified';
+};
+const effectSummary=rs=>{
+ const labels=[...new Set(rs.map(effect).filter(x=>x!=='unclassified'&&x!=='pooled'))];
+ return labels.length>1?'conflicting':labels[0]||'unclassified';
+};
 function overview(){
  const o=validObs(),vs=[...new Set(o.map(x=>variant(x.subject_id)).filter(Boolean))],sources=new Set(o.map(sourceKey).filter(x=>x!=='Unlinked'));
- const subCounts=types.map(t=>[t,new Set(subtypeRecords.filter(r=>r.t===t).map(r=>r.v)).size]);
+ const subCounts=types.map(t=>[t,new Set(typeFiltered().filter(r=>r.t===t).map(r=>r.v)).size]);
  const assays=new Map();for(const r of o)assays.set(cat(r),(assays.get(cat(r))||0)+1);
  return '<div class="kga-metrics">'+[['Variant identifiers',vs.length],['Observation hits',o.length],['Source identifiers',sources.size],['Numeric patient assay records',measured.filter(m=>o.includes(m.o)).length]].map(([k,v])=>'<div><b>'+v+'</b><span>'+esc(k)+'</span></div>').join('')+'</div><div class="kga-grid"><article><h4>VWD subtype associations</h4>'+plot(subCounts)+'<p class="sub">Unique linked variants, not patients. KG classifications are not re-diagnosed.</p></article><article><h4>Functional observation coverage</h4>'+plot(assays)+'<p class="sub">Hits count observations, not independent experiments.</p></article></div><h4>VWD diagnostic reference fingerprints</h4>'+rows(['Subtype','VWF:Ag','Activity/Ag','Multimers','Characteristic'],patterns.map(r=>r.map(esc)))+'<p class="sub">Educational patterns, not diagnostic rules or conclusions about a selected variant. Activity/antigen ratio often uses 0.7 as an interpretive threshold, depending on assay and guidance.</p>';
 }
 function phenotype(){
- const o=validObs(),ms=measured.filter(m=>o.includes(m.o));
- const typesMap=new Map(types.map(t=>[t,subtypeRecords.filter(r=>r.t===t)]));
+ const o=validObs(),ms=measured.filter(m=>o.includes(m.o)),coh=cohortAssays();
+ const typesMap=new Map(types.map(t=>[t,typeFiltered().filter(r=>r.t===t)]));
  const table=rows(['Subtype','Variant associations','Evidence links'],[...typesMap].map(([t,r])=>[esc(t),String(new Set(r.map(x=>x.v)).size),String(r.length)]));
- const points=ms.filter(m=>m.assay==='VWF:Ag'||m.assay==='VWF activity');
- 
- const safePairs=[]; // Shared observation IDs do not establish matched patient-level measurements.
- return '<h4>Reported VWD subtype associations</h4>'+table+'<h4>Patient laboratory measurements</h4>'+rows(['Variant','Assay','Value','Units','Source / audit'],ms.slice(0,70).map(m=>[esc(m.variant||'Unlinked'),esc(m.assay),esc(m.value),esc(m.unit||'unspecified'),link(m.o)+' · '+esc(status(m.o))]))+'<h4>Activity versus antigen</h4><p class="sub">'+safePairs.length+' patient-level matched assay pairs with a shared observation identifier. Scatter plots and ratios are withheld when patient pairing cannot be established. Values from different patients or assays must not be paired merely because they share a variant.</p>'+(!ms.length?'<p>No structured, eligible patient-level numerical values in the current evidence set.</p>':'<p>'+ms.length+' individual numeric laboratory observations are available for review.</p>');
+ const groups=new Map();
+ for(const r of coh){const key=cohortLabel(r);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r)}
+ const priority=['VWF:Ag','FVIII:C','VWF:GPIbR/VWF:Ag','VWF:CB/VWF:Ag','VWF:RCo/VWF:Ag','Bleeding score'];
+ const cohortRows=[...groups].map(([label,rs])=>[esc(label),...priority.map(ep=>{const match=rs.filter(r=>r.endpoint.toLowerCase()===ep.toLowerCase());return match.length?match.map(r=>'<details><summary>'+esc(r.result)+' '+esc(r.unit_or_type)+'</summary>'+link(r)+' · '+esc(status(r))+'<p>'+esc(r.population)+'</p></details>').join(''):'<span class="sub">Not indexed</span>'})]);
+ return '<h4>Reported VWD subtype associations</h4>'+table+
+ '<h4>Clinical cohort laboratory profiles</h4><p class="sub">Published summary measurements, usually medians. Each value retains its own cohort and source; these are not individual patient results and cannot be combined to infer patient-level correlations.</p>'+
+ rows(['Cohort / group',...priority],cohortRows)+
+ '<h4>Variant-associated laboratory observations</h4>'+rows(['Variant','Assay','Reported value','Population','Source / audit'],o.filter(r=>variant(r.subject_id)&&clinicalAssay(r)).slice(0,80).map(r=>[esc(variant(r.subject_id)),esc(r.endpoint),esc(r.result+' '+r.unit_or_type),esc(r.population),link(r)+' · '+esc(status(r))]))+
+ '<h4>Individual-level activity versus antigen</h4><p class="sub">A patient-level scatter plot requires paired VWF:Ag and activity measurements from the same individual, with assay method and units. The present records do not establish that pairing; no scatter plot is generated.</p>'+
+ '<p class="sub">'+ms.length+' numeric observations pass the broad patient-context screen, but may include summary statistics. They are not automatically treated as independent patient measurements.</p>';
 }
 function heatmap(){
  const o=validObs(),vs=[...new Set(o.map(x=>variant(x.subject_id)).filter(Boolean))].sort(),cats=['Collagen I','Collagen II','Collagen III','Collagen IV','Collagen unspecified','FVIII','Platelet','Multimers','Secretion / antigen','Clinical'];
  const grouped=new Map();for(const r of o){const v=variant(r.subject_id);if(!v)continue;const key=v+'|'+cat(r);if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(r)}
- const shown=vs.slice(0,45);return '<h4>Variant × functional evidence coverage</h4><p class="sub">A filled cell means an observation exists. Cell counts do not imply reduced or preserved function. Hover for record identifiers.</p><div class="kga-scroll"><table><thead><tr><th>Variant</th>'+cats.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+shown.map(v=>'<tr><th>'+v+'</th>'+cats.map(c=>{const rr=grouped.get(v+'|'+c)||[];return '<td class="'+(rr.length?'kga-cell':'')+'" title="'+esc(rr.map(x=>x.observation_id).join(', '))+'">'+(rr.length?rr.length:'·')+'</td>'}).join('')+'</tr>').join('')+'</tbody></table></div>'+recordList(o.filter(x=>focus?variant(x.subject_id)===focus:true).slice(0,30));
+ const shown=vs.slice(0,65);
+ return '<h4>Functional effect and evidence matrix</h4><p class="sub">Colors indicate reported direction only where the observation supports interpretation. Unclassified and pooled results are not treated as normal. Conflicting means distinct reported directions, not necessarily independent replication.</p>'+
+ '<div class="kga-legend"><span class="kga-reduced">Reduced</span><span class="kga-preserved">Preserved</span><span class="kga-increased">Increased</span><span class="kga-conflicting">Conflicting</span><span class="kga-unclassified">Unclassified</span><span>No record ·</span></div>'+
+ '<div class="kga-scroll"><table><thead><tr><th>Variant</th>'+cats.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+shown.map(v=>'<tr><th>'+v+'</th>'+cats.map(c=>{const rr=grouped.get(v+'|'+c)||[];const state=rr.length?effectSummary(rr):'';return '<td class="'+(state?'kga-effect kga-'+state:'')+'" title="'+esc(rr.map(x=>x.observation_id+': '+x.result+' '+x.unit_or_type).join(' | '))+'">'+(rr.length?esc(state)+' ('+rr.length+')':'·')+'</td>'}).join('')+'</tr>').join('')+'</tbody></table></div>'+
+ '<h4>Supporting assay records</h4>'+recordList(o.filter(r=>variant(r.subject_id)&&cats.includes(cat(r))));
 }
 function domainsView(){
  const o=validObs(),counts=new Map();for(const r of o){const v=variant(r.subject_id);if(v){const d=domain(v);if(!counts.has(d))counts.set(d,new Set());counts.get(d).add(v)}}
