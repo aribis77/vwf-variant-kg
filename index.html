@@ -1385,7 +1385,34 @@ window.addEventListener('load',()=>{
   window.addEventListener('popstate',refresh);
   refresh();
 })();
-</script><script id="vwf-embedded-report-receiver">(function(){window.addEventListener('message',function(event){if(event.origin!==location.origin||event.source!==document.getElementById('kg-structural-analysis')?.contentWindow||event.data?.type!=='vwf-workbench-report')return;const report=event.data.report;const selected=document.getElementById('vrvariant')?.value.trim().toUpperCase();if(!report||report.mutation!==selected||report.schema!=='protein-workbench-mechanistic-report/0.1')return;try{sessionStorage.setItem('vwf-last-workbench-report',JSON.stringify(report));}catch(e){}window.dispatchEvent(new CustomEvent('vwf-workbench-result',{detail:report}));document.getElementById('vrshow')?.click();});})();</script><script id="kg-structural-tab-sync">(function(){
+</script><script id="vwf-consolidated-structural-receiver">(function(){
+ const reports=new Map();
+ function render(variant){
+  const target=document.getElementById('vrcontent'),field=document.getElementById('vrvariant');
+  if(!target||!field)return;
+  let section=document.getElementById('kg-consolidated-structural-summary');
+  if(!section){section=document.createElement('section');section.id='kg-consolidated-structural-summary';section.className='kg-structural-consensus';target.insertAdjacentElement('afterend',section);}
+  section.replaceChildren();
+  const title=document.createElement('h3');title.textContent='Consolidated structural assessment';section.append(title);
+  const report=reports.get(variant);
+  const p=document.createElement('p');
+  if(!report){p.textContent='No consolidated structural assessment has been received for '+variant+'. Run Structural Analysis above to generate one.';section.append(p);return;}
+  const status=document.createElement('p');status.className='kg-consensus-status';status.textContent=report.analysis_complete?'Planned structural batch completed':'Provisional: '+report.received_reports+' of '+report.planned_reports+' structure/chain reports received';section.append(status);
+  p.textContent=report.classification;section.append(p);
+  const context=document.createElement('p');context.textContent='Distinct PDB entries: '+report.distinct_pdb_entries+'. '+(report.pending_structures?.length?'Pending: '+report.pending_structures.join(', ')+'. ':'')+'This is a structural assessment, not a clinical pathogenicity classification.';section.append(context);
+ }
+ window.addEventListener('message',function(event){
+  const frame=document.getElementById('kg-structural-analysis');
+  if(event.origin!==location.origin||event.source!==frame?.contentWindow||event.data?.type!=='vwf-structural-consensus')return;
+  const data=event.data,variant=String(data.variant||'').toUpperCase();
+  if(!/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(variant))return;
+  reports.set(variant,data);
+  try{sessionStorage.setItem('vwf-structural-consensus:'+variant,JSON.stringify(data));}catch(e){}
+  if(document.getElementById('vrvariant')?.value.trim().toUpperCase()===variant)render(variant);
+ });
+ function update(){const variant=document.getElementById('vrvariant')?.value.trim().toUpperCase();if(!variant)return;if(!reports.has(variant)){try{const cached=JSON.parse(sessionStorage.getItem('vwf-structural-consensus:'+variant)||'null');if(cached?.variant===variant)reports.set(variant,cached);}catch(e){}}render(variant);}
+ window.addEventListener('load',update);document.getElementById('vrvariant')?.addEventListener('change',update);document.getElementById('vrvariant')?.addEventListener('input',update);window.addEventListener('vwf-select-variant',()=>setTimeout(update,0));
+})();</script><style id="kg-consolidated-structural-styles">#kg-consolidated-structural-summary{margin:16px 20px;padding:18px;border:1px solid #a9c7d5;border-left:5px solid #427eaa;border-radius:12px;background:linear-gradient(120deg,#e1ecf8,#d9eee9)}#kg-consolidated-structural-summary h3{margin:0 0 8px;color:#245a79}#kg-consolidated-structural-summary p{margin:8px 0;line-height:1.5}#kg-consolidated-structural-summary .kg-consensus-status{font-weight:700;color:#775b20}</style><script id="vwf-embedded-report-receiver">(function(){window.addEventListener('message',function(event){if(event.origin!==location.origin||event.source!==document.getElementById('kg-structural-analysis')?.contentWindow||event.data?.type!=='vwf-workbench-report')return;const report=event.data.report;const selected=document.getElementById('vrvariant')?.value.trim().toUpperCase();if(!report||report.mutation!==selected||report.schema!=='protein-workbench-mechanistic-report/0.1')return;try{sessionStorage.setItem('vwf-last-workbench-report',JSON.stringify(report));}catch(e){}window.dispatchEvent(new CustomEvent('vwf-workbench-result',{detail:report}));document.getElementById('vrshow')?.click();});})();</script><script id="kg-structural-tab-sync">(function(){
 const frame=document.getElementById('kg-structural-analysis'),field=document.getElementById('vrvariant'),simple=document.getElementById('simple-variant'),search=document.getElementById('search'),evidence=document.getElementById('osearch'),show=document.getElementById('vrshow');
 if(!frame||!field)return;
 const valid=v=>/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(v);
