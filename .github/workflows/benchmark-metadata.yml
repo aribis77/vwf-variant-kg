@@ -11,6 +11,7 @@ on:
       - 'tests/check_source_exclusions.py'
       - 'tests/check_evaluation_snapshot.py'
       - 'tests/check_evaluation_graph.py'
+      - 'tests/check_publication_identities.py'
       - 'benchmark/audit_source_clusters.py'
       - '.github/workflows/benchmark-metadata.yml'
   pull_request:
@@ -55,6 +56,10 @@ jobs:
         run: python benchmark/build_evaluation_graph.py
       - name: Verify evaluation graph
         run: python tests/check_evaluation_graph.py
+      - name: Audit publication identifiers and unresolved aliases
+        run: python benchmark/audit_publication_identities.py
+      - name: Verify publication identity audit
+        run: python tests/check_publication_identities.py
       - name: Archive evaluation design manifest
         uses: actions/upload-artifact@v4
         with:
@@ -66,4 +71,5 @@ jobs:
             benchmark/embedded_kg_overlap_audit.json
             benchmark/evaluation_evidence_snapshot.json
             benchmark/evaluation_graph_snapshot.json
+            benchmark/publication_identity_audit.json
           retention-days: 30
