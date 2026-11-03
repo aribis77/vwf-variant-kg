@@ -1173,7 +1173,8 @@ get('vrbenchmark').onclick=async()=>{
    return {variant:c.variant,endpoint:c.endpoint,label:'uncertain',score:null,version:'KG-integrated-report/0.2',
     prediction_status:'abstained_no_validated_endpoint_classifier',
     reference_label_used_for_prediction:false,
-    benchmark_eligibility:'pending_primary_reference_review',
+    benchmark_eligibility:c.reference_freeze_status==='frozen'&&c.independent_replication_verified===true?'eligible_for_external_validation':'exploratory_reference_not_frozen',
+    reference_scope:c.reference_scope||null,reference_review_status:c.review_status||'pending',
     possible_reference_leakage:sourceOverlap,
     evidence_summary:{endpoint_matched_observations:matchingObs.length,
      nonduplicate_observations:uniqueObs.length,article_text_checked_observations:reviewed.length,
@@ -1185,10 +1186,11 @@ get('vrbenchmark').onclick=async()=>{
   });
   const qc={schema:'vwf-endpoint-benchmark-audit/0.2',generated:new Date().toISOString(),
    reference_panel_status:'candidate_not_frozen',candidate_count:rows.length,
+   frozen_references:rows.filter(c=>c.reference_freeze_status==='frozen').length,
    predictions_withheld:predictions.filter(p=>p.score===null).length,
    candidates_with_endpoint_observations:predictions.filter(p=>p.evidence_summary.nonduplicate_observations>0).length,
    potential_source_leakage:predictions.filter(p=>p.possible_reference_leakage).length,
-   eligible_for_accuracy_evaluation:0,
+   eligible_for_accuracy_evaluation:predictions.filter(p=>p.benchmark_eligibility==='eligible_for_external_validation'&&!p.possible_reference_leakage).length,
    note:'This is a benchmark readiness audit, not an accuracy evaluation. Reference labels were not used to predict, and none is independently validated for scoring.',
    predictions};
   const blob=new Blob([JSON.stringify(qc,null,2)],{type:'application/json'});
