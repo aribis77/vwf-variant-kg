@@ -1196,7 +1196,9 @@ async function kgShowBenchmarkReadiness(variant){
   const targetPerMechanism=Number(design?.targets?.preserved_function_controls_per_mechanism||0);
   const targetTotal=mechanismCount*targetPerMechanism;
   const verifiedControls=Number(design?.current_verified_preserved_controls||0);
-  const readinessOverview=design?'<p><b>Benchmark control coverage:</b> '+verifiedControls+' / '+targetTotal+' independently validated preserved-function controls across '+mechanismCount+' planned mechanisms. <b>Reference panel:</b> '+candidates.length+' provisional candidates.</p>':'<p class="sub">Benchmark design matrix unavailable; control coverage cannot be established.</p>';
+  const frozenCandidates=candidates.filter(c=>c.reference_freeze_status==='frozen').length;
+  const unresolvedCandidates=candidates.filter(c=>c.reference_freeze_status!=='frozen').length;
+  const readinessOverview=design?'<p><b>Benchmark control coverage:</b> '+verifiedControls+' / '+targetTotal+' independently validated preserved-function controls across '+mechanismCount+' planned mechanisms. <b>Reference panel:</b> '+candidates.length+' candidates ('+frozenCandidates+' frozen; '+unresolvedCandidates+' provisional).</p>':'<p class="sub">Benchmark design matrix unavailable; control coverage cannot be established.</p>';
   host.innerHTML=readinessOverview+'<h4>Independent benchmark readiness</h4>'+
    (entries.length?'<table class="kg-browser-table"><thead><tr><th>Endpoint</th><th>Direct observations</th><th>Review / freeze</th><th>Blocking reasons</th></tr></thead><tbody>'+
    entries.map(e=>'<tr><td>'+safe(e.endpoint)+'</td><td>'+e.nonduplicate_observations+'</td><td>'+safe(e.review_status)+' / '+safe(e.reference_freeze_status)+'</td><td>'+safe(e.blocking_reasons.join(', ')||'None')+'</td></tr>').join('')+'</tbody></table>':'<p class="sub">This variant is not in the current provisional reference panel.</p>')+
