@@ -1,0 +1,26 @@
+{
+  "schema": "vwf-benchmark-design/0.1",
+  "status": "prospective_not_frozen",
+  "mechanisms": [
+    "FVIII binding",
+    "platelet GPIb interaction",
+    "collagen binding by subtype",
+    "ADAMTS13 proteolysis",
+    "multimer assembly and secretion",
+    "VWF clearance"
+  ],
+  "targets": {
+    "effect_variants_per_mechanism": 2,
+    "preserved_function_controls_per_mechanism": 2
+  },
+  "current_verified_preserved_controls": 0,
+  "requirements": [
+    "primary experimental assay",
+    "matched controls",
+    "numbering and species verified",
+    "experimental context recorded",
+    "independent review",
+    "reference-source overlap assessed"
+  ],
+  "note": "Design targets are not validated evidence or a power calculation."
+}
