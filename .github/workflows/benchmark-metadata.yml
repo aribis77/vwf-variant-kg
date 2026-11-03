@@ -12,6 +12,7 @@ on:
       - 'tests/check_evaluation_snapshot.py'
       - 'tests/check_evaluation_graph.py'
       - 'tests/check_publication_identities.py'
+      - 'tests/check_internal_source_provenance.py'
       - 'benchmark/audit_source_clusters.py'
       - '.github/workflows/benchmark-metadata.yml'
   pull_request:
@@ -60,6 +61,10 @@ jobs:
         run: python benchmark/audit_publication_identities.py
       - name: Verify publication identity audit
         run: python tests/check_publication_identities.py
+      - name: Resolve internal graph source provenance
+        run: python benchmark/resolve_internal_sources.py
+      - name: Verify internal graph source provenance
+        run: python tests/check_internal_source_provenance.py
       - name: Archive evaluation design manifest
         uses: actions/upload-artifact@v4
         with:
@@ -72,4 +77,5 @@ jobs:
             benchmark/evaluation_evidence_snapshot.json
             benchmark/evaluation_graph_snapshot.json
             benchmark/publication_identity_audit.json
+            benchmark/internal_source_provenance.json
           retention-days: 30
