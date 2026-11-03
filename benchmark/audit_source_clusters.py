@@ -55,6 +55,9 @@ audit = {
     "leakage_connected_component_count": len(components),
     "leakage_connected_component_sizes": component_sizes,
     "largest_leakage_component_size": max(component_sizes, default=0),
+    "largest_leakage_component_fraction": (max(component_sizes, default=0) / len(cases)) if cases else 0,
+    "component_assignment_status": "not_assigned_all_cases_unfrozen",
+    "holdout_feasibility": "not_assessable_without_frozen_independent_references",
     "warning": "Never split cases from one publication or one variant across training and test partitions; labels are public and no blind performance may be reported.",
 }
 (root / "benchmark/source_cluster_audit.json").write_text(json.dumps(audit, indent=2) + "\n")
