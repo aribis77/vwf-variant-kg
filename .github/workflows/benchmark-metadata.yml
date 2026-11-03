@@ -1,0 +1,23 @@
+name: Benchmark metadata checks
+on:
+  push:
+    paths:
+      - 'benchmark/**'
+      - 'tests/check_benchmark_metadata.py'
+      - '.github/workflows/benchmark-metadata.yml'
+  pull_request:
+    paths:
+      - 'benchmark/**'
+      - 'tests/check_benchmark_metadata.py'
+      - '.github/workflows/benchmark-metadata.yml'
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate benchmark metadata
+        run: python tests/check_benchmark_metadata.py
