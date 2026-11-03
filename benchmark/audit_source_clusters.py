@@ -13,6 +13,8 @@ for case in cases:
     by_variant[case["variant"]].append(case["case_id"])
 assert all(case["evaluation_status"] == "not_eligible_unfrozen" for case in cases)
 assert all(len(group) > 0 for group in by_source.values())
+assert sum(map(len, by_source.values())) == len(cases)
+assert sum(map(len, by_variant.values())) == len(cases)
 audit = {
     "schema": "vwf-benchmark-source-cluster-audit/0.1",
     "status": "provisional_no_holdout_assigned",
@@ -21,6 +23,9 @@ audit = {
     "variant_count": len(by_variant),
     "multi_case_source_clusters": sum(len(v) > 1 for v in by_source.values()),
     "multi_endpoint_variants": sum(len(v) > 1 for v in by_variant.values()),
+    "largest_source_cluster_size": max(map(len, by_source.values()), default=0),
+    "largest_variant_cluster_size": max(map(len, by_variant.values()), default=0),
+    "source_cluster_sizes": sorted((len(v) for v in by_source.values()), reverse=True),
     "warning": "Never split cases from one publication or one variant across training and test partitions; labels are public and no blind performance may be reported.",
 }
 (root / "benchmark/source_cluster_audit.json").write_text(json.dumps(audit, indent=2) + "\n")
