@@ -41,3 +41,16 @@ assert design["current_verified_preserved_controls"] <= sum(
     for row in records
 ), "Verified controls cannot exceed frozen preserved-function records"
 print(f"Checked {len(records)} endpoint-specific control observations; no predictive accuracy calculated.")
+
+for row in records:
+    measurement = row["measurement"]
+    assert set(("value", "unit", "wild_type_value", "effect_ratio_to_wild_type",
+                "uncertainty", "n_biological_replicates", "figure_panel",
+                "extraction_method")).issubset(measurement), "Missing quantitative audit fields"
+    if row["quantitative_adjudication"] == "not_extracted":
+        assert measurement["value"] is None
+        assert measurement["effect_ratio_to_wild_type"] is None
+    if row["reference_freeze_status"] == "frozen":
+        assert row["quantitative_adjudication"] == "independently_verified", (
+            "A frozen quantitative endpoint requires independently verified measurements"
+        )
