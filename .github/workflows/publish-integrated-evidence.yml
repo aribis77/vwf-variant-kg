@@ -1,0 +1,66 @@
+name: Publish audited integrated evidence
+on:
+  push:
+    paths:
+      - 'benchmark/**'
+      - 'index.html'
+      - 'integrated-evidence-audit.js'
+      - '.github/workflows/publish-integrated-evidence.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: integrated-evidence-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Prepare evidence isolation
+        run: |
+          python tests/check_benchmark_metadata.py
+          python benchmark/build_source_exclusions.py
+          python benchmark/build_evaluation_snapshot.py
+          python benchmark/build_evaluation_graph.py
+          python benchmark/audit_publication_identities.py
+          python benchmark/resolve_internal_sources.py
+          python benchmark/review_graph_edges.py
+          python benchmark/build_case_evidence_inventory.py
+      - name: Generate integrated evidence from validated inputs
+        run: |
+          python benchmark/validate_structural_reports.py
+          python benchmark/build_structural_consensus.py
+          python benchmark/build_integrated_case_evidence.py
+          python tests/check_structural_report_admission.py
+          python tests/check_structural_consensus.py
+          python tests/check_integrated_case_evidence.py
+      - name: Validate published JSON schema and withheld outcomes
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('benchmark/integrated_case_evidence.json')
+          d=json.loads(p.read_text())
+          assert d['schema']=='vwf-integrated-case-evidence/0.1'
+          assert d['case_count']==len(d['cases']) and d['case_count']>0
+          assert all(x['integrated']['predicted_direction']=='abstain' for x in d['cases'])
+          assert all(x['integrated']['scoring_eligible'] is False for x in d['cases'])
+          assert all('expected_direction' not in x and 'observed_direction' not in x for x in d['cases'])
+          print('Publishable audited evidence JSON:',d['case_count'],'cases')
+          PY
+      - name: Commit generated evidence for GitHub Pages
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add benchmark/integrated_case_evidence.json benchmark/structural_feature_consensus.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish generated audited evidence [skip ci]'
+            git push
+          fi
