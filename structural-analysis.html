@@ -249,7 +249,7 @@ function summarizeConsensus(){
  add('p','Structural-effect assessment: '+(contacts.length>=2?'multiple PDB entries available for contact comparison':'insufficient independent PDB entries for a robust structural consensus')+'. No calibrated pathogenicity probability or numerical confidence score is assigned. Functional effects require independent experimental validation.');
  for(const [pdb,reports] of groups){const d=add('details',''),sum=add('summary',pdb+' · '+reports.length+' chain report(s)',d);for(const report of reports){const pre=add('pre',JSON.stringify(report,null,2),d);pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow:auto';}}
 }
-window.addEventListener('message',event=>{if(event.origin!==location.origin||event.data?.type!=='vwf-workbench-report')return;const report=event.data.report,v=$('variant').value.trim().toUpperCase();if(report?.schema!=='protein-workbench-mechanistic-report/0.1'||report.mutation!==v)return;
+window.addEventListener('message',event=>{if(event.origin!==location.origin||event.data?.type!=='vwf-workbench-report')return;let report=event.data.report;const v=$('variant').value.trim().toUpperCase();if(report?.schema!=='protein-workbench-mechanistic-report/0.1'&&window.vwfNormalizeWorkbenchReport){try{report=window.vwfNormalizeWorkbenchReport(report,v);}catch(e){$('analysis-progress').textContent='Workbench report rejected: '+e.message;return;}}if(report?.schema!=='protein-workbench-mechanistic-report/0.1'||report.mutation!==v)return;
  const mapping=report.coordinate_mapping||{};
  if(mapping.verified_in_loaded_structure!==true&&mapping.verified_in_loaded_coordinates!==true){$('analysis-progress').textContent='Report rejected: residue mapping was not verified in loaded coordinates.';return;}
  const pdb=String(report.pdb||report.structure?.pdb_id||mapping.pdb||'').toUpperCase(),chain=String(report.chain||mapping.chain||'');
@@ -290,6 +290,7 @@ function normalize(r,v){
  },
  raw_workbench_report:r,report_source:'workbench-native-json-adapter/1.0'};
 }
+window.vwfNormalizeWorkbenchReport=normalize;
 field?.addEventListener('change',async()=>{
  let accepted=0,rejected=[];
  for(const file of field.files||[]){
