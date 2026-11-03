@@ -1164,7 +1164,7 @@ function kgBenchmarkReadiness(candidates,selected){
   const leakage=!!reference&&sources.includes(reference);
   const frozen=c.reference_freeze_status==='frozen';
   const independentlyReviewed=c.independent_replication_verified===true;
-  const ready=frozen&&independentlyReviewed&&!leakage;
+  const ready=frozen&&independentlyReviewed&&!leakage&&unique.length>0;
   return {variant:c.variant,endpoint:c.endpoint,region:c.region||'',source:c.source,
    experimental_context:c.reference_scope||'',review_status:c.review_status||'pending',
    reference_freeze_status:c.reference_freeze_status||'not_frozen',
@@ -1204,6 +1204,7 @@ get('vrbenchmark').onclick=async()=>{
   const selected=get('vrvariant').value.trim().toUpperCase();
   const rows=candidates.filter(c=>valid.test(c.variant||'')&&typeof c.endpoint==='string'&&c.endpoint.trim())
    .filter(c=>!valid.test(selected)||c.variant===selected);
+  const readiness=kgBenchmarkReadiness(candidates,selected);
   const predictions=rows.map(c=>{
    const r=report(c.variant);
    const matchingObs=r.kg.observations_detail.filter(o=>String(o.endpoint||'').trim().toLowerCase()===c.endpoint.trim().toLowerCase());
@@ -1211,10 +1212,12 @@ get('vrbenchmark').onclick=async()=>{
    const uniqueObs=matchingObs.filter(o=>!o.duplicate_of);
    const reviewed=uniqueObs.filter(o=>String(o.source_audit_status||'')==='verified_against_article_text');
    const sourceOverlap=distinctSources.some(k=>kgPublicationKey({source_url:c.source})===k);
+   const readinessEntry=readiness.find(x=>x.variant===c.variant&&x.endpoint===c.endpoint);
    return {variant:c.variant,endpoint:c.endpoint,label:'uncertain',score:null,version:'KG-integrated-report/0.2',
     prediction_status:'abstained_no_validated_endpoint_classifier',
     reference_label_used_for_prediction:false,
-    benchmark_eligibility:c.reference_freeze_status==='frozen'&&c.independent_replication_verified===true?'eligible_for_external_validation':'exploratory_reference_not_frozen',
+    benchmark_eligibility:readinessEntry?.eligible_for_accuracy_evaluation?'eligible_for_external_validation':'exploratory_reference_not_frozen',
+    blocking_reasons:readinessEntry?.blocking_reasons||[],
     reference_scope:c.reference_scope||null,reference_review_status:c.review_status||'pending',
     possible_reference_leakage:sourceOverlap,
     evidence_summary:{endpoint_matched_observations:matchingObs.length,
