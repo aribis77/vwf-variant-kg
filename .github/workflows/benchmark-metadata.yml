@@ -15,6 +15,7 @@ on:
       - 'tests/check_publication_identities.py'
       - 'tests/check_internal_source_provenance.py'
       - 'tests/check_edge_provenance_review.py'
+      - 'tests/check_endpoint_prediction_readiness.py'
       - 'benchmark/audit_source_clusters.py'
       - '.github/workflows/benchmark-metadata.yml'
   pull_request:
@@ -74,6 +75,10 @@ jobs:
         run: python tests/check_edge_provenance_review.py
       - name: Build case-specific evidence inventory
         run: python benchmark/build_case_evidence_inventory.py
+      - name: Prepare endpoint-specific three-arm prediction readiness
+        run: python benchmark/prepare_endpoint_predictions.py
+      - name: Test endpoint prediction gates and label isolation
+        run: python tests/check_endpoint_prediction_readiness.py
       - name: Generate readable evidence isolation report
         run: python benchmark/build_audit_report.py
       - name: Archive evaluation design manifest
@@ -92,4 +97,5 @@ jobs:
             benchmark/edge_provenance_review.json
             benchmark/evaluation_audit_report.html
             benchmark/case_evidence_inventory.json
+            benchmark/endpoint_prediction_readiness.json
           retention-days: 30
