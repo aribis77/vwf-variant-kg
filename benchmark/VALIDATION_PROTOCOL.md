@@ -47,3 +47,7 @@ Additional provisional entries: R1205H (clearance; kinetic assay review pending)
 ## Current gate
 
 The portal exports a **readiness audit**, not a performance benchmark. None of the ten candidates has been frozen or independently replicated within the benchmark metadata. No predictive accuracy claim is justified.
+
+## Balanced benchmark design
+
+Require endpoint-specific experimental effect and preserved-function references for FVIII binding, platelet GPIb interaction, collagen binding, ADAMTS13 proteolysis, secretion/multimer assembly, and clearance. Target two independently reviewed variants in each group as an initial design goal. Distinguish collagen subtypes and clinical phenotypes from direct biochemical measurements. No preserved-function control in the current panel has been independently adjudicated. Reference labels remain provisional until primary assays, controls, numbering, experimental context, and source independence are checked.
