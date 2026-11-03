@@ -1188,7 +1188,7 @@ async function kgShowBenchmarkReadiness(variant){
   const entries=kgBenchmarkReadiness(candidates,variant);
   host.innerHTML='<h4>Independent benchmark readiness</h4>'+
    (entries.length?'<table class="kg-browser-table"><thead><tr><th>Endpoint</th><th>Direct observations</th><th>Review / freeze</th><th>Blocking reasons</th></tr></thead><tbody>'+
-   entries.map(e=>'<tr><td>'+safe(e.endpoint)+'</td><td>'+e.nonduplicate_observations+'</td><td>'+safe(e.review_status)+' / '+safe(e.reference_freeze_status)+'</td><td>'+safe(e.blocking_reasons.join(', ')||'None')+'</td></tr>').join('')+'</tbody></table>':'<p class="sub">This variant is not in the current six-candidate reference panel.</p>')+
+   entries.map(e=>'<tr><td>'+safe(e.endpoint)+'</td><td>'+e.nonduplicate_observations+'</td><td>'+safe(e.review_status)+' / '+safe(e.reference_freeze_status)+'</td><td>'+safe(e.blocking_reasons.join(', ')||'None')+'</td></tr>').join('')+'</tbody></table>':'<p class="sub">This variant is not in the current provisional reference panel.</p>')+
    '<p class="sub">A candidate reference is not a validated ground truth. Reference labels are never used to construct predictions. No accuracy is reported until independent review, source separation and a frozen evaluation protocol are complete.</p>';
  }catch(e){host.textContent='Benchmark readiness could not be loaded: '+e.message;}
 }
