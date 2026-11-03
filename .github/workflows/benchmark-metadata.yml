@@ -13,6 +13,7 @@ on:
       - 'tests/check_evaluation_graph.py'
       - 'tests/check_publication_identities.py'
       - 'tests/check_internal_source_provenance.py'
+      - 'tests/check_edge_provenance_review.py'
       - 'benchmark/audit_source_clusters.py'
       - '.github/workflows/benchmark-metadata.yml'
   pull_request:
@@ -65,6 +66,10 @@ jobs:
         run: python benchmark/resolve_internal_sources.py
       - name: Verify internal graph source provenance
         run: python tests/check_internal_source_provenance.py
+      - name: Classify sourced graph edges for provenance review
+        run: python benchmark/review_graph_edges.py
+      - name: Verify edge provenance review queue
+        run: python tests/check_edge_provenance_review.py
       - name: Archive evaluation design manifest
         uses: actions/upload-artifact@v4
         with:
@@ -78,4 +83,5 @@ jobs:
             benchmark/evaluation_graph_snapshot.json
             benchmark/publication_identity_audit.json
             benchmark/internal_source_provenance.json
+            benchmark/edge_provenance_review.json
           retention-days: 30
