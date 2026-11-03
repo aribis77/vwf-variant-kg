@@ -1,0 +1,39 @@
+{
+  "schema": "vwf-evaluation-prediction-contract/0.1",
+  "status": "protocol_only_no_predictions_frozen",
+  "unit_of_evaluation": "variant_and_exact_functional_endpoint",
+  "allowed_predictions": ["increased", "reduced", "preserved", "abstain"],
+  "required_prediction_fields": [
+    "variant", "endpoint", "predicted_direction", "prediction_timestamp",
+    "method", "method_version", "evidence_cutoff_date",
+    "excluded_reference_source_ids", "evidence_source_ids",
+    "structural_report_ids", "prediction_record_hash"
+  ],
+  "methods": [
+    "integrated_KG_and_structural",
+    "KG_evidence_only",
+    "structural_only"
+  ],
+  "precomparison_requirements": [
+    "Independent source and assay adjudication",
+    "Freeze experimental reference cases and their source-group identifiers",
+    "Exclude all reference publications and derived observations from every prediction method",
+    "Record all predictions, including abstentions, before opening reference labels",
+    "Check exact endpoint and biological model comparability",
+    "Prevent any shared-source or shared-variant connected component from crossing evaluation partitions"
+  ],
+  "reporting": [
+    "Endpoint-matched direction agreement",
+    "Coverage and abstention rate",
+    "Confusion matrix for non-abstained predictions",
+    "Per-mechanism results and source-group clustered uncertainty",
+    "Sensitivity to removal of individual publications",
+    "Comparison of integrated, KG-only and structural-only methods"
+  ],
+  "prohibitions": [
+    "No accuracy claim for unfrozen reference cases",
+    "No treating multiple endpoints from one paper as independent studies",
+    "No treating clinical pathogenicity as equivalent to functional assay direction",
+    "No computing a performance score from the public candidate labels"
+  ]
+}
