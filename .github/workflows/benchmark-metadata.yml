@@ -26,9 +26,13 @@ jobs:
         run: python benchmark/prepare_blind_manifest.py
       - name: Check generated manifest
         run: python tests/check_blind_manifest.py
+      - name: Audit publication and variant clusters
+        run: python benchmark/audit_source_clusters.py
       - name: Archive evaluation design manifest
         uses: actions/upload-artifact@v4
         with:
           name: vwf-provisional-case-manifest
-          path: benchmark/blind_manifest.json
+          path: |
+            benchmark/blind_manifest.json
+            benchmark/source_cluster_audit.json
           retention-days: 30
