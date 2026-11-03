@@ -4,6 +4,7 @@ on:
     paths:
       - 'benchmark/**'
       - 'tests/check_benchmark_metadata.py'
+      - 'tests/check_blind_manifest.py'
       - '.github/workflows/benchmark-metadata.yml'
   pull_request:
     paths:
@@ -23,3 +24,11 @@ jobs:
         run: python tests/check_benchmark_metadata.py
       - name: Generate benchmark case manifest
         run: python benchmark/prepare_blind_manifest.py
+      - name: Check generated manifest
+        run: python tests/check_blind_manifest.py
+      - name: Archive evaluation design manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: vwf-provisional-case-manifest
+          path: benchmark/blind_manifest.json
+          retention-days: 30
