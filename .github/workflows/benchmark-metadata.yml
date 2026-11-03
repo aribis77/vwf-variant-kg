@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'benchmark/**'
+      - 'index.html'
       - 'tests/check_benchmark_metadata.py'
       - 'tests/check_blind_manifest.py'
       - 'tests/check_source_cluster_audit.py'
@@ -19,7 +20,8 @@ on:
   pull_request:
     paths:
       - 'benchmark/**'
-      - 'tests/check_benchmark_metadata.py'
+      - 'tests/**'
+      - 'index.html'
       - '.github/workflows/benchmark-metadata.yml'
   workflow_dispatch:
 jobs:
