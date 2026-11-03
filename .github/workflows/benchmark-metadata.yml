@@ -89,6 +89,10 @@ jobs:
         run: python benchmark/validate_structural_reports.py
       - name: Test structural report mapping and provenance gates
         run: python tests/check_structural_report_admission.py
+      - name: Build PDB-level structural feature consensus
+        run: python benchmark/build_structural_consensus.py
+      - name: Test structural consensus aggregation
+        run: python tests/check_structural_consensus.py
       - name: Generate readable evidence isolation report
         run: python benchmark/build_audit_report.py
       - name: Archive evaluation design manifest
@@ -111,4 +115,5 @@ jobs:
             benchmark/calibration_readiness_audit.json
             benchmark/training_admission_audit.json
             benchmark/structural_report_admission_audit.json
+            benchmark/structural_feature_consensus.json
           retention-days: 30
