@@ -133,38 +133,71 @@ function summarizeConsensus(){
  const v=$('variant').value.trim().toUpperCase(),all=[...consensusReports.values()].filter(r=>r.mutation===v);
  let host=document.getElementById('consensus-summary');if(!host){host=document.createElement('section');host.id='consensus-summary';document.getElementById('viewer').after(host);}
  host.replaceChildren();
- const add=(tag,value)=>{const el=document.createElement(tag);el.textContent=value;host.append(el);return el;};
- add('h3','Cross-structure structural consensus · '+v);
- add('p',all.length+' distinct PDB/chain reports received; '+selected.length+' discovered candidate structures. Results from the same experimental entry may be correlated.');
- if(!all.length){add('p','Awaiting structured Workbench reports. No consensus is available yet.');return;}
- const groups=[['contacts','Local interactions'],['energetics','Energetic estimates'],['sampling','Conformational sampling'],['conservation','Evolutionary conservation']];
- const measures={};
- for(const [key,label] of groups){
-  const rows=all.map(r=>({r,x:consensusMeasurement(r,key)})).filter(t=>t.x);
-  measures[key]=rows;
-  add('h4',label+' · '+rows.length+'/'+all.length+' reports');
-  if(!rows.length){add('p','No usable structured measurement reported.');continue;}
-  if(key==='contacts'){
-   const diffs=rows.map(({x})=>consensusNumber(x,['delta_contacts','contact_delta','net_contact_change','delta'])).filter(x=>x!==null);
-   if(diffs.length){const lost=diffs.filter(x=>x<0).length,gained=diffs.filter(x=>x>0).length,unchanged=diffs.filter(x=>x===0).length;add('p','Reported net contact changes: '+lost+' negative, '+gained+' positive, '+unchanged+' unchanged ('+diffs.length+' comparable values). '+(lost&&gained?'Different directions across structures; investigate context.':'Direction is descriptive, not a functional effect estimate.'));}
-   else add('p','Contact results exist, but a standardized net contact-change field was not found. No direction assigned.');
-  }else if(key==='energetics'){
-   const vals=rows.map(({x})=>({n:consensusNumber(x,['delta_delta_g','ddg','delta_g','delta_energy','energy_delta']),method:x.method||x.energy_method||'',unit:x.units||x.unit||''})).filter(x=>x.n!==null);
-   if(!vals.length)add('p','Energy reports present, but no recognized numerical change was found.');
-   else {const methods=[...new Set(vals.map(x=>(x.method||'unspecified')+' / '+(x.unit||'unspecified')))];add('p',vals.length+' numerical energy changes; '+vals.filter(x=>x.n>0).length+' positive, '+vals.filter(x=>x.n<0).length+' negative. Methods/units: '+methods.join('; ')+'.');add('p','Values are not averaged across different methods or units. Positive energy changes do not necessarily establish impaired binding or protein function.');}
-  }else if(key==='sampling'){
-   add('p','Sampling reports captured. Ensemble convergence, replicate independence and compatible observables must be established before a cross-structure numerical conclusion.');
-  }else{
-   const scores=rows.map(({x})=>consensusNumber(x,['score','conservation_score','normalized_score'])).filter(x=>x!==null);
-   add('p',scores.length?'Conservation scores reported from '+scores.length+' structure sessions; these are repeated views of the same sequence position, not independent evolutionary evidence.':'Conservation evidence present without a standardized numerical score.');
-  }
+ const add=(tag,value,parent=host)=>{const el=document.createElement(tag);el.textContent=value;parent.append(el);return el;};
+ add('h3','Cross-structure structural evidence · '+v);
+ if(!all.length){add('p','Awaiting completed, variant-matched Workbench reports. No structural effect can yet be assessed.');return;}
+ const entries=new Map();
+ for(const r of all){const pdb=String(r.pdb||r.structure?.pdb_id||'').toUpperCase(),chain=String(r.chain||r.coordinate_mapping?.chain||'');
+  if(!/^[A-Z0-9]{4}$/.test(pdb)||!chain)continue;
+  if(!entries.has(pdb))entries.set(pdb,[]);
+  entries.get(pdb).push(r);
  }
- const covered=groups.filter(([k])=>measures[k].length>0).map(([,label])=>label);
- const missing=groups.filter(([k])=>!measures[k].length).map(([,label])=>label);
- add('h4','Integrated interpretation');
- add('p',covered.length===4?'All four evidence categories have reported data, but agreement and measurement validity still require evaluation.':'Partial evidence: '+covered.join(', ')+(missing.length?'. Missing: '+missing.join(', '):'')+'.');
- add('p','Structural effect classification: not assigned until comparable WT–mutant measurements and cross-structure agreement can be verified. Confidence: provisional; no calibrated 0–100 score. Clinical pathogenicity cannot be inferred from these calculations alone.');
- for(const report of all){const d=document.createElement('details'),sum=document.createElement('summary');sum.textContent='Inspect '+(report.pdb||report.structure?.pdb_id||'unknown')+' · '+(report.chain||report.coordinate_mapping?.chain||'chain unspecified');d.append(sum);const pre=document.createElement('pre');pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere';pre.textContent=JSON.stringify(report,null,2);d.append(pre);host.append(d);}
+ const groups=[...entries.entries()],unique=groups.length;
+ add('p',all.length+' structure/chain reports from '+unique+' identifiable PDB entries. Chains from the same PDB are treated as correlated observations, not independent confirmations.');
+ if(!unique){add('p','Reports lack verifiable PDB and chain identifiers; cross-structure consensus is withheld.');return;}
+ const sections=[['contacts','Local interaction changes'],['energetics','Mutation-related energetics'],['sampling','Conformational sampling'],['conservation','Evolutionary conservation']];
+ const findings={};
+ const sign=n=>n>0?'positive':n<0?'negative':'zero';
+ for(const [kind,label] of sections){
+  add('h4',label);
+  const rows=[];
+  for(const [pdb,reports] of groups){
+   const values=reports.map(r=>({r,x:consensusMeasurement(r,kind)})).filter(y=>y.x);
+   if(!values.length)continue;
+   const records=values.map(({r,x})=>{
+    const numeric=kind==='contacts'?consensusNumber(x,['delta_contacts','contact_delta','net_contact_change','delta']):kind==='energetics'?consensusNumber(x,['delta_delta_g','ddg','delta_g','delta_energy','energy_delta']):kind==='conservation'?consensusNumber(x,['score','conservation_score','normalized_score']):null;
+    const method=String(x.method||x.energy_method||'unspecified').trim().toLowerCase();
+    const unit=String(x.units||x.unit||'unspecified').trim().toLowerCase();
+    return {value:numeric,method,unit,chain:String(r.chain||r.coordinate_mapping?.chain||'')};
+   });
+   rows.push({pdb,records});
+  }
+  findings[kind]=rows;
+  add('p',rows.length+'/'+unique+' PDB entries have structured '+kind+' evidence.');
+  if(!rows.length){add('p','Not measured or not provided in a usable structured report.');continue;}
+  if(kind==='contacts'){
+   const per=rows.map(({pdb,records})=>{const vals=records.map(z=>z.value).filter(Number.isFinite);const dirs=[...new Set(vals.map(sign))];return {pdb,dirs,values:vals};});
+   const comparable=per.filter(z=>z.dirs.length===1&&z.values.length);
+   const discordant=per.filter(z=>z.dirs.length>1);
+   add('p',comparable.length+' PDB entries have a consistent net contact-change direction within their reported chains; '+discordant.length+' have conflicting chain-level directions.');
+   if(comparable.length>=2){
+    const dirs=[...new Set(comparable.map(z=>z.dirs[0]))];
+    add('p',dirs.length===1?'Directional agreement across '+comparable.length+' PDB entries ('+dirs[0]+'). This is evidence of local model perturbation, not a validated functional effect.':'Different contact-change directions across independent PDB entries; no directional consensus.');
+   }else add('p','Insufficient distinct, internally consistent PDB entries for cross-structure directional consensus.');
+   for(const item of per)add('p',item.pdb+': '+(item.values.length?item.values.join(', ')+' net contact change(s)':'no standardized numerical contact change')+(item.dirs.length>1?' (chain disagreement)':''));
+  }else if(kind==='energetics'){
+   const byMethod=new Map();
+   for(const row of rows)for(const z of row.records){if(!Number.isFinite(z.value))continue;const key=z.method+' | '+z.unit;if(!byMethod.has(key))byMethod.set(key,new Map());const perPdb=byMethod.get(key);if(!perPdb.has(row.pdb))perPdb.set(row.pdb,[]);perPdb.get(row.pdb).push(z.value);}
+   if(!byMethod.size)add('p','Energy fields exist, but no recognized numerical change is available.');
+   for(const [method,perPdb] of byMethod){
+    const consistent=[...perPdb].map(([pdb,vals])=>({pdb,vals,dirs:[...new Set(vals.map(sign))]}));
+    const valid=consistent.filter(z=>z.dirs.length===1),directions=[...new Set(valid.map(z=>z.dirs[0]))];
+    add('p',method+': '+perPdb.size+' PDB entries; '+(valid.length>=2&&directions.length===1?'consistent sign across '+valid.length+' entries ('+directions[0]+')': 'no established cross-entry directional agreement')+'. Values are not pooled or averaged.');
+    for(const z of consistent)add('p',z.pdb+': '+z.vals.join(', ')+(z.dirs.length>1?' (chain disagreement)':''));
+   }
+   add('p','Different energy methods, units and physical quantities are not interchangeable. Empirical scores must not be described as binding ΔΔG without method-specific validation.');
+  }else if(kind==='conservation'){
+   add('p','Conservation pertains to the sequence position, not to each PDB structure. Repeated structure reports do not increase evolutionary evidence strength.');
+   const vals=[...new Set(rows.flatMap(z=>z.records.map(x=>x.value).filter(Number.isFinite)))];
+   add('p',vals.length?'Reported distinct conservation values: '+vals.join(', ')+'. Verify scale, alignment and ortholog sampling before interpretation.':'No standardized conservation score available.');
+  }else add('p','Sampling evidence is descriptive. Cross-structure pooling requires matching observables, protocols and uncertainty estimates; no numerical consensus is inferred.');
+ }
+ add('h4','Overall structural interpretation');
+ const contacts=findings.contacts||[],energy=findings.energetics||[],conservation=findings.conservation||[];
+ const categories=[contacts.length&&'contacts',energy.length&&'energetics',conservation.length&&'conservation',findings.sampling?.length&&'sampling'].filter(Boolean);
+ add('p','Available evidence domains: '+(categories.join(', ')||'none')+'. '+(categories.length<4?'Missing domains are not interpreted as negative findings.':'All four domains have records, but their quality and comparability still require assessment.'));
+ add('p','Structural-effect assessment: '+(contacts.length>=2?'multiple PDB entries available for contact comparison':'insufficient independent PDB entries for a robust structural consensus')+'. No calibrated pathogenicity probability or numerical confidence score is assigned. Functional effects require independent experimental validation.');
+ for(const [pdb,reports] of groups){const d=add('details',''),sum=add('summary',pdb+' · '+reports.length+' chain report(s)',d);for(const report of reports){const pre=add('pre',JSON.stringify(report,null,2),d);pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow:auto';}}
 }
 window.addEventListener('message',event=>{if(event.origin!==location.origin||event.data?.type!=='vwf-workbench-report')return;const report=event.data.report,v=$('variant').value.trim().toUpperCase();if(report?.mutation!==v)return;const key=(report.pdb||report.structure?.pdb_id||'unknown')+':'+(report.chain||report.coordinate_mapping?.chain||'unknown');consensusReports.set(key,report);summarizeConsensus();document.getElementById('analysis-results-placeholder').hidden=true;$('analysis-progress').textContent=consensusReports.size+' / '+Math.min(selected.length,6)+' structure/chain reports received for '+v+'. Review the cross-structure consensus below.';try{sessionStorage.setItem('vwf-last-workbench-report',JSON.stringify(report));localStorage.setItem('vwf-last-workbench-report',JSON.stringify(report));}catch(e){}const box=document.getElementById('automatic-report')||document.createElement('section');box.id='automatic-report';box.replaceChildren();const title=document.createElement('h3');title.textContent='Captured Workbench results · '+v;box.append(title);const details=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Inspect latest structured report (technical JSON)';details.append(summary);const pre=document.createElement('pre');pre.style.whiteSpace='pre-wrap';pre.style.overflowWrap='anywhere';pre.textContent=JSON.stringify(report.metrics||report,null,2);details.append(pre);box.append(details);document.getElementById('viewer').after(box);$('interpretation').textContent='Workbench completed a variant-specific report. Review the reported contacts, energetics, sampling and conservation alongside the stated uncertainties; empirical energy scores are not validated binding free energies.';window.parent.postMessage({type:'vwf-workbench-report',report},location.origin);});
 $('pdf').onchange=()=>{const f=$('pdf').files?.[0];if(!f)return;const url=URL.createObjectURL(f),frame=document.createElement('iframe');frame.src=url;frame.title='Workbench PDF report';$('viewer').replaceChildren(frame);$('interpretation').textContent='PDF displayed. This browser-only PDF viewer does not extract or validate results automatically; numerical interpretation requires structured JSON or curated extraction.';};
