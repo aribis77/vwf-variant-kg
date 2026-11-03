@@ -388,7 +388,10 @@ function renderObs(){
  const unresolvedRecords=matches.filter(o=>!isActualVariant(o.subject_id)&&byid.get(o.subject_id)?.node_type!=='Cohort');
  const missingSources=matches.filter(o=>!kgSourceKey(o)).length;
  const flaggedDuplicates=matches.filter(o=>String(o.duplicate_of||'').trim()).length;
- const unaudited=matches.filter(o=>!/^(verified|audited|reviewed|source_verified)$/i.test(String(o.source_audit_status||''))).length;
+ const auditStatus=o=>String(o.source_audit_status||'').trim().toLowerCase();
+ const sourceVerified=o=>/^(verified|audited|reviewed|source_verified|verified_against_article_text)$/.test(auditStatus(o));
+ const reviewPending=o=>!sourceVerified(o);
+ const unaudited=matches.filter(reviewPending).length;
  const totalVariantNodes=nodes.filter(n=>isActualVariant(n.node_id)).length;
  const representedVariantNodes=new Set(obs.map(o=>o.subject_id).filter(isActualVariant)).size;
  const candidateCount=nodes.filter(n=>n.node_type==='VariantCandidate').length;
@@ -398,12 +401,28 @@ function renderObs(){
    .map(e=>e.subject_id===n.node_id?e.object_id:e.subject_id).filter(isActualVariant);
   return {label:n.label,variants:new Set(linked).size};
  });
+ const allVariantRecords=obs.filter(o=>isActualVariant(o.subject_id));
+ const variantEvidence=matches.filter(o=>isActualVariant(o.subject_id));
+ const sourceVariantPairs=new Set(variantEvidence.map(o=>kgSourceKey(o)?o.subject_id+'|'+kgSourceKey(o):null).filter(Boolean));
+ const distinctVariantSources=new Set(variantEvidence.map(kgSourceKey).filter(Boolean));
+ const endpointCoverage=[...new Set(obs.map(kgEvidenceCategory))].sort().map(endpoint=>{
+  const records=variantEvidence.filter(o=>kgEvidenceCategory(o)===endpoint);
+  return {endpoint,variants:new Set(records.map(o=>o.subject_id)).size,sources:new Set(records.map(kgSourceKey).filter(Boolean)).size,observations:records.length};
+ });
+ const sourceConcentration=[...new Map(allVariantRecords.filter(o=>kgSourceKey(o)).map(o=>[kgSourceKey(o),0]))].map(([source])=>({
+  source,variants:new Set(allVariantRecords.filter(o=>kgSourceKey(o)===source).map(o=>o.subject_id)).size,
+  observations:allVariantRecords.filter(o=>kgSourceKey(o)===source).length
+ })).sort((a,b)=>b.observations-a.observations).slice(0,6);
+ const unlinkedVariants=nodes.filter(n=>isActualVariant(n.node_id)&&!obs.some(o=>o.subject_id===n.node_id)).map(n=>n.label);
+ const coverageTables='<h4>Functional endpoint coverage (individual variants only)</h4><table class="kg-browser-table"><thead><tr><th>Endpoint group</th><th>Variants</th><th>Source IDs</th><th>Observations</th></tr></thead><tbody>'+endpointCoverage.map(x=>'<tr><td>'+esc(x.endpoint)+'</td><td>'+x.variants+'</td><td>'+x.sources+'</td><td>'+x.observations+'</td></tr>').join('')+'</tbody></table>'+
+ '<h4>Source concentration (entire curated graph)</h4><table class="kg-browser-table"><thead><tr><th>Source identifier</th><th>Variants</th><th>Observations</th></tr></thead><tbody>'+sourceConcentration.map(x=>'<tr><td style="overflow-wrap:anywhere">'+esc(x.source)+'</td><td>'+x.variants+'</td><td>'+x.observations+'</td></tr>').join('')+'</tbody></table>'+
+ '<p class="sub">Sources with many observations can dominate rankings. These are source identifiers, not a count of independent publications. Variants without direct observation records: '+(unlinkedVariants.length?unlinkedVariants.map(esc).join(', '):'none')+'.</p>';
  const auditPanel='<div class="kg-browser-chart" style="margin-top:16px"><h4>Coverage and representation audit</h4>'+
  '<p class="sub">Current filters: '+matches.length+' observations; '+variants.size+' individual variants; '+cohortRecords.length+' cohort-level observations; '+unresolvedRecords.length+' other/non-variant observations. These categories are not interchangeable.</p>'+
  '<div class="kg-browser-metrics">'+[['Variant nodes in KG',totalVariantNodes],['Variants with observations (entire KG)',representedVariantNodes],['Unresolved candidate placeholders',candidateCount],['Missing source IDs (filtered)',missingSources]].map(([label,n])=>'<div><strong>'+n+'</strong><span>'+esc(label)+'</span></div>').join('')+'</div>'+
- '<p class="sub"><strong>Source audit:</strong> '+unaudited+' filtered records do not carry a recognized verified/reviewed status; '+flaggedDuplicates+' explicitly reference another observation as a duplicate. Missing or unaudited does not mean false. Duplicate flags are not a complete deduplication audit.</p>'+
+ '<p class="sub"><strong>Provenance:</strong> '+distinctVariantSources.size+' distinct source identifiers and '+sourceVariantPairs.size+' variant–source pairs in the filtered individual-variant evidence. '+unaudited+' filtered records need further source review; '+flaggedDuplicates+' explicitly reference another observation as a duplicate. Reviewed source text does not itself validate biological conclusions. Duplicate flags are not a complete deduplication audit.</p>'+
  '<h4>Domain-level graph coverage</h4><table class="kg-browser-table"><thead><tr><th>Domain node</th><th>Directly linked individual variants</th></tr></thead><tbody>'+domainCoverage.map(d=>'<tr><td>'+esc(d.label)+'</td><td>'+d.variants+'</td></tr>').join('')+'</tbody></table>'+
- '<p class="sub">Domain counts use explicit graph links only, not inferred residue ranges. Zero means no direct variant link is recorded, not that the domain has no known disease variants. The graph is a curated demonstration, not a comprehensive VWF variant census.</p></div>';
+ '<p class="sub">Domain counts use explicit graph links only, not inferred residue ranges. Zero means no direct variant link is recorded, not that the domain has no known disease variants. The graph is a curated demonstration, not a comprehensive VWF variant census.</p>'+coverageTables+'</div>';
  $('oevidence-dashboard').innerHTML=counts+'<div class="kg-browser-charts">'+categories+audits+variantChart+'</div>'+auditPanel+'<p class="sub">All charts reflect the current filters except the explicitly labeled whole-KG metrics and domain links. A hit is one KG observation, not an independent experiment. Source identifiers may refer to overlapping studies; audit status is not a quality score.</p>';
  $('oevidence-dashboard').querySelectorAll('.kg-browser-chart:nth-child(1) .kg-browser-bar').forEach(b=>b.onclick=()=>{$('oevidence-endpoint').value=$('oevidence-endpoint').value===b.dataset.filter?'':b.dataset.filter;renderObs()});
  $('oevidence-dashboard').querySelectorAll('.kg-browser-chart:nth-child(2) .kg-browser-bar').forEach(b=>b.onclick=()=>{$('oevidence-audit').value=$('oevidence-audit').value===b.dataset.filter?'':b.dataset.filter;renderObs()});
