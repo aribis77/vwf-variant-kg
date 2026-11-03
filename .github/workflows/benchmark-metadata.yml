@@ -93,6 +93,10 @@ jobs:
         run: python benchmark/build_structural_consensus.py
       - name: Test structural consensus aggregation
         run: python tests/check_structural_consensus.py
+      - name: Build integrated case evidence summaries
+        run: python benchmark/build_integrated_case_evidence.py
+      - name: Test integrated evidence and reference-label isolation
+        run: python tests/check_integrated_case_evidence.py
       - name: Generate readable evidence isolation report
         run: python benchmark/build_audit_report.py
       - name: Archive evaluation design manifest
@@ -116,4 +120,5 @@ jobs:
             benchmark/training_admission_audit.json
             benchmark/structural_report_admission_audit.json
             benchmark/structural_feature_consensus.json
+            benchmark/integrated_case_evidence.json
           retention-days: 30
