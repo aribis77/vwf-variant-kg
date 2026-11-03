@@ -360,6 +360,15 @@ function kgSourceKey(o){
  if(/^\d{5,9}$/.test(pmid))return 'pmid:'+pmid;
  try{const u=new URL(raw);const pm=u.hostname==='pubmed.ncbi.nlm.nih.gov'&&u.pathname.match(/^\/(\d{5,9})\/?$/);if(pm)return 'pmid:'+pm[1];return 'url:'+u.hostname+u.pathname.replace(/\/$/,'')}catch{return raw.toLowerCase()}
 }
+function kgAuditClass(o){
+ const status=String(o.source_audit_status||'').toLowerCase();
+ if(o.duplicate_of||status==='verified_duplicate_measurement')return 'Duplicate / linked measurement';
+ if(status==='verified_against_article_text')return 'Checked against article text';
+ if(status==='supported_qualitative_requires_figure_review')return 'Figure review required';
+ if(status==='pending_section_or_figure_review')return 'Section / figure review pending';
+ if(status==='not_yet_audited'||!status)return 'Not yet audited';
+ return 'Other review status';
+}
 function kgEvidenceBars(items,key,active,title){
  const counts=new Map();
  for(const o of items){const k=key(o);counts.set(k,(counts.get(k)||0)+1)}
@@ -389,7 +398,7 @@ function renderObs(){
  const missingSources=matches.filter(o=>!kgSourceKey(o)).length;
  const flaggedDuplicates=matches.filter(o=>String(o.duplicate_of||'').trim()).length;
  const auditStatus=o=>String(o.source_audit_status||'').trim().toLowerCase();
- const sourceVerified=o=>/^(verified|audited|reviewed|source_verified|verified_against_article_text)$/.test(auditStatus(o));
+ const sourceVerified=o=>auditStatus(o)==='verified_against_article_text'||auditStatus(o)==='verified_duplicate_measurement';
  const reviewPending=o=>!sourceVerified(o);
  const unaudited=matches.filter(reviewPending).length;
  const totalVariantNodes=nodes.filter(n=>isActualVariant(n.node_id)).length;
@@ -414,6 +423,9 @@ function renderObs(){
   observations:allVariantRecords.filter(o=>kgSourceKey(o)===source).length
  })).sort((a,b)=>b.observations-a.observations).slice(0,6);
  const unlinkedVariants=nodes.filter(n=>isActualVariant(n.node_id)&&!obs.some(o=>o.subject_id===n.node_id)).map(n=>n.label);
+ const statusBreakdown=[...new Set(matches.map(kgAuditClass))].map(status=>({status,n:matches.filter(o=>kgAuditClass(o)===status).length})).sort((a,b)=>b.n-a.n);
+ const auditSummary='<h4>Evidence verification stages</h4><table class="kg-browser-table"><thead><tr><th>Review stage</th><th>Observations</th></tr></thead><tbody>'+statusBreakdown.map(x=>'<tr><td>'+esc(x.status)+'</td><td>'+x.n+'</td></tr>').join('')+'</tbody></table>'+
+ '<p class="sub">Article-text checks, figure review and deduplication are separate operations. A checked source does not establish that an observation is independent, clinically generalizable or causally linked to a variant.</p>';
  const coverageTables='<h4>Functional endpoint coverage (individual variants only)</h4><table class="kg-browser-table"><thead><tr><th>Endpoint group</th><th>Variants</th><th>Source IDs</th><th>Observations</th></tr></thead><tbody>'+endpointCoverage.map(x=>'<tr><td>'+esc(x.endpoint)+'</td><td>'+x.variants+'</td><td>'+x.sources+'</td><td>'+x.observations+'</td></tr>').join('')+'</tbody></table>'+
  '<h4>Source concentration (entire curated graph)</h4><table class="kg-browser-table"><thead><tr><th>Source identifier</th><th>Variants</th><th>Observations</th></tr></thead><tbody>'+sourceConcentration.map(x=>'<tr><td style="overflow-wrap:anywhere">'+esc(x.source)+'</td><td>'+x.variants+'</td><td>'+x.observations+'</td></tr>').join('')+'</tbody></table>'+
  '<p class="sub">Sources with many observations can dominate rankings. These are source identifiers, not a count of independent publications. Variants without direct observation records: '+(unlinkedVariants.length?unlinkedVariants.map(esc).join(', '):'none')+'.</p>';
@@ -422,7 +434,7 @@ function renderObs(){
  '<div class="kg-browser-metrics">'+[['Variant nodes in KG',totalVariantNodes],['Variants with observations (entire KG)',representedVariantNodes],['Unresolved candidate placeholders',candidateCount],['Missing source IDs (filtered)',missingSources]].map(([label,n])=>'<div><strong>'+n+'</strong><span>'+esc(label)+'</span></div>').join('')+'</div>'+
  '<p class="sub"><strong>Provenance:</strong> '+distinctVariantSources.size+' distinct source identifiers and '+sourceVariantPairs.size+' variant–source pairs in the filtered individual-variant evidence. '+unaudited+' filtered records need further source review; '+flaggedDuplicates+' explicitly reference another observation as a duplicate. Reviewed source text does not itself validate biological conclusions. Duplicate flags are not a complete deduplication audit.</p>'+
  '<h4>Domain-level graph coverage</h4><table class="kg-browser-table"><thead><tr><th>Domain node</th><th>Directly linked individual variants</th></tr></thead><tbody>'+domainCoverage.map(d=>'<tr><td>'+esc(d.label)+'</td><td>'+d.variants+'</td></tr>').join('')+'</tbody></table>'+
- '<p class="sub">Domain counts use explicit graph links only, not inferred residue ranges. Zero means no direct variant link is recorded, not that the domain has no known disease variants. The graph is a curated demonstration, not a comprehensive VWF variant census.</p>'+coverageTables+'</div>';
+ '<p class="sub">Domain counts use explicit graph links only, not inferred residue ranges. Zero means no direct variant link is recorded, not that the domain has no known disease variants. The graph is a curated demonstration, not a comprehensive VWF variant census.</p>'+auditSummary+coverageTables+'</div>';
  $('oevidence-dashboard').innerHTML=counts+'<div class="kg-browser-charts">'+categories+audits+variantChart+'</div>'+auditPanel+'<p class="sub">All charts reflect the current filters except the explicitly labeled whole-KG metrics and domain links. A hit is one KG observation, not an independent experiment. Source identifiers may refer to overlapping studies; audit status is not a quality score.</p>';
  $('oevidence-dashboard').querySelectorAll('.kg-browser-chart:nth-child(1) .kg-browser-bar').forEach(b=>b.onclick=()=>{$('oevidence-endpoint').value=$('oevidence-endpoint').value===b.dataset.filter?'':b.dataset.filter;renderObs()});
  $('oevidence-dashboard').querySelectorAll('.kg-browser-chart:nth-child(2) .kg-browser-bar').forEach(b=>b.onclick=()=>{$('oevidence-audit').value=$('oevidence-audit').value===b.dataset.filter?'':b.dataset.filter;renderObs()});
