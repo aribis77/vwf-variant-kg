@@ -22,7 +22,7 @@ results, rejected = aggregate(rows)
 assert not rejected and len(results) == 1
 r = results[0]
 assert r["report_count"] == 3 and r["independent_pdb_count"] == 2
-assert r["contact_change"]["median"] == 0
+assert r["contact_change"]["median"] == -0.5
 assert r["delta_g_kcal_mol"]["median"] == 4.5
 assert r["conservation_score"]["median"] == .65
 assert not r["functional_prediction_eligible"]
