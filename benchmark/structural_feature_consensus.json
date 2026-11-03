@@ -1,0 +1,9 @@
+{
+  "schema": "vwf-structural-feature-consensus/0.1",
+  "status": "descriptive_only_not_calibrated",
+  "variant_count": 0,
+  "rejected_report_count": 0,
+  "variants": [],
+  "rejected_reports": [],
+  "warning": "These summaries cannot establish increased, reduced, or preserved functional activity."
+}

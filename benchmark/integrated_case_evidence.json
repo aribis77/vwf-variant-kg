@@ -1,0 +1,604 @@
+{
+  "schema": "vwf-integrated-case-evidence/0.1",
+  "status": "descriptive_not_calibrated",
+  "case_count": 22,
+  "cases_with_structural_consensus": 0,
+  "cases_with_both_evidence_arms": 0,
+  "cases": [
+    {
+      "case_id": "CASE_001",
+      "variant": "H1786D",
+      "endpoint": "collagen binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_002",
+      "variant": "R1597W",
+      "endpoint": "ADAMTS13 proteolysis",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_003",
+      "variant": "R854Q",
+      "endpoint": "FVIII binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_004",
+      "variant": "D879N",
+      "endpoint": "FVIII binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_005",
+      "variant": "R1306W",
+      "endpoint": "thrombocytopenia occurrence in type 2B VWD cohort",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_006",
+      "variant": "R1308C",
+      "endpoint": "thrombocytopenia occurrence in type 2B VWD cohort",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_007",
+      "variant": "R1205H",
+      "endpoint": "VWF clearance",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_008",
+      "variant": "R1315L",
+      "endpoint": "platelet-dependent VWF activity",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_009",
+      "variant": "R1315C",
+      "endpoint": "platelet-dependent VWF activity",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_010",
+      "variant": "R1306L",
+      "endpoint": "platelet GPIb interaction",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_011",
+      "variant": "S1358N",
+      "endpoint": "collagen I binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_012",
+      "variant": "S1358N",
+      "endpoint": "collagen III binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_013",
+      "variant": "S1358N",
+      "endpoint": "collagen VI binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_014",
+      "variant": "S1394F",
+      "endpoint": "collagen I binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_015",
+      "variant": "S1394F",
+      "endpoint": "collagen III binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_016",
+      "variant": "S1394F",
+      "endpoint": "collagen VI binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_017",
+      "variant": "Q1402P",
+      "endpoint": "collagen I binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_018",
+      "variant": "Q1402P",
+      "endpoint": "collagen III binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_019",
+      "variant": "Q1402P",
+      "endpoint": "collagen VI binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_020",
+      "variant": "S1387I",
+      "endpoint": "collagen I binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_021",
+      "variant": "S1387I",
+      "endpoint": "collagen III binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    },
+    {
+      "case_id": "CASE_022",
+      "variant": "S1387I",
+      "endpoint": "collagen VI binding",
+      "kg": {
+        "exact_endpoint_observation_ids": [],
+        "observation_count": 0,
+        "provenance_status": "url_filtered_not_independently_adjudicated"
+      },
+      "structural": {
+        "consensus_available": false,
+        "distinct_pdb_count": 0,
+        "report_count": 0,
+        "contact_change": null,
+        "delta_g_kcal_mol": null,
+        "conservation_score": null,
+        "per_structure": [],
+        "endpoint_specific_validation": false
+      },
+      "integrated": {
+        "evidence_present_in_both_arms": false,
+        "predicted_direction": "abstain",
+        "functional_effect_conclusion": "not_established",
+        "reason": "Structural features lack endpoint-specific calibration; KG source independence is not adjudicated.",
+        "scoring_eligible": false
+      }
+    }
+  ],
+  "warning": "Not a functional predictor, independent validation, or clinical classification."
+}
