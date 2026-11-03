@@ -82,5 +82,61 @@
     "independent_replication_verified": false,
     "reference_scope": "Longitudinal clinical cohort of 64 type 2B VWD patients; 32 R1306W and 24 R1308C. NOT a direct platelet GPIb binding assay.",
     "evaluation_eligibility": "exploratory_only"
+  },
+  {
+    "variant": "R1205H",
+    "region": "D3",
+    "endpoint": "VWF clearance",
+    "expected_direction": "increased clearance",
+    "reference_label": "functional_effect",
+    "source": "https://air.unimi.it/retrieve/dfa8b994-394c-748b-e053-3a05fe0a3a96/s-0031-1281037.pdf",
+    "review_status": "candidate_requires_original_assay_adjudication",
+    "notes": "Vicenza variant; separate plasma survival/clearance from steady-state antigen level. Quantitative records exist elsewhere in the repository but assay and primary citation must be adjudicated.",
+    "reference_freeze_status": "not_frozen",
+    "independent_replication_verified": false,
+    "reference_scope": "Type 1 Vicenza clearance candidate; review the original kinetic experiment and matched controls before assigning direction.",
+    "evaluation_eligibility": "exploratory_only"
+  },
+  {
+    "variant": "R1315L",
+    "region": "A1",
+    "endpoint": "platelet-dependent VWF activity",
+    "expected_direction": "reduced",
+    "reference_label": "functional_effect",
+    "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10997909/",
+    "review_status": "candidate_requires_original_assay_adjudication",
+    "notes": "Reported with R924Q in cis in at least one source; genotype attribution and assay specificity require review. Do not treat pooled 2M/2A cohorts as variant-specific evidence.",
+    "reference_freeze_status": "not_frozen",
+    "independent_replication_verified": false,
+    "reference_scope": "Human VWF variant clinical/functional observations with possible cis-variant confounding.",
+    "evaluation_eligibility": "exploratory_only"
+  },
+  {
+    "variant": "R1315C",
+    "region": "A1",
+    "endpoint": "platelet-dependent VWF activity",
+    "expected_direction": "reduced",
+    "reference_label": "functional_effect",
+    "source": "https://air.unimi.it/retrieve/dfa8b994-394c-748b-e053-3a05fe0a3a96/s-0031-1281037.pdf",
+    "review_status": "candidate_requires_primary_assay_source",
+    "notes": "Secondary review/source listing only. Locate and verify original variant-specific platelet-dependent functional assay.",
+    "reference_freeze_status": "not_frozen",
+    "independent_replication_verified": false,
+    "reference_scope": "Type 2M-associated candidate, no adjudicated quantitative assay in reference panel.",
+    "evaluation_eligibility": "exploratory_only"
+  },
+  {
+    "variant": "R1306L",
+    "region": "A1",
+    "endpoint": "platelet GPIb interaction",
+    "expected_direction": "increased",
+    "reference_label": "functional_effect",
+    "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12858306/",
+    "review_status": "candidate_requires_primary_assay_source",
+    "notes": "Do not infer direct GPIb binding from a type 2B designation. Require variant-specific assay conditions and controls.",
+    "reference_freeze_status": "not_frozen",
+    "independent_replication_verified": false,
+    "reference_scope": "Type 2B-associated candidate from existing repository functional panel; direct endpoint validation pending.",
+    "evaluation_eligibility": "exploratory_only"
   }
 ]
