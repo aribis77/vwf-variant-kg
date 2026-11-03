@@ -5,6 +5,7 @@ on:
       - 'benchmark/**'
       - 'tests/check_benchmark_metadata.py'
       - 'tests/check_blind_manifest.py'
+      - 'benchmark/audit_source_clusters.py'
       - '.github/workflows/benchmark-metadata.yml'
   pull_request:
     paths:
