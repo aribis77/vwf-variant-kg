@@ -1,5 +1,5 @@
 {
-  "schema": "vwf-endpoint-control-candidates/0.1",
+  "schema": "vwf-endpoint-control-candidates/0.2",
   "status": "source_checked_not_frozen",
   "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3688679/",
   "source_note": "Single publication; all entries share the same experimental source and do not constitute independent replications.",
@@ -20,7 +20,20 @@
       "reference_freeze_status": "not_frozen",
       "interpretation_scope": "Endpoint-specific recombinant construct phenotype; not clinical benignity or overall normal VWF function",
       "source_group": "haemophilia-2013-19-590-594",
-      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted."
+      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted.",
+      "measurement": {
+        "value": null,
+        "unit": null,
+        "normalization": "collagen binding divided by VWF antigen",
+        "wild_type_value": null,
+        "effect_ratio_to_wild_type": null,
+        "uncertainty": null,
+        "n_biological_replicates": null,
+        "figure_panel": null,
+        "extraction_method": null
+      },
+      "quantitative_adjudication": "not_extracted",
+      "source_text_access": "primary_figure_requires_independent_review"
     },
     {
       "variant": "S1358N",
@@ -38,7 +51,20 @@
       "reference_freeze_status": "not_frozen",
       "interpretation_scope": "Endpoint-specific recombinant construct phenotype; not clinical benignity or overall normal VWF function",
       "source_group": "haemophilia-2013-19-590-594",
-      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted."
+      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted.",
+      "measurement": {
+        "value": null,
+        "unit": null,
+        "normalization": "collagen binding divided by VWF antigen",
+        "wild_type_value": null,
+        "effect_ratio_to_wild_type": null,
+        "uncertainty": null,
+        "n_biological_replicates": null,
+        "figure_panel": null,
+        "extraction_method": null
+      },
+      "quantitative_adjudication": "not_extracted",
+      "source_text_access": "primary_figure_requires_independent_review"
     },
     {
       "variant": "S1358N",
@@ -56,7 +82,20 @@
       "reference_freeze_status": "not_frozen",
       "interpretation_scope": "Endpoint-specific recombinant construct phenotype; not clinical benignity or overall normal VWF function",
       "source_group": "haemophilia-2013-19-590-594",
-      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted."
+      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted.",
+      "measurement": {
+        "value": null,
+        "unit": null,
+        "normalization": "collagen binding divided by VWF antigen",
+        "wild_type_value": null,
+        "effect_ratio_to_wild_type": null,
+        "uncertainty": null,
+        "n_biological_replicates": null,
+        "figure_panel": null,
+        "extraction_method": null
+      },
+      "quantitative_adjudication": "not_extracted",
+      "source_text_access": "primary_figure_requires_independent_review"
     },
     {
       "variant": "S1394F",
@@ -74,7 +113,20 @@
       "reference_freeze_status": "not_frozen",
       "interpretation_scope": "Endpoint-specific recombinant construct phenotype; not clinical benignity or overall normal VWF function",
       "source_group": "haemophilia-2013-19-590-594",
-      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted."
+      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted.",
+      "measurement": {
+        "value": null,
+        "unit": null,
+        "normalization": "collagen binding divided by VWF antigen",
+        "wild_type_value": null,
+        "effect_ratio_to_wild_type": null,
+        "uncertainty": null,
+        "n_biological_replicates": null,
+        "figure_panel": null,
+        "extraction_method": null
+      },
+      "quantitative_adjudication": "not_extracted",
+      "source_text_access": "primary_figure_requires_independent_review"
     },
     {
       "variant": "S1394F",
@@ -92,7 +144,20 @@
       "reference_freeze_status": "not_frozen",
       "interpretation_scope": "Endpoint-specific recombinant construct phenotype; not clinical benignity or overall normal VWF function",
       "source_group": "haemophilia-2013-19-590-594",
-      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted."
+      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted.",
+      "measurement": {
+        "value": null,
+        "unit": null,
+        "normalization": "collagen binding divided by VWF antigen",
+        "wild_type_value": null,
+        "effect_ratio_to_wild_type": null,
+        "uncertainty": null,
+        "n_biological_replicates": null,
+        "figure_panel": null,
+        "extraction_method": null
+      },
+      "quantitative_adjudication": "not_extracted",
+      "source_text_access": "primary_figure_requires_independent_review"
     },
     {
       "variant": "S1394F",
@@ -110,7 +175,20 @@
       "reference_freeze_status": "not_frozen",
       "interpretation_scope": "Endpoint-specific recombinant construct phenotype; not clinical benignity or overall normal VWF function",
       "source_group": "haemophilia-2013-19-590-594",
-      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted."
+      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted.",
+      "measurement": {
+        "value": null,
+        "unit": null,
+        "normalization": "collagen binding divided by VWF antigen",
+        "wild_type_value": null,
+        "effect_ratio_to_wild_type": null,
+        "uncertainty": null,
+        "n_biological_replicates": null,
+        "figure_panel": null,
+        "extraction_method": null
+      },
+      "quantitative_adjudication": "not_extracted",
+      "source_text_access": "primary_figure_requires_independent_review"
     },
     {
       "variant": "Q1402P",
@@ -128,7 +206,20 @@
       "reference_freeze_status": "not_frozen",
       "interpretation_scope": "Endpoint-specific recombinant construct phenotype; not clinical benignity or overall normal VWF function",
       "source_group": "haemophilia-2013-19-590-594",
-      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted."
+      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted.",
+      "measurement": {
+        "value": null,
+        "unit": null,
+        "normalization": "collagen binding divided by VWF antigen",
+        "wild_type_value": null,
+        "effect_ratio_to_wild_type": null,
+        "uncertainty": null,
+        "n_biological_replicates": null,
+        "figure_panel": null,
+        "extraction_method": null
+      },
+      "quantitative_adjudication": "not_extracted",
+      "source_text_access": "primary_figure_requires_independent_review"
     },
     {
       "variant": "Q1402P",
@@ -146,7 +237,20 @@
       "reference_freeze_status": "not_frozen",
       "interpretation_scope": "Endpoint-specific recombinant construct phenotype; not clinical benignity or overall normal VWF function",
       "source_group": "haemophilia-2013-19-590-594",
-      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted."
+      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted.",
+      "measurement": {
+        "value": null,
+        "unit": null,
+        "normalization": "collagen binding divided by VWF antigen",
+        "wild_type_value": null,
+        "effect_ratio_to_wild_type": null,
+        "uncertainty": null,
+        "n_biological_replicates": null,
+        "figure_panel": null,
+        "extraction_method": null
+      },
+      "quantitative_adjudication": "not_extracted",
+      "source_text_access": "primary_figure_requires_independent_review"
     },
     {
       "variant": "Q1402P",
@@ -164,7 +268,20 @@
       "reference_freeze_status": "not_frozen",
       "interpretation_scope": "Endpoint-specific recombinant construct phenotype; not clinical benignity or overall normal VWF function",
       "source_group": "haemophilia-2013-19-590-594",
-      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted."
+      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted.",
+      "measurement": {
+        "value": null,
+        "unit": null,
+        "normalization": "collagen binding divided by VWF antigen",
+        "wild_type_value": null,
+        "effect_ratio_to_wild_type": null,
+        "uncertainty": null,
+        "n_biological_replicates": null,
+        "figure_panel": null,
+        "extraction_method": null
+      },
+      "quantitative_adjudication": "not_extracted",
+      "source_text_access": "primary_figure_requires_independent_review"
     },
     {
       "variant": "S1387I",
@@ -182,7 +299,20 @@
       "reference_freeze_status": "not_frozen",
       "interpretation_scope": "Endpoint-specific recombinant construct phenotype; not clinical benignity or overall normal VWF function",
       "source_group": "haemophilia-2013-19-590-594",
-      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted."
+      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted.",
+      "measurement": {
+        "value": null,
+        "unit": null,
+        "normalization": "collagen binding divided by VWF antigen",
+        "wild_type_value": null,
+        "effect_ratio_to_wild_type": null,
+        "uncertainty": null,
+        "n_biological_replicates": null,
+        "figure_panel": null,
+        "extraction_method": null
+      },
+      "quantitative_adjudication": "not_extracted",
+      "source_text_access": "primary_figure_requires_independent_review"
     },
     {
       "variant": "S1387I",
@@ -200,7 +330,20 @@
       "reference_freeze_status": "not_frozen",
       "interpretation_scope": "Endpoint-specific recombinant construct phenotype; not clinical benignity or overall normal VWF function",
       "source_group": "haemophilia-2013-19-590-594",
-      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted."
+      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted.",
+      "measurement": {
+        "value": null,
+        "unit": null,
+        "normalization": "collagen binding divided by VWF antigen",
+        "wild_type_value": null,
+        "effect_ratio_to_wild_type": null,
+        "uncertainty": null,
+        "n_biological_replicates": null,
+        "figure_panel": null,
+        "extraction_method": null
+      },
+      "quantitative_adjudication": "not_extracted",
+      "source_text_access": "primary_figure_requires_independent_review"
     },
     {
       "variant": "S1387I",
@@ -218,7 +361,21 @@
       "reference_freeze_status": "not_frozen",
       "interpretation_scope": "Endpoint-specific recombinant construct phenotype; not clinical benignity or overall normal VWF function",
       "source_group": "haemophilia-2013-19-590-594",
-      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted."
+      "notes": "Qualitative text supports direction; figure-derived values and uncertainty not independently extracted.",
+      "measurement": {
+        "value": null,
+        "unit": null,
+        "normalization": "collagen binding divided by VWF antigen",
+        "wild_type_value": null,
+        "effect_ratio_to_wild_type": null,
+        "uncertainty": null,
+        "n_biological_replicates": null,
+        "figure_panel": null,
+        "extraction_method": null
+      },
+      "quantitative_adjudication": "not_extracted",
+      "source_text_access": "primary_figure_requires_independent_review"
     }
-  ]
+  ],
+  "quantitative_extraction_status": "pending_original_figure_review"
 }
