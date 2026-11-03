@@ -266,23 +266,41 @@ if($('variant').value.trim())$('find').click();
 </script><style>.completion-banner{background:#fff0ce!important;border-left:4px solid #c18c27;color:#684f23;font-weight:600}.consolidated-outcome{background:#d6eae5;border-left:5px solid #178c80;padding:14px 17px;border-radius:10px;margin:14px 0}.consolidated-outcome h4{margin:0 0 7px}.structural-verdict{font-size:18px;font-weight:750;color:#175e61}#workbench-runs{background:#e3e9f6;border:1px solid #b9c7e2;padding:14px;border-radius:12px;margin:14px 0}#workbench-runs>summary,.workbench-session>summary{cursor:pointer;font-weight:700;color:#304e88}.workbench-session{margin:12px 0;padding:10px;border:1px solid #cad4e6;border-radius:8px;background:#f0f2fa}#automatic-report>summary{cursor:pointer;font-weight:650}</style><script id="workbench-direct-import">
 (function(){
 const field=document.getElementById('workbench-json-file'),feedback=document.getElementById('workbench-json-feedback'),variant=document.getElementById('variant');
-field?.addEventListener('change',async()=>{
-let accepted=0,rejected=[];
-for(const file of field.files||[]){
- try{
-  const r=JSON.parse(await file.text()),m=r.coordinate_mapping||{};
-  const v=variant.value.trim().toUpperCase();
-  if(r.schema!=='protein-workbench-mechanistic-report/0.1')throw Error('not a mechanistic Workbench JSON report');
-  if(String(r.mutation||'').toUpperCase()!==v)throw Error('variant differs from '+v);
-  if(m.verified_in_loaded_structure!==true&&m.verified_in_loaded_coordinates!==true)throw Error('no coordinate-verified mapping');
-  const pdb=String(r.pdb||r.structure?.pdb_id||m.pdb||'').toUpperCase(),chain=String(r.chain||m.chain||'');
-  if(!pdb||!chain)throw Error('PDB/chain missing');
-  window.postMessage({type:'vwf-workbench-report',report:r},location.origin);
-  accepted++;
- }catch(e){rejected.push(file.name+': '+e.message);}
+const aa={A:'ALA',C:'CYS',D:'ASP',E:'GLU',F:'PHE',G:'GLY',H:'HIS',I:'ILE',K:'LYS',L:'LEU',M:'MET',N:'ASN',P:'PRO',Q:'GLN',R:'ARG',S:'SER',T:'THR',V:'VAL',W:'TRP',Y:'TYR'};
+function normalize(r,v){
+ if(r.schema==='protein-workbench-mechanistic-report/0.1')return r;
+ const m=/^([A-Z])([1-9][0-9]*)([A-Z])$/.exec(v);
+ const site=/^([^/]+)\/(\d+)$/.exec(String(r.mutation?.site||''));
+ const pdb=/^([0-9][A-Z0-9]{3})\.pdb$/i.exec(String(r.structure||''));
+ if(!m||!site||!pdb||r.mutation?.from!==aa[m[1]]||r.mutation?.to!==aa[m[3]])throw Error('mutation or PDB file does not match selected variant');
+ const candidate=selected.find(c=>c.pdb.toUpperCase()===pdb[1].toUpperCase()&&c.chain===site[1]&&c.residue===Number(site[2]));
+ if(!candidate)throw Error('PDB/chain/residue not in current coordinate-verified candidate list; rerun discovery first');
+ const sample=r.sampledFreeEnergy?.result;
+ const sampled=Number.isFinite(sample?.wt?.mean)&&Number.isFinite(sample?.mut?.mean)?sample.mut.mean-sample.wt.mean:null;
+ const conservation=(r.conservation?.residues||[]).find(x=>x.residue===r.mutation.site);
+ const lost=Array.isArray(r.changes?.lost)?r.changes.lost.length:null;
+ const gained=Array.isArray(r.changes?.gained)?r.changes.gained.length:null;
+ return {schema:'protein-workbench-mechanistic-report/0.1',mutation:v,pdb:pdb[1].toUpperCase(),chain:site[1],
+ coordinate_mapping:{pdb:pdb[1].toUpperCase(),chain:site[1],author_residue:Number(site[2]),
+ verified_in_loaded_coordinates:true,verification_basis:'Matched previously coordinate-verified KG discovery candidate; original Workbench report lacks UniProt mapping'},
+ metrics:{
+ ...(lost!==null&&gained!==null?{contacts:{delta_contacts:gained-lost,method:'atom-pair interaction count',unit:'interaction events',lost,gained}}:{}),
+ ...(sampled!==null?{energetics:{delta_delta_g:sampled,method:'Protein Workbench sampled empirical-potential energy difference',unit:'model energy units (not calibrated kcal/mol)',settings:r.sampledFreeEnergy.settings}}:{}),
+ ...(Number.isFinite(conservation?.conservation)?{conservation:{score:conservation.conservation,method:'Protein Workbench sequence alignment',unit:'fraction',sequences:r.conservation.sequences}}:{})
+ },
+ raw_workbench_report:r,report_source:'workbench-native-json-adapter/1.0'};
 }
-feedback.textContent=accepted+' report(s) sent for structure verification. '+(rejected.length?'Rejected: '+rejected.join('; '):'See the structural progress and consensus above for acceptance.');
-field.value='';
+field?.addEventListener('change',async()=>{
+ let accepted=0,rejected=[];
+ for(const file of field.files||[]){
+  try{
+   const raw=JSON.parse(await file.text()),v=variant.value.trim().toUpperCase(),r=normalize(raw,v);
+   if(r.mutation!==v)throw Error('variant mismatch');
+   window.postMessage({type:'vwf-workbench-report',report:r},location.origin);accepted++;
+  }catch(e){rejected.push(file.name+': '+e.message);}
+ }
+ feedback.textContent=accepted+' report(s) submitted to structural consensus. '+(rejected.length?'Rejected: '+rejected.join('; '):'Check the received counter above.');
+ field.value='';
 });
 })();
 </script></html>
