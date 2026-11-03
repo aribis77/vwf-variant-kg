@@ -5,46 +5,119 @@
   "endpoint_families": [
     {
       "family": "collagen_binding",
-      "endpoint_aliases": ["collagen binding", "collagen type i binding", "collagen type iii binding", "collagen type vi binding"],
-      "required_comparability": ["collagen type", "assay platform", "VWF construct", "species", "reference control"],
-      "potential_features": ["domain-specific contact changes", "experimentally verified binding interface", "variant-specific functional evidence"],
-      "forbidden_shortcuts": ["infer reduced collagen binding from positive delta delta G", "merge collagen I III and VI endpoints"],
+      "endpoint_aliases": [
+        "collagen binding",
+        "collagen type i binding",
+        "collagen type iii binding",
+        "collagen type vi binding",
+        "collagen I binding",
+        "collagen III binding",
+        "collagen VI binding"
+      ],
+      "required_comparability": [
+        "collagen type",
+        "assay platform",
+        "VWF construct",
+        "species",
+        "reference control"
+      ],
+      "potential_features": [
+        "domain-specific contact changes",
+        "experimentally verified binding interface",
+        "variant-specific functional evidence"
+      ],
+      "forbidden_shortcuts": [
+        "infer reduced collagen binding from positive delta delta G",
+        "merge collagen I III and VI endpoints"
+      ],
       "direction_rule": null,
       "calibration_status": "not_calibrated"
     },
     {
       "family": "fviii_binding",
-      "endpoint_aliases": ["fviii binding"],
-      "required_comparability": ["VWF construct", "FVIII construct", "binding assay", "reference control"],
-      "potential_features": ["D-prime D3 interface contacts", "experimental binding evidence"],
-      "forbidden_shortcuts": ["equate global stability with FVIII affinity"],
+      "endpoint_aliases": [
+        "fviii binding"
+      ],
+      "required_comparability": [
+        "VWF construct",
+        "FVIII construct",
+        "binding assay",
+        "reference control"
+      ],
+      "potential_features": [
+        "D-prime D3 interface contacts",
+        "experimental binding evidence"
+      ],
+      "forbidden_shortcuts": [
+        "equate global stability with FVIII affinity"
+      ],
       "direction_rule": null,
       "calibration_status": "not_calibrated"
     },
     {
       "family": "adamts13_proteolysis",
-      "endpoint_aliases": ["adamts13 proteolysis", "adamts13 cleavage"],
-      "required_comparability": ["substrate construct", "shear or denaturant conditions", "protease concentration", "reference control"],
-      "potential_features": ["A2 cleavage-site exposure", "local structural contacts", "functional cleavage measurements"],
-      "forbidden_shortcuts": ["infer increased proteolysis from destabilization alone"],
+      "endpoint_aliases": [
+        "adamts13 proteolysis",
+        "adamts13 cleavage"
+      ],
+      "required_comparability": [
+        "substrate construct",
+        "shear or denaturant conditions",
+        "protease concentration",
+        "reference control"
+      ],
+      "potential_features": [
+        "A2 cleavage-site exposure",
+        "local structural contacts",
+        "functional cleavage measurements"
+      ],
+      "forbidden_shortcuts": [
+        "infer increased proteolysis from destabilization alone"
+      ],
       "direction_rule": null,
       "calibration_status": "not_calibrated"
     },
     {
       "family": "platelet_gpi_binding",
-      "endpoint_aliases": ["platelet gpib binding", "gpib binding"],
-      "required_comparability": ["receptor construct", "ristocetin or botrocetin conditions", "assay format", "reference control"],
-      "potential_features": ["A1 interface contacts", "experimental receptor binding"],
-      "forbidden_shortcuts": ["treat thrombocytopenia occurrence as GPIb binding direction"],
+      "endpoint_aliases": [
+        "platelet gpib binding",
+        "gpib binding"
+      ],
+      "required_comparability": [
+        "receptor construct",
+        "ristocetin or botrocetin conditions",
+        "assay format",
+        "reference control"
+      ],
+      "potential_features": [
+        "A1 interface contacts",
+        "experimental receptor binding"
+      ],
+      "forbidden_shortcuts": [
+        "treat thrombocytopenia occurrence as GPIb binding direction"
+      ],
       "direction_rule": null,
       "calibration_status": "not_calibrated"
     },
     {
       "family": "vwf_clearance",
-      "endpoint_aliases": ["vwf clearance", "clearance"],
-      "required_comparability": ["species", "in vivo or in vitro assay", "time course", "reference control"],
-      "potential_features": ["glycan and receptor-related features", "direct clearance evidence"],
-      "forbidden_shortcuts": ["infer clearance direction from contact or stability scores alone"],
+      "endpoint_aliases": [
+        "vwf clearance",
+        "clearance"
+      ],
+      "required_comparability": [
+        "species",
+        "in vivo or in vitro assay",
+        "time course",
+        "reference control"
+      ],
+      "potential_features": [
+        "glycan and receptor-related features",
+        "direct clearance evidence"
+      ],
+      "forbidden_shortcuts": [
+        "infer clearance direction from contact or stability scores alone"
+      ],
       "direction_rule": null,
       "calibration_status": "not_calibrated"
     }
