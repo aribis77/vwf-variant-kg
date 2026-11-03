@@ -1,4 +1,4 @@
-/* Live, session-scoped Workbench evidence bridge. No server upload or invented metrics. */
+/* Browser-persisted Workbench evidence bridge. No server upload or invented metrics. */
 (function(){
 'use strict';
 const frame=document.getElementById('kg-structural-analysis');
@@ -6,6 +6,23 @@ const input=document.getElementById('vrvariant');
 const host=document.getElementById('variant-report');
 if(!frame||!input||!host)return;
 const reports=new Map();
+const STORAGE_KEY='vwf-workbench-verified-reports-v1';
+function restore(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
+  if(saved.schema!=='vwf-browser-workbench-archive/0.1'||!Array.isArray(saved.reports))return;
+  for(const r of saved.reports){
+   const v=String(r?.mutation||'').toUpperCase(),m=r?.coordinate_mapping||{};
+   const pdb=String(r?.pdb||r?.structure?.pdb_id||m.pdb||'').toUpperCase(),chain=String(r?.chain||m.chain||'');
+   if(!valid(v)||r.schema!=='protein-workbench-mechanistic-report/0.1'||(m.verified_in_loaded_structure!==true&&m.verified_in_loaded_coordinates!==true)||!/^[0-9][A-Z0-9]{3}$/.test(pdb)||!chain)continue;
+   if(!reports.has(v))reports.set(v,new Map());
+   reports.get(v).set(pdb+':'+chain,r);
+  }
+ }catch(e){console.warn('Could not restore Workbench archive',e);}
+}
+function archive(){return {schema:'vwf-browser-workbench-archive/0.1',saved_at:new Date().toISOString(),validation_status:'browser_coordinate_flags_only',reports:[...reports.values()].flatMap(m=>[...m.values()])};}
+function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(archive()));return true;}catch(e){return false;}}
+
 const valid=v=>/^[ACDEFGHIKLMNPQRSTVWY][0-9]{1,5}[ACDEFGHIKLMNPQRSTVWY]$/.test(v);
 const num=(o,keys)=>{for(const k of keys)if(typeof o?.[k]==='number'&&Number.isFinite(o[k]))return o[k];return null;};
 const measure=(r,paths)=>{for(const path of paths){let x=r;for(const k of path)x=x?.[k];if(x&&typeof x==='object'&&!['unavailable','failed','not_run','pending'].includes(x.status))return x;}return null;};
@@ -15,6 +32,25 @@ const fmt=n=>n===null?'Not measured':Number(n.toPrecision(4)).toString();
 const section=document.createElement('section');section.id='vwf-live-workbench-evidence';
 section.style.cssText='margin:16px;padding:18px;border:1px solid #53798e;border-radius:12px;background:#203b52;color:#e9f4fa';
 host.append(section);
+const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin:12px 16px';
+const exportButton=document.createElement('button');exportButton.type='button';exportButton.textContent='Export variant reports (JSON)';
+const clearButton=document.createElement('button');clearButton.type='button';clearButton.textContent='Clear locally saved variant reports';
+const notice=document.createElement('small');notice.textContent='Reports are saved only in this browser. Export for a durable backup; coordinate flags are not independent validation.';
+actions.append(exportButton,clearButton,notice);section.after(actions);
+exportButton.addEventListener('click',()=>{
+ const v=input.value.trim().toUpperCase();if(!valid(v))return;
+ const payload={...archive(),variant:v,reports:[...(reports.get(v)?.values()||[])]};
+ const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
+ const a=document.createElement('a');a.href=url;a.download='vwf-workbench-'+v+'-reports.json';
+ document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+clearButton.addEventListener('click',()=>{
+ const v=input.value.trim().toUpperCase();
+ if(!valid(v)||!confirm('Delete locally saved reports for '+v+'?'))return;
+ reports.delete(v);persist();render();
+});
+restore();
+
 function render(){
  const v=input.value.trim().toUpperCase();
  if(!valid(v)){section.innerHTML='<h3>Live Protein Workbench measurements</h3><p>Select a variant to view its current structural reports.</p>';return;}
@@ -42,6 +78,7 @@ window.addEventListener('message',e=>{
  if(!/^[0-9][A-Z0-9]{3}$/.test(pdb)||!chain)return;
  if(!reports.has(v))reports.set(v,new Map());
  reports.get(v).set(pdb+':'+chain,r);
+ notice.textContent=persist()?'Saved locally. Export JSON for a durable backup.':'Browser storage unavailable; export JSON to retain results.';
  render();
 });
 input.addEventListener('input',render);input.addEventListener('change',render);
