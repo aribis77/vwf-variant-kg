@@ -53,10 +53,10 @@ def classify(value):
     ids = identities(value)
     if ids & reference_ids:
         return "reference_overlap"
-    if not ids:
-        return "unresolved"
     if str(value).startswith("SRC_"):
         return "unresolved_internal_source_id"
+    if not ids:
+        return "unresolved"
     return "not_matched_by_known_identifiers"
 
 observations = graph["observations"]
