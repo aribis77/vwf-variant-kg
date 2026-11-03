@@ -8,6 +8,7 @@ on:
       - 'tests/check_source_cluster_audit.py'
       - 'tests/check_evaluation_gate.py'
       - 'tests/check_prediction_contract.py'
+      - 'tests/check_source_exclusions.py'
       - 'benchmark/audit_source_clusters.py'
       - '.github/workflows/benchmark-metadata.yml'
   pull_request:
@@ -38,6 +39,10 @@ jobs:
         run: python tests/check_evaluation_gate.py
       - name: Validate prediction evaluation contract
         run: python tests/check_prediction_contract.py
+      - name: Build reference source exclusions
+        run: python benchmark/build_source_exclusions.py
+      - name: Check reference source exclusions
+        run: python tests/check_source_exclusions.py
       - name: Archive evaluation design manifest
         uses: actions/upload-artifact@v4
         with:
@@ -45,4 +50,5 @@ jobs:
           path: |
             benchmark/blind_manifest.json
             benchmark/source_cluster_audit.json
+            benchmark/reference_source_exclusions.json
           retention-days: 30
