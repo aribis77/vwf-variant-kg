@@ -55,3 +55,7 @@ Require endpoint-specific experimental effect and preserved-function references 
 ## Primary-study endpoint-specific control candidates
 
 The 2013 Haemophilia recombinant VWF study (DOI 10.1111/hae.12117; Figure 3) supplies twelve variant-by-collagen-subtype qualitative observations in `benchmark/endpoint_control_candidates.json`. S1358N and S1394F retain binding to collagen I, III and VI in the recombinant assays; Q1402P retains I/III but has reduced VI; S1387I shows reduced binding to all three. The same study reports platelet-binding defects in these constructs. This is mechanistic specificity, **not evidence of benign clinical status**. All twelve observations share one source, are not independently replicated, and have no independently digitized Figure 3 effect sizes. They must remain excluded from frozen reference counts until figure-level adjudication, source leakage checks, and an independent curator review.
+
+## Blinded evaluation preparation
+
+`python benchmark/prepare_blind_manifest.py` generates a design-only manifest with case IDs, variants, endpoints and hashed source groups. It intentionally omits experimental directions and reference labels. All cases remain ineligible because references are not frozen. This is not yet a genuine blind study: the source data and labels remain public in this repository, and a separate independent curator must prepare a sequestered test set before performance evaluation. Source-group overlap must be checked before evaluating a model trained or tuned on KG evidence.
