@@ -372,12 +372,18 @@ function renderObs(){
  const searched=obs.filter(o=>!q||Object.values(o).some(v=>String(v).toLowerCase().includes(q)));
  const matches=searched.filter(o=>(!endpoint||kgEvidenceCategory(o)===endpoint)&&(!audit||String(o.source_audit_status||'Not recorded')===audit));
  const sources=new Set(matches.map(kgSourceKey).filter(Boolean));
- const variants=new Set(matches.map(o=>o.subject_id).filter(Boolean));
- const counts='<div class="kg-browser-metrics">'+[['Matching hits',matches.length],['Variants',variants.size],['Source identifiers',sources.size],['Endpoint groups',new Set(matches.map(kgEvidenceCategory)).size]].map(([label,value])=>'<div><strong>'+value+'</strong><span>'+esc(label)+'</span></div>').join('')+'</div>';
+ const isActualVariant=id=>byid.get(id)?.node_type==='ProteinVariant';
+ const variants=new Set(matches.map(o=>o.subject_id).filter(isActualVariant));
+ const counts='<div class="kg-browser-metrics">'+[['Matching hits',matches.length],['Individual variants',variants.size],['Source identifiers',sources.size],['Endpoint groups',new Set(matches.map(kgEvidenceCategory)).size]].map(([label,value])=>'<div><strong>'+value+'</strong><span>'+esc(label)+'</span></div>').join('')+'</div>';
  const categories=kgEvidenceBars(searched.filter(o=>!audit||String(o.source_audit_status||'Not recorded')===audit),kgEvidenceCategory,endpoint,'Hits by functional endpoint');
  const audits=kgEvidenceBars(searched.filter(o=>!endpoint||kgEvidenceCategory(o)===endpoint),o=>String(o.source_audit_status||'Not recorded'),audit,'Hits by source audit status');
- const topVariants=[...new Map([...new Set(matches.map(o=>o.subject_id).filter(Boolean))].map(id=>[id,matches.filter(o=>o.subject_id===id).length]))].sort((a,b)=>b[1]-a[1]).slice(0,8);
- const variantChart='<div class="kg-browser-chart"><h4>Most represented variants</h4><table class="kg-browser-table"><thead><tr><th>Variant node</th><th>Hits</th></tr></thead><tbody>'+topVariants.map(([id,n])=>'<tr><td>'+esc(id)+'</td><td>'+n+'</td></tr>').join('')+'</tbody></table></div>';
+ // Cohorts and comparator groups are not variants. Count only normalized ProteinVariant nodes.
+ const rankedVariants=[...variants].map(id=>{
+  const records=matches.filter(o=>o.subject_id===id);
+  const sourceIds=new Set(records.map(kgSourceKey).filter(Boolean));
+  return {id,label:byid.get(id)?.label||id,observations:records.length,sources:sourceIds.size};
+ }).sort((a,b)=>b.sources-a.sources||b.observations-a.observations||a.label.localeCompare(b.label)).slice(0,8);
+ const variantChart='<div class="kg-browser-chart"><h4>Individual variants in the current evidence set</h4><table class="kg-browser-table"><thead><tr><th>Variant</th><th>Source IDs</th><th>Observations</th></tr></thead><tbody>'+rankedVariants.map(v=>'<tr><td>'+esc(v.label)+'</td><td>'+v.sources+'</td><td>'+v.observations+'</td></tr>').join('')+(rankedVariants.length?'':'<tr><td colspan="3">No individual variant records match these filters.</td></tr>')+'</tbody></table><p class="sub">Cohort and comparator nodes are excluded. Source IDs are not necessarily independent studies; observation counts reflect curated coverage, not biological importance. This dataset may overrepresent variants used in initial curation.</p></div>';
  $('oevidence-dashboard').innerHTML=counts+'<div class="kg-browser-charts">'+categories+audits+variantChart+'</div><p class="sub">All charts reflect the current filters. A hit is one KG observation, not an independent experiment. Source identifiers may refer to overlapping studies; audit status is not a quality score.</p>';
  $('oevidence-dashboard').querySelectorAll('.kg-browser-chart:nth-child(1) .kg-browser-bar').forEach(b=>b.onclick=()=>{$('oevidence-endpoint').value=$('oevidence-endpoint').value===b.dataset.filter?'':b.dataset.filter;renderObs()});
  $('oevidence-dashboard').querySelectorAll('.kg-browser-chart:nth-child(2) .kg-browser-bar').forEach(b=>b.onclick=()=>{$('oevidence-audit').value=$('oevidence-audit').value===b.dataset.filter?'':b.dataset.filter;renderObs()});
