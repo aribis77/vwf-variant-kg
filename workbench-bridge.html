@@ -3,8 +3,25 @@ const q=new URLSearchParams(location.search),variant=(q.get('variant')||'H1786D'
 const back=document.getElementById('back');back.href='./?variant='+encodeURIComponent(variant);
 const frame=document.getElementById('workbench');const status=document.getElementById('status');
 const url=new URL('https://aribis77.github.io/protein-workbench/');url.searchParams.set('pdb',pdb);url.searchParams.set('mutation',variant);url.searchParams.set('chain',chain);url.searchParams.set('analysis',q.get('analysis')||'combined');if(q.get('author_residue'))url.searchParams.set('residue',q.get('author_residue'));if(q.get('alignment_url'))url.searchParams.set('alignment_url',q.get('alignment_url'));
-function acceptReport(obj){if(!obj||typeof obj!=='object')return;const txt=JSON.stringify(obj);if(obj.schema!=='protein-workbench-mechanistic-report/0.1'||obj.mutation!==variant||!(obj.coordinate_mapping?.verified_in_loaded_structure||obj.coordinate_mapping?.verified_in_loaded_coordinates))return;try{sessionStorage.setItem('vwf-last-workbench-report',txt);localStorage.setItem('vwf-last-workbench-report',txt)}catch(e){}document.getElementById('results').textContent=JSON.stringify(obj,null,2);status.textContent='Workbench report captured. Return to the variant report to see imported evidence.';try{window.parent.postMessage({type:'vwf-workbench-report',report:obj},location.origin)}catch(e){}}
-frame.addEventListener('load',()=>{status.textContent='Workbench opened. Export the completed JSON and select it below to send the verified report back to the KG.';});document.getElementById('report-upload').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{const obj=JSON.parse(await file.text());const map=obj.coordinate_mapping||{};const foundPdb=String(obj.pdb||obj.structure?.pdb_id||map.pdb||'').toUpperCase();const foundChain=String(obj.chain||map.chain||'');if(obj.schema!=='protein-workbench-mechanistic-report/0.1'||obj.mutation!==variant||foundPdb!==pdb.toUpperCase()||foundChain!==chain||!(map.verified_in_loaded_structure||map.verified_in_loaded_coordinates))throw Error('Report schema, variant, PDB, chain, or verified coordinate mapping does not match this session.');acceptReport(obj);document.getElementById('upload-error').textContent='';}catch(err){document.getElementById('upload-error').textContent='Report not accepted: '+err.message;}});
+function acceptReport(obj){
+ if(!obj||typeof obj!=='object')throw Error('Missing report');
+ const map=obj.coordinate_mapping||{};
+ const native=typeof obj.structure==='string'&&obj.mutation?.site&&obj.energies;
+ const site=/^([^/]+)\/(\d+)$/.exec(String(obj.mutation?.site||''));
+ const nativePdb=String(obj.structure||'').replace(/\.pdb$/i,'').toUpperCase();
+ const nativeValid=native&&nativePdb===pdb.toUpperCase()&&site?.[1]===chain&&Number(site[2])===Number(q.get('author_residue'))&&
+  obj.mutation?.from&&obj.mutation?.to;
+ const structuredValid=obj.schema==='protein-workbench-mechanistic-report/0.1'&&obj.mutation===variant&&
+  String(obj.pdb||obj.structure?.pdb_id||map.pdb||'').toUpperCase()===pdb.toUpperCase()&&
+  String(obj.chain||map.chain||'')===chain&&(map.verified_in_loaded_structure===true||map.verified_in_loaded_coordinates===true);
+ if(!nativeValid&&!structuredValid)throw Error('Report PDB, chain, residue or format does not match this verified session.');
+ const txt=JSON.stringify(obj);
+ try{sessionStorage.setItem('vwf-last-workbench-report',txt);localStorage.setItem('vwf-last-workbench-report',txt)}catch(e){}
+ document.getElementById('results').textContent=JSON.stringify({structure:obj.structure||obj.pdb,mutation:obj.mutation,energies:obj.energies,sampledFreeEnergy:obj.sampledFreeEnergy,changes:obj.changes,conservationAtMutation:(obj.conservation?.residues||[]).find(x=>x.residue===obj.mutation?.site)},null,2);
+ status.textContent='Workbench report received and sent to the KG structural consensus.';
+ window.parent.postMessage({type:'vwf-workbench-report',report:obj},location.origin);
+}
+frame.addEventListener('load',()=>{status.textContent='Workbench opened. Export the completed JSON and select it below to send the verified report back to the KG.';});document.getElementById('report-upload').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{acceptReport(JSON.parse(await file.text()));document.getElementById('upload-error').textContent='';}catch(err){document.getElementById('upload-error').textContent='Report not accepted: '+err.message;}});
 
 // Receive reports automatically if Protein Workbench publishes a structured result.
 // Strictly accept messages from the embedded Workbench window and its known origin.
@@ -14,17 +31,8 @@ window.addEventListener('message',event=>{
  const obj=payload?.type==='vwf-workbench-report'?payload.report:
            payload?.type==='protein-workbench-mechanistic-report'?payload.report:null;
  if(!obj)return;
- const map=obj.coordinate_mapping||{};
- const foundPdb=String(obj.pdb||obj.structure?.pdb_id||map.pdb||'').toUpperCase();
- const foundChain=String(obj.chain||map.chain||'');
- if(obj.schema!=='protein-workbench-mechanistic-report/0.1'||obj.mutation!==variant||
-    foundPdb!==pdb.toUpperCase()||foundChain!==chain||
-    (map.verified_in_loaded_structure!==true&&map.verified_in_loaded_coordinates!==true)){
-   document.getElementById('upload-error').textContent='Workbench sent a report, but its variant, PDB, chain, or mapping did not match this session.';
-   return;
- }
- acceptReport(obj);
- status.textContent='Workbench report received automatically and forwarded to the KG.';
+ try{acceptReport(obj);document.getElementById('upload-error').textContent='';}
+ catch(err){document.getElementById('upload-error').textContent='Automatic report rejected: '+err.message;}
 });
 frame.src=url.href;
 </script></html>
