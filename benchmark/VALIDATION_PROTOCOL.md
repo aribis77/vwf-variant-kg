@@ -51,3 +51,7 @@ The portal exports a **readiness audit**, not a performance benchmark. None of t
 ## Balanced benchmark design
 
 Require endpoint-specific experimental effect and preserved-function references for FVIII binding, platelet GPIb interaction, collagen binding, ADAMTS13 proteolysis, secretion/multimer assembly, and clearance. Target two independently reviewed variants in each group as an initial design goal. Distinguish collagen subtypes and clinical phenotypes from direct biochemical measurements. No preserved-function control in the current panel has been independently adjudicated. Reference labels remain provisional until primary assays, controls, numbering, experimental context, and source independence are checked.
+
+## Primary-study endpoint-specific control candidates
+
+The 2013 Haemophilia recombinant VWF study (DOI 10.1111/hae.12117; Figure 3) supplies twelve variant-by-collagen-subtype qualitative observations in `benchmark/endpoint_control_candidates.json`. S1358N and S1394F retain binding to collagen I, III and VI in the recombinant assays; Q1402P retains I/III but has reduced VI; S1387I shows reduced binding to all three. The same study reports platelet-binding defects in these constructs. This is mechanistic specificity, **not evidence of benign clinical status**. All twelve observations share one source, are not independently replicated, and have no independently digitized Figure 3 effect sizes. They must remain excluded from frozen reference counts until figure-level adjudication, source leakage checks, and an independent curator review.
