@@ -21,3 +21,23 @@ for row in panel:
             "Frozen references must have a reviewed evaluation status"
         )
 print(f"Validated metadata structure for {len(panel)} provisional benchmark entries; no accuracy calculated.")
+
+controls = json.loads((ROOT / "benchmark/endpoint_control_candidates.json").read_text())
+records = controls["records"]
+assert records, "Endpoint controls must be nonempty"
+assert len({(x["variant"], x["endpoint"], x["source_group"]) for x in records}) == len(records), (
+    "Duplicate control observations"
+)
+for row in records:
+    assert row["observed_direction"] in ("preserved", "reduced", "increased")
+    assert row["reference_freeze_status"] == "not_frozen" or (
+        row["independent_adjudication"] is True
+        and row["independent_replication_verified"] is True
+    ), "Controls cannot be frozen without independent review and replication"
+    assert row["source"] and row["source_figure"] and row["model"] and row["assay"]
+assert design["current_verified_preserved_controls"] <= sum(
+    row["observed_direction"] == "preserved"
+    and row["reference_freeze_status"] == "frozen"
+    for row in records
+), "Verified controls cannot exceed frozen preserved-function records"
+print(f"Checked {len(records)} endpoint-specific control observations; no predictive accuracy calculated.")
