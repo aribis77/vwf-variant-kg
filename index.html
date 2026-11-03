@@ -1186,6 +1186,15 @@ async function kgShowBenchmarkReadiness(variant){
   if(!Array.isArray(candidates))throw Error('Invalid reference panel');
   if(!host.isConnected||host.dataset.variant!==variant)return;
   const entries=kgBenchmarkReadiness(candidates,variant);
+  let controlRows=[];
+  try{
+   const controlResponse=await fetch('./benchmark/endpoint_control_candidates.json',{cache:'no-store'});
+   if(controlResponse.ok){
+    const controlData=await controlResponse.json();
+    if(Array.isArray(controlData.records))controlRows=controlData.records.filter(c=>c.variant===variant);
+   }
+  }catch(_error){/* Keep the main report usable when controls are unavailable. */}
+
   let design=null;
   try{
    const designResponse=await fetch('./benchmark/reference_design_matrix.json',{cache:'no-store'});
@@ -1199,7 +1208,8 @@ async function kgShowBenchmarkReadiness(variant){
   const frozenCandidates=candidates.filter(c=>c.reference_freeze_status==='frozen').length;
   const unresolvedCandidates=candidates.filter(c=>c.reference_freeze_status!=='frozen').length;
   const readinessOverview=design?'<p><b>Benchmark control coverage:</b> '+verifiedControls+' / '+targetTotal+' independently validated preserved-function controls across '+mechanismCount+' planned mechanisms. <b>Reference panel:</b> '+candidates.length+' candidates ('+frozenCandidates+' frozen; '+unresolvedCandidates+' provisional).</p>':'<p class="sub">Benchmark design matrix unavailable; control coverage cannot be established.</p>';
-  host.innerHTML=readinessOverview+'<h4>Independent benchmark readiness</h4>'+
+  const controlHtml=controlRows.length?'<h4>Primary-study endpoint controls (provisional)</h4><table class="kg-browser-table"><thead><tr><th>Assay endpoint</th><th>Observed</th><th>Source</th><th>Status</th></tr></thead><tbody>'+controlRows.map(c=>'<tr><td>'+safe(c.endpoint)+'</td><td>'+safe(c.observed_direction)+'</td><td>'+safe(c.source_figure||'')+'</td><td>Not frozen; independent validation pending</td></tr>').join('')+'</tbody></table><p class="sub">These are endpoint-specific recombinant assay observations, not benign clinical classifications or independent replications.</p>':'';
+  host.innerHTML=readinessOverview+controlHtml+'<h4>Independent benchmark readiness</h4>'+
    (entries.length?'<table class="kg-browser-table"><thead><tr><th>Endpoint</th><th>Direct observations</th><th>Review / freeze</th><th>Blocking reasons</th></tr></thead><tbody>'+
    entries.map(e=>'<tr><td>'+safe(e.endpoint)+'</td><td>'+e.nonduplicate_observations+'</td><td>'+safe(e.review_status)+' / '+safe(e.reference_freeze_status)+'</td><td>'+safe(e.blocking_reasons.join(', ')||'None')+'</td></tr>').join('')+'</tbody></table>':'<p class="sub">This variant is not in the current provisional reference panel.</p>')+
    '<p class="sub">A candidate reference is not a validated ground truth. Reference labels are never used to construct predictions. No accuracy is reported until independent review, source separation and a frozen evaluation protocol are complete.</p>';
