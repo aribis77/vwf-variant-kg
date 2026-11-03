@@ -31,7 +31,7 @@ second = evaluate_case(case, observations, verified, structural)
 assert all(x["predicted_direction"] == "abstain" for x in second)
 assert all(x["verified_exact_endpoint_observation_ids"] == ["OBS_TEST1"] for x in second)
 assert all(x["structural_report_verified"] for x in second)
-assert all(x["blockers"] == ["no_preregistered_calibrated_direction_rule"] for x in second)
+assert all(x["blockers"] == ["endpoint_direction_rule_not_calibrated", "no_preregistered_calibrated_direction_rule"] for x in second)
 assert [x["record_hash"] for x in first] == [x["record_hash"] for x in evaluate_case(case, observations)]
 assert [x["record_hash"] for x in first] == [x["record_hash"] for x in evaluate_case({**case, "expected_direction": "reduced"}, observations)]
 
