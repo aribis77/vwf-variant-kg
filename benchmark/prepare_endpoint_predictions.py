@@ -24,6 +24,8 @@ def evaluate_case(case, observations, verified_sources=None, structural_reports=
     provenance metadata; structural_reports maps case ID to validated reports.
     Neither is populated automatically from the benchmark reference labels.
     """
+    registry = json.loads((BENCH / 'endpoint_rule_registry.json').read_text())
+    family = next((x for x in registry['endpoint_families'] if norm_endpoint(case['endpoint']) in x['endpoint_aliases']), None)
     verified_sources = verified_sources or {}
     structural_reports = structural_reports or {}
     case_id, variant, endpoint = case["case_id"], case["variant"], case["endpoint"]
@@ -48,6 +50,10 @@ def evaluate_case(case, observations, verified_sources=None, structural_reports=
     decisions = []
     for method in METHODS:
         blockers = []
+        if family is None:
+            blockers.append('endpoint_family_not_registered')
+        elif family['direction_rule'] is None or family['calibration_status'] != 'calibrated':
+            blockers.append('endpoint_direction_rule_not_calibrated')
         if method in ("KG_evidence_only", "integrated_KG_and_structural") and not verified:
             blockers.append("no_independently_adjudicated_endpoint_matched_kg_evidence")
         if method in ("structural_only", "integrated_KG_and_structural") and not valid_structural:
@@ -60,7 +66,8 @@ def evaluate_case(case, observations, verified_sources=None, structural_reports=
             "variant": variant,
             "endpoint": endpoint,
             "method": method,
-            "method_version": "prevalidation-0.1",
+            "method_version": "prevalidation-0.2",
+            "endpoint_family": family["family"] if family else None,
             "predicted_direction": "abstain",
             "eligible_for_scoring": False,
             "blockers": blockers,
