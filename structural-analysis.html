@@ -291,6 +291,11 @@ function normalize(r,v){
  raw_workbench_report:r,report_source:'workbench-native-json-adapter/1.0'};
 }
 window.vwfNormalizeWorkbenchReport=normalize;
+const syncVariant=()=>{const v=variant.value.trim().toUpperCase();if(/^[A-Z][0-9]+[A-Z]$/.test(v))window.parent.postMessage({type:'vwf-active-variant',variant:v},location.origin);};
+variant.addEventListener('change',syncVariant);
+document.getElementById('find')?.addEventListener('click',syncVariant);
+document.getElementById('run')?.addEventListener('click',syncVariant);
+syncVariant();
 field?.addEventListener('change',async()=>{
  let accepted=0,rejected=[];
  for(const file of field.files||[]){
