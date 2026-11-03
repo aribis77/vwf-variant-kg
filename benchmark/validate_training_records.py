@@ -65,7 +65,7 @@ def main():
     status = "empty_training_set" if not data["records"] else "validated" if not errors else "rejected"
     out = {"schema": "vwf-training-admission/0.1", "status": status,
            "records_checked": len(data["records"]), "errors": errors,
-           "calibration_authorized": bool(data["records"]) and not errors and False,
+           "calibration_authorized": False,
            "note": "Passing record checks alone does not establish independent publication identity, sufficient class balance, or authorize model calibration."}
     (B / "training_admission_audit.json").write_text(json.dumps(out, indent=2) + "\n")
     print(json.dumps(out, indent=2))
