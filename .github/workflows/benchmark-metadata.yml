@@ -81,6 +81,10 @@ jobs:
         run: python tests/check_endpoint_prediction_readiness.py
       - name: Audit calibration readiness without fitting references
         run: python benchmark/audit_calibration_readiness.py
+      - name: Validate independent training record admission
+        run: python benchmark/validate_training_records.py
+      - name: Test independent training leakage gates
+        run: python tests/check_training_admission.py
       - name: Generate readable evidence isolation report
         run: python benchmark/build_audit_report.py
       - name: Archive evaluation design manifest
@@ -101,4 +105,5 @@ jobs:
             benchmark/case_evidence_inventory.json
             benchmark/endpoint_prediction_readiness.json
             benchmark/calibration_readiness_audit.json
+            benchmark/training_admission_audit.json
           retention-days: 30
