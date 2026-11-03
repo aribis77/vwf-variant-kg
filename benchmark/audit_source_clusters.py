@@ -15,6 +15,32 @@ assert all(case["evaluation_status"] == "not_eligible_unfrozen" for case in case
 assert all(len(group) > 0 for group in by_source.values())
 assert sum(map(len, by_source.values())) == len(cases)
 assert sum(map(len, by_variant.values())) == len(cases)
+
+# A connected component joins cases that share either a variant or a source.
+# Such cases must never be assigned to different benchmark partitions.
+parent = list(range(len(cases)))
+def find(i):
+    while parent[i] != i:
+        parent[i] = parent[parent[i]]
+        i = parent[i]
+    return i
+def union(a, b):
+    parent[find(a)] = find(b)
+
+first_source = {}
+first_variant = {}
+for i, case in enumerate(cases):
+    for lookup, key in ((first_source, case["source_group_id"]), (first_variant, case["variant"])):
+        if key in lookup:
+            union(i, lookup[key])
+        else:
+            lookup[key] = i
+components = defaultdict(list)
+for i, case in enumerate(cases):
+    components[find(i)].append(case["case_id"])
+component_sizes = sorted((len(v) for v in components.values()), reverse=True)
+assert sum(component_sizes) == len(cases)
+
 audit = {
     "schema": "vwf-benchmark-source-cluster-audit/0.1",
     "status": "provisional_no_holdout_assigned",
@@ -26,6 +52,9 @@ audit = {
     "largest_source_cluster_size": max(map(len, by_source.values()), default=0),
     "largest_variant_cluster_size": max(map(len, by_variant.values()), default=0),
     "source_cluster_sizes": sorted((len(v) for v in by_source.values()), reverse=True),
+    "leakage_connected_component_count": len(components),
+    "leakage_connected_component_sizes": component_sizes,
+    "largest_leakage_component_size": max(component_sizes, default=0),
     "warning": "Never split cases from one publication or one variant across training and test partitions; labels are public and no blind performance may be reported.",
 }
 (root / "benchmark/source_cluster_audit.json").write_text(json.dumps(audit, indent=2) + "\n")
