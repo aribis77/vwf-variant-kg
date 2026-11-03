@@ -1,0 +1,6 @@
+{
+  "schema": "vwf-independent-training-records/0.1",
+  "status": "awaiting_independent_curation",
+  "records": [],
+  "instructions": "Populate only with independently adjudicated primary functional assay data; never copy candidate benchmark cases or derive labels from the KG."
+}
