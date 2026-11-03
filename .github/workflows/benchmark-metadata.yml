@@ -85,6 +85,10 @@ jobs:
         run: python benchmark/validate_training_records.py
       - name: Test independent training leakage gates
         run: python tests/check_training_admission.py
+      - name: Validate Protein Workbench report admission
+        run: python benchmark/validate_structural_reports.py
+      - name: Test structural report mapping and provenance gates
+        run: python tests/check_structural_report_admission.py
       - name: Generate readable evidence isolation report
         run: python benchmark/build_audit_report.py
       - name: Archive evaluation design manifest
@@ -106,4 +110,5 @@ jobs:
             benchmark/endpoint_prediction_readiness.json
             benchmark/calibration_readiness_audit.json
             benchmark/training_admission_audit.json
+            benchmark/structural_report_admission_audit.json
           retention-days: 30
