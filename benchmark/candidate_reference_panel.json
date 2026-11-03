@@ -6,8 +6,12 @@
     "expected_direction": "reduced",
     "reference_label": "functional_effect",
     "source": "https://pubmed.ncbi.nlm.nih.gov/25051961/",
-    "review_status": "pending",
-    "notes": "Mouse VWF construct; distinguish species/model from human variant assays"
+    "review_status": "source_checked_endpoint_reviewed",
+    "notes": "Primary abstract checked: PMID 25051961. Collagen and thrombus endpoints must remain distinct; mouse model only.",
+    "reference_freeze_status": "not_frozen",
+    "independent_replication_verified": false,
+    "reference_scope": "Mouse VWF variant model; decreased collagen-associated adhesion and thrombus formation. Species/model transfer to human VWF not established.",
+    "evaluation_eligibility": "exploratory_only"
   },
   {
     "variant": "R1597W",
@@ -16,8 +20,12 @@
     "expected_direction": "increased",
     "reference_label": "functional_effect",
     "source": "https://pubmed.ncbi.nlm.nih.gov/16322474/",
-    "review_status": "pending",
-    "notes": "Recombinant human VWF proteolysis"
+    "review_status": "source_checked_endpoint_reviewed",
+    "notes": "Primary abstract checked: PMID 16322474. Qualitative direction supported; extract variant-specific quantitative results before freezing.",
+    "reference_freeze_status": "not_frozen",
+    "independent_replication_verified": false,
+    "reference_scope": "Recombinant human VWF A2 variants tested for ADAMTS13-dependent proteolysis; R1597W included among variants with increased susceptibility.",
+    "evaluation_eligibility": "exploratory_only"
   },
   {
     "variant": "R854Q",
@@ -26,8 +34,12 @@
     "expected_direction": "reduced",
     "reference_label": "functional_effect",
     "source": "https://www.sciencedirect.com/science/article/pii/S0006497123092066",
-    "review_status": "pending",
-    "notes": "Conference abstract; verify against peer-reviewed primary assay before freezing"
+    "review_status": "source_checked_endpoint_reviewed",
+    "notes": "Blood 2023 Supplement 1 conference abstract, not peer-reviewed full primary article. Figure-specific effect size and independent validation pending.",
+    "reference_freeze_status": "not_frozen",
+    "independent_replication_verified": false,
+    "reference_scope": "HEK293 mammalian surface-tethered delta-propeptide VWF assay; reduced FVIII binding relative to displayed reference.",
+    "evaluation_eligibility": "exploratory_only"
   },
   {
     "variant": "D879N",
@@ -36,27 +48,39 @@
     "expected_direction": "reduced",
     "reference_label": "functional_effect",
     "source": "https://www.sciencedirect.com/science/article/pii/S0006497123092066",
-    "review_status": "pending",
-    "notes": "Conference abstract; verify against peer-reviewed primary assay before freezing"
+    "review_status": "source_checked_endpoint_reviewed",
+    "notes": "Blood 2023 Supplement 1 conference abstract, not peer-reviewed full primary article. Figure-specific effect size and independent validation pending.",
+    "reference_freeze_status": "not_frozen",
+    "independent_replication_verified": false,
+    "reference_scope": "HEK293 mammalian surface-tethered delta-propeptide VWF assay; reduced FVIII binding relative to displayed reference.",
+    "evaluation_eligibility": "exploratory_only"
   },
   {
     "variant": "R1306W",
     "region": "A1",
-    "endpoint": "platelet GPIb interaction",
-    "expected_direction": "type 2B phenotype",
-    "reference_label": "functional_effect",
+    "endpoint": "thrombocytopenia occurrence in type 2B VWD cohort",
+    "expected_direction": "75.0% observed during follow-up",
+    "reference_label": "clinical_association",
     "source": "https://www.jthjournal.org/article/S1538-7836%2824%2900555-5/fulltext",
-    "review_status": "pending",
-    "notes": "Clinical cohort; requires endpoint-matched gain-of-function assay before validation"
+    "review_status": "source_checked_endpoint_reviewed",
+    "notes": "Primary JTH 2024 cohort checked. Do not use cohort phenotype as a direct functional GPIb binding reference.",
+    "reference_freeze_status": "not_frozen",
+    "independent_replication_verified": false,
+    "reference_scope": "Longitudinal clinical cohort of 64 type 2B VWD patients; 32 R1306W and 24 R1308C. NOT a direct platelet GPIb binding assay.",
+    "evaluation_eligibility": "exploratory_only"
   },
   {
     "variant": "R1308C",
     "region": "A1",
-    "endpoint": "platelet GPIb interaction",
-    "expected_direction": "type 2B phenotype",
-    "reference_label": "functional_effect",
+    "endpoint": "thrombocytopenia occurrence in type 2B VWD cohort",
+    "expected_direction": "58.3% observed during follow-up",
+    "reference_label": "clinical_association",
     "source": "https://www.jthjournal.org/article/S1538-7836%2824%2900555-5/fulltext",
-    "review_status": "pending",
-    "notes": "NOT a negative control; clinical cohort requires functional assay confirmation"
+    "review_status": "source_checked_endpoint_reviewed",
+    "notes": "Primary JTH 2024 cohort checked. Do not use cohort phenotype as a direct functional GPIb binding reference.",
+    "reference_freeze_status": "not_frozen",
+    "independent_replication_verified": false,
+    "reference_scope": "Longitudinal clinical cohort of 64 type 2B VWD patients; 32 R1306W and 24 R1308C. NOT a direct platelet GPIb binding assay.",
+    "evaluation_eligibility": "exploratory_only"
   }
 ]
