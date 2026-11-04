@@ -55,4 +55,18 @@ with tempfile.TemporaryDirectory() as tmp:
     (path / "R1315L_clinvar.json").unlink()
     missing = module.review(path)
     assert missing["findings"][0]["status"] == "raw_record_missing"
+    # Candidate discovery must never be confused with an established allele.
+    discovery_file = path / "R1315L_clinvar_discovery.json"
+    discovery_file.write_text(json.dumps({"esearchresult": {"idlist": ["100312", "106189"]}}))
+    manifest = {"records": [
+        {"variant": "R1315L", "provider": "clinvar_discovery",
+         "status": "retrieved_not_adjudicated", "raw_path": str(discovery_file),
+         "sha256": hashlib.sha256(discovery_file.read_bytes()).hexdigest()},
+        {"variant": "H1786D", "status": "requires_verified_nucleotide_hgvs"}]}
+    (path / "manifest.json").write_text(json.dumps(manifest))
+    candidate = module.review(path)
+    assert candidate["findings"][0]["status"] == "candidate_ids_require_identity_review"
+    assert candidate["findings"][0]["candidate_count"] == 2
+    assert candidate["reconciliation"][0]["status"] == "candidate_discovery_not_allele_verified"
+    assert not candidate["reconciliation"][0]["promotion_allowed"]
 print("Offline source-audit tests passed; no records promoted.")
