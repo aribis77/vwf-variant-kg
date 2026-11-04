@@ -4,11 +4,11 @@
   "sources": [
     {
       "source": "ClinVar",
-      "status": "ingested",
-      "release": "pilot record identifiers; ClinVar release not pinned",
-      "retrieved_at": "2026-11-04T08:00:00Z",
-      "record_count": 1,
-      "notes": "Identity-only R1315L pilot based on ClinVar RCV and cross-reference. Not a full ClinVar release; protein mapping and classification pending direct API validation."
+      "status": "not_ingested",
+      "release": null,
+      "retrieved_at": null,
+      "record_count": 0,
+      "notes": "Provisional R1315L identifier held for audit; no primary API payload or verified source release committed. Primary retrieval script available; not counted as ingested."
     },
     {
       "source": "Ensembl",
@@ -100,7 +100,7 @@
         "license": null,
         "raw_record_checksum": null,
         "publication_id": null,
-        "review_status": "ClinVar RCV allele location and HGVS checked; transcript-to-protein and GRCh38 reference allele pending independent API validation"
+        "review_status": "provisional_legacy_pilot_not_primary_source_verified"
       }
     }
   ],
@@ -109,8 +109,8 @@
       "assertion_id": "ClinVar:100312:identity",
       "allele_id": "ClinVar:106189",
       "evidence_type": "clinical_assertion",
-      "predicate": "ClinVar variant record",
-      "value": "VCV000100312 (VWF c.3944G>T, p.Arg1315Leu); no clinical classification imported in this pilot",
+      "predicate": "Provisional ClinVar record identity (not adjudicated)",
+      "value": "Provisional R1315L identifier; primary ClinVar/Ensembl source verification pending. Do not use for clinical inference.",
       "endpoint": null,
       "assay_context": null,
       "independent_evidence_cluster": null,
@@ -123,7 +123,7 @@
         "license": null,
         "raw_record_checksum": null,
         "publication_id": null,
-        "review_status": "ClinVar RCV allele location and HGVS checked; transcript-to-protein and GRCh38 reference allele pending independent API validation"
+        "review_status": "provisional_legacy_pilot_not_primary_source_verified"
       }
     }
   ]
