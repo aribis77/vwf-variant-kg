@@ -1,14 +1,14 @@
 {
   "schema_version": "vwf-multisource-evidence/0.1",
-  "generated_at": "2026-11-04T00:00:00Z",
+  "generated_at": "2026-11-04T08:00:00Z",
   "sources": [
     {
       "source": "ClinVar",
-      "status": "not_ingested",
-      "release": null,
-      "retrieved_at": null,
-      "record_count": 0,
-      "notes": "No versioned source ingestion recorded in this snapshot."
+      "status": "ingested",
+      "release": "pilot record identifiers; ClinVar release not pinned",
+      "retrieved_at": "2026-11-04T08:00:00Z",
+      "record_count": 1,
+      "notes": "Single identity-only pilot record R1315L. Clinical classification not imported or verified; not a full ClinVar release."
     },
     {
       "source": "Ensembl",
@@ -75,6 +75,56 @@
       "notes": "No versioned source ingestion recorded in this snapshot."
     }
   ],
-  "alleles": [],
-  "assertions": []
+  "alleles": [
+    {
+      "allele_id": "ClinVar:106189",
+      "assembly": "GRCh38",
+      "chromosome": "12",
+      "position": 6019474,
+      "reference": "C",
+      "alternate": "A",
+      "protein_effects": [
+        {
+          "transcript": "NM_000552.5",
+          "protein_hgvs": "p.R1315L",
+          "uniprot_accession": "P04275",
+          "mapping_status": "verified"
+        }
+      ],
+      "provenance": {
+        "source": "ClinVar",
+        "source_record_id": "VCV000100312",
+        "source_url": "https://www.ncbi.nlm.nih.gov/clinvar/variation/100312/",
+        "retrieved_at": "2026-11-04T08:00:00Z",
+        "source_release": null,
+        "license": null,
+        "raw_record_checksum": null,
+        "publication_id": null,
+        "review_status": "pilot_identifiers_cross_checked_against_ClinVar_RCV_and_secondary_source;_classification_not_independently_retrieved"
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "assertion_id": "ClinVar:100312:identity",
+      "allele_id": "ClinVar:106189",
+      "evidence_type": "clinical_assertion",
+      "predicate": "ClinVar variant record",
+      "value": "VCV000100312 (VWF c.3944G>T, p.Arg1315Leu); no clinical classification imported in this pilot",
+      "endpoint": null,
+      "assay_context": null,
+      "independent_evidence_cluster": null,
+      "provenance": {
+        "source": "ClinVar",
+        "source_record_id": "VCV000100312",
+        "source_url": "https://www.ncbi.nlm.nih.gov/clinvar/variation/100312/",
+        "retrieved_at": "2026-11-04T08:00:00Z",
+        "source_release": null,
+        "license": null,
+        "raw_record_checksum": null,
+        "publication_id": null,
+        "review_status": "pilot_identifiers_cross_checked_against_ClinVar_RCV_and_secondary_source;_classification_not_independently_retrieved"
+      }
+    }
+  ]
 }
