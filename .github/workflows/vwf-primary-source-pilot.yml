@@ -7,6 +7,7 @@ on:
       - 'scripts/audit_vwf_pilot.py'
       - 'scripts/build_vwf_source_summary.py'
       - 'tests/test_vwf_source_audit.py'
+      - 'tests/test_vwf_source_summary.py'
       - 'tests/validate_multisource_evidence.py'
       - 'data/multisource-evidence.json'
       - '.github/workflows/vwf-primary-source-pilot.yml'
@@ -26,7 +27,9 @@ jobs:
       - name: Validate current evidence snapshot
         run: python tests/validate_multisource_evidence.py
       - name: Run offline audit regression tests
-        run: python tests/test_vwf_source_audit.py
+        run: |
+          python tests/test_vwf_source_audit.py
+          python tests/test_vwf_source_summary.py
       - name: Fetch source payloads (not automatically published)
         run: python scripts/ingest_vwf_pilot.py --out-dir data/pilot_raw
       - name: Audit primary records without automatic promotion
