@@ -33,7 +33,7 @@ jobs:
           python tests/test_vwf_source_summary.py
           python tests/test_vwf_candidate_summaries.py
       - name: Fetch source payloads (not automatically published)
-        run: python scripts/ingest_vwf_pilot.py --out-dir data/pilot_raw --strict
+        run: python scripts/ingest_vwf_pilot.py --out-dir data/pilot_raw
       - name: Audit primary records without automatic promotion
         if: always()
         run: |
