@@ -29,8 +29,10 @@ for a in data['assertions']:
     assert a['assertion_id'] not in assertions,'duplicate assertion ID'
     assertions.add(a['assertion_id'])
     assert a['allele_id'] in alleles,'orphan assertion'
-    assert a['evidence_type'] in {'clinical_assertion','population_observation','functional_assay','structural_model','curated_literature'}
+    assert a['evidence_type'] in {'source_record','clinical_assertion','population_observation','functional_assay','structural_model','curated_literature'}
     assert a['provenance']['source_record_id'] and a['provenance']['source_url']
+    if a['evidence_type']=='clinical_assertion':
+        assert not str(a['provenance'].get('review_status', '')).startswith('provisional'), 'provisional identity must not be clinical evidence'
     if a['evidence_type']=='functional_assay':
         assert a.get('endpoint') and a.get('assay_context'), 'functional assays need endpoint and context'
 print(f"Validated: {len(sources)} sources, {len(alleles)} alleles, {len(assertions)} assertions")
