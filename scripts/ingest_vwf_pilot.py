@@ -48,7 +48,7 @@ def main():
                 urllib.parse.urlencode({"db": "clinvar", "id": target["clinvar_id"], "retmode": "json"})))
         if target["hgvs"]:
             endpoints.append(("ensembl", "https://rest.ensembl.org/vep/human/hgvs/" +
-                urllib.parse.quote(target["hgvs"], safe="") + "?content-type=application%2Fjson"))
+                urllib.parse.quote(target["hgvs"], safe="") + "?" + urllib.parse.urlencode({"content-type": "application/json"})))
         if not endpoints:
             manifest.append({"variant": variant, "status": "requires_verified_nucleotide_hgvs",
                              "reason": "Do not infer a unique genomic allele from a protein substitution."})
@@ -57,12 +57,13 @@ def main():
                 record = retrieve(url)
                 if provider == "clinvar":
                     result = record.get("result", {})
-                    if target["clinvar_id"] not in result:
-                        raise ValueError("ClinVar record ID missing in primary response")
+                    item = result.get(target["clinvar_id"], {})
+                    if str(item.get("uid", "")) != target["clinvar_id"]:
+                        raise ValueError("ClinVar primary response does not match requested UID")
                 elif not isinstance(record, list) or not record:
                     raise ValueError("Ensembl VEP returned no variant predictions")
                 manifest.append(save_record(root, variant, provider, url, record))
-            except (urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError) as exc:
+            except (urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError, OSError) as exc:
                 failures.append({"variant": variant, "provider": provider, "error": str(exc)})
                 manifest.append({"variant": variant, "provider": provider, "status": "fetch_failed"})
     result = {"schema_version": "vwf-source-fetch/0.1", "records": manifest, "failures": failures,
