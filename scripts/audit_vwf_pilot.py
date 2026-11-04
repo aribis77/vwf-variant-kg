@@ -64,11 +64,28 @@ def review(root):
                                and f.get("status") == "candidate_ids_require_identity_review"), None)
             valid_ids = (bool(ids) and discovered is not None and set(ids) == set(discovered)
                          and all(str(item.get("uid", "")) == cid for cid, item in zip(ids, summaries)))
-            # Text matches in ClinVar are only search hits, never allele-level proof.
+            # Title matching is a triage hint, never an independently verified allele.
+            import re
+            target = TARGETS[variant]["protein"]
+            match = re.fullmatch(r"([A-Z])([0-9]+)([A-Z])", target)
+            three = {"A":"Ala","R":"Arg","N":"Asn","D":"Asp","C":"Cys",
+                     "Q":"Gln","E":"Glu","G":"Gly","H":"His","I":"Ile",
+                     "L":"Leu","K":"Lys","M":"Met","F":"Phe","P":"Pro",
+                     "S":"Ser","T":"Thr","W":"Trp","Y":"Tyr","V":"Val"}
+            labels = {target.lower()}
+            if match:
+                labels.add(("p."+three[match[1]]+match[2]+three[match[3]]).lower())
+            title_matches = []
+            for cid, item in zip(ids, summaries):
+                title = str(item.get("title", ""))
+                if any(label in title.lower() for label in labels):
+                    title_matches.append({"record_id": cid, "title": title,
+                                          "status": "protein_label_in_title_not_allele_verified"})
             findings.append({"variant": variant, "provider": provider,
                              "status": "candidate_summaries_retrieved" if valid_ids else "candidate_summaries_invalid",
                              "candidate_count": len(ids),
                              "candidate_ids": ids,
+                             "title_matches": title_matches,
                              "promotion_allowed": False,
                              "review_required": ["VWF_gene_identity", "protein_HGVS",
                                                  "transcript_HGVS", "GRCh38_REF_ALT",
