@@ -70,6 +70,20 @@ def main():
                 elif not isinstance(record, list) or not record:
                     raise ValueError("Ensembl VEP returned no variant predictions")
                 manifest.append(save_record(root, variant, provider, url, record))
+                if provider == "clinvar_discovery":
+                    ids = [str(x) for x in record["esearchresult"]["idlist"] if str(x).isdigit()]
+                    if ids:
+                        summary_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?" + urllib.parse.urlencode(
+                            {"db": "clinvar", "id": ",".join(ids), "retmode": "json"})
+                        try:
+                            summary = retrieve(summary_url)
+                            result = summary.get("result", {})
+                            if not all(str(result.get(cid, {}).get("uid", "")) == cid for cid in ids):
+                                raise ValueError("ClinVar candidate summary returned mismatched identifiers")
+                            manifest.append(save_record(root, variant, "clinvar_candidates", summary_url, summary))
+                        except (urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError, OSError) as exc:
+                            failures.append({"variant": variant, "provider": "clinvar_candidates", "error": str(exc)})
+                            manifest.append({"variant": variant, "provider": "clinvar_candidates", "status": "fetch_failed"})
             except (urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError, OSError) as exc:
                 failures.append({"variant": variant, "provider": provider, "error": str(exc)})
                 manifest.append({"variant": variant, "provider": provider, "status": "fetch_failed"})
