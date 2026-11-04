@@ -12,7 +12,7 @@ spec.loader.exec_module(module)
 with tempfile.TemporaryDirectory() as tmp:
     p=Path(tmp)
     discovery={"esearchresult":{"idlist":["100312","106189"]}}
-    summary={"result":{"uids":["100312","106189"],"100312":{"uid":"100312"},"106189":{"uid":"106189"}}}
+    summary={"result":{"uids":["100312","106189"],"100312":{"uid":"100312","title":"NM_000552.5(VWF):c.3944G>T (p.Arg1315Leu)"},"106189":{"uid":"106189"}}}
     records=[]
     for provider,payload in (("clinvar_discovery",discovery),("clinvar_candidates",summary)):
         f=p/("R1315L_"+provider+".json")
@@ -22,6 +22,8 @@ with tempfile.TemporaryDirectory() as tmp:
     (p/"manifest.json").write_text(json.dumps({"records":records}))
     result=module.review(p)
     assert result["findings"][1]["status"]=="candidate_summaries_retrieved"
+    assert len(result["findings"][1]["title_matches"])==1
+    assert result["findings"][1]["title_matches"][0]["status"]=="protein_label_in_title_not_allele_verified"
     assert not result["findings"][1]["promotion_allowed"]
     assert result["reconciliation"][0]["status"]=="candidate_discovery_not_allele_verified"
     wrong={"result":{"uids":["999999"],"999999":{"uid":"999999"}}}
