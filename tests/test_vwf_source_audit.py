@@ -45,4 +45,14 @@ with tempfile.TemporaryDirectory() as tmp:
     tampered = module.review(path)
     assert tampered["findings"][0]["status"] == "checksum_mismatch"
     assert tampered["reconciliation"][0]["status"] == "clinvar_identifier_unverified"
+    # A manifest cannot redirect the audit to a different raw file.
+    manifest["records"][0]["sha256"] = hashlib.sha256((path / "R1315L_clinvar.json").read_bytes()).hexdigest()
+    manifest["records"][0]["raw_path"] = "/etc/passwd"
+    (path / "manifest.json").write_text(json.dumps(manifest))
+    safe = module.review(path)
+    assert safe["findings"][0]["status"] == "identifier_verified"
+    # Missing files must not crash the entire audit.
+    (path / "R1315L_clinvar.json").unlink()
+    missing = module.review(path)
+    assert missing["findings"][0]["status"] == "raw_record_missing"
 print("Offline source-audit tests passed; no records promoted.")
