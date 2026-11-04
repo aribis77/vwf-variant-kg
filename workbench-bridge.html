@@ -18,9 +18,10 @@ function acceptReport(obj){
  const txt=JSON.stringify(obj);
  try{sessionStorage.setItem('vwf-last-workbench-report',txt);localStorage.setItem('vwf-last-workbench-report',txt)}catch(e){}
  document.getElementById('results').textContent=JSON.stringify({structure:obj.structure||obj.pdb,mutation:obj.mutation,energies:obj.energies,sampledFreeEnergy:obj.sampledFreeEnergy,changes:obj.changes,conservationAtMutation:(obj.conservation?.residues||[]).find(x=>x.residue===obj.mutation?.site)},null,2);
- status.textContent='Workbench report received and sent to the KG structural consensus.';
+ status.textContent='Report forwarded. Waiting for structural-analysis acceptance…';
  window.parent.postMessage({type:'vwf-workbench-report',report:obj},location.origin);
 }
+window.addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==window.parent||event.data?.type!=='vwf-workbench-ack')return;status.textContent=event.data.accepted?'Accepted by KG structural consensus: '+event.data.pdb+' chain '+event.data.chain:'KG rejected the report';});
 frame.addEventListener('load',()=>{status.textContent='Workbench opened. Export the completed JSON and select it below to send the verified report back to the KG.';});document.getElementById('report-upload').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{acceptReport(JSON.parse(await file.text()));document.getElementById('upload-error').textContent='';}catch(err){document.getElementById('upload-error').textContent='Report not accepted: '+err.message;}});
 
 // Receive reports automatically if Protein Workbench publishes a structured result.
