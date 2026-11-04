@@ -6,6 +6,7 @@ Produces a machine-readable audit; does NOT change the public evidence snapshot.
 """
 import argparse
 import json
+import hashlib
 import re
 from pathlib import Path
 
@@ -21,7 +22,15 @@ def review(root):
             findings.append({"variant": variant, "provider": entry.get("provider"), "status": entry["status"],
                              "promotion_allowed": False})
             continue
-        raw = json.loads(Path(entry["raw_path"]).read_text())
+        raw_path = Path(entry["raw_path"])
+        if not raw_path.is_file():
+            raw_path = root / raw_path.name
+        payload = raw_path.read_bytes()
+        if hashlib.sha256(payload).hexdigest() != entry.get("sha256", hashlib.sha256(payload).hexdigest()):
+            findings.append({"variant": variant, "provider": entry.get("provider"),
+                             "status": "checksum_mismatch", "promotion_allowed": False})
+            continue
+        raw = json.loads(payload)
         provider = entry["provider"]
         if provider == "clinvar":
             cid = "100312" if variant == "R1315L" else None
