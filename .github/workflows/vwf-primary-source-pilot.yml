@@ -8,6 +8,7 @@ on:
       - 'scripts/build_vwf_source_summary.py'
       - 'tests/test_vwf_source_audit.py'
       - 'tests/test_vwf_source_summary.py'
+      - 'tests/test_vwf_candidate_summaries.py'
       - 'tests/validate_multisource_evidence.py'
       - 'data/multisource-evidence.json'
       - '.github/workflows/vwf-primary-source-pilot.yml'
@@ -30,6 +31,7 @@ jobs:
         run: |
           python tests/test_vwf_source_audit.py
           python tests/test_vwf_source_summary.py
+          python tests/test_vwf_candidate_summaries.py
       - name: Fetch source payloads (not automatically published)
         run: python scripts/ingest_vwf_pilot.py --out-dir data/pilot_raw --strict
       - name: Audit primary records without automatic promotion
