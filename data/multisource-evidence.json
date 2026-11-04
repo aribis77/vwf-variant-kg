@@ -8,7 +8,7 @@
       "release": "pilot record identifiers; ClinVar release not pinned",
       "retrieved_at": "2026-11-04T08:00:00Z",
       "record_count": 1,
-      "notes": "Single identity-only pilot record R1315L. Clinical classification not imported or verified; not a full ClinVar release."
+      "notes": "Identity-only R1315L pilot based on ClinVar RCV and cross-reference. Not a full ClinVar release; protein mapping and classification pending direct API validation."
     },
     {
       "source": "Ensembl",
@@ -88,7 +88,7 @@
           "transcript": "NM_000552.5",
           "protein_hgvs": "p.R1315L",
           "uniprot_accession": "P04275",
-          "mapping_status": "verified"
+          "mapping_status": "unverified"
         }
       ],
       "provenance": {
@@ -100,7 +100,7 @@
         "license": null,
         "raw_record_checksum": null,
         "publication_id": null,
-        "review_status": "pilot_identifiers_cross_checked_against_ClinVar_RCV_and_secondary_source;_classification_not_independently_retrieved"
+        "review_status": "ClinVar RCV allele location and HGVS checked; transcript-to-protein and GRCh38 reference allele pending independent API validation"
       }
     }
   ],
@@ -123,7 +123,7 @@
         "license": null,
         "raw_record_checksum": null,
         "publication_id": null,
-        "review_status": "pilot_identifiers_cross_checked_against_ClinVar_RCV_and_secondary_source;_classification_not_independently_retrieved"
+        "review_status": "ClinVar RCV allele location and HGVS checked; transcript-to-protein and GRCh38 reference allele pending independent API validation"
       }
     }
   ]
