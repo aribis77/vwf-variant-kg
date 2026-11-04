@@ -49,6 +49,20 @@ def review(root):
                              "review_required": ["confirm_VWF_gene", "protein_HGVS",
                                                  "transcript_HGVS", "GRCh38_REF_ALT",
                                                  "clinical_review_status"]})
+        elif provider == "clinvar_candidates":
+            result = raw.get("result", {}) if isinstance(raw, dict) else {}
+            ids = [str(x) for x in result.get("uids", [])]
+            summaries = [result.get(cid, {}) for cid in ids]
+            valid_ids = bool(ids) and all(str(item.get("uid", "")) == cid for cid, item in zip(ids, summaries))
+            # Text matches in ClinVar are only search hits, never allele-level proof.
+            findings.append({"variant": variant, "provider": provider,
+                             "status": "candidate_summaries_retrieved" if valid_ids else "candidate_summaries_invalid",
+                             "candidate_count": len(ids),
+                             "candidate_ids": ids,
+                             "promotion_allowed": False,
+                             "review_required": ["VWF_gene_identity", "protein_HGVS",
+                                                 "transcript_HGVS", "GRCh38_REF_ALT",
+                                                 "clinical_assertion_review_status"]})
         elif provider == "clinvar":
             cid = "100312" if variant == "R1315L" else None
             summary = raw.get("result", {}).get(cid, {}) if cid else {}
