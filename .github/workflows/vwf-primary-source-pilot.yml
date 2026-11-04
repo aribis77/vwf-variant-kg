@@ -1,6 +1,14 @@
 name: VWF primary-source pilot retrieval
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/ingest_vwf_pilot.py'
+      - 'scripts/audit_vwf_pilot.py'
+      - 'tests/test_vwf_source_audit.py'
+      - 'tests/validate_multisource_evidence.py'
+      - 'data/multisource-evidence.json'
+      - '.github/workflows/vwf-primary-source-pilot.yml'
   schedule:
     - cron: '17 6 1 * *'
 permissions:
