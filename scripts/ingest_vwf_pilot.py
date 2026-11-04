@@ -7,7 +7,6 @@ No claims are promoted to the KG merely because a network request succeeds.
 import argparse
 import hashlib
 import json
-import re
 import sys
 import urllib.error
 import urllib.parse
@@ -17,7 +16,7 @@ from pathlib import Path
 
 TARGETS = {
     "R1315L": {"clinvar_id": None, "hgvs": None, "protein": "R1315L"},
-    "H1786D": {"clinvar_id": None, "hgvs": None},
+    "H1786D": {"clinvar_id": None, "hgvs": None, "protein": "H1786D"},
 }
 HEADERS = {"Accept": "application/json", "User-Agent": "vwf-variant-kg-research/0.1"}
 def retrieve(url):
