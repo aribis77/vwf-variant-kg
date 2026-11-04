@@ -31,12 +31,21 @@ jobs:
           python tests/test_vwf_source_audit.py
           python tests/test_vwf_source_summary.py
       - name: Fetch source payloads (not automatically published)
-        run: python scripts/ingest_vwf_pilot.py --out-dir data/pilot_raw
+        run: python scripts/ingest_vwf_pilot.py --out-dir data/pilot_raw --strict
       - name: Audit primary records without automatic promotion
-        run: python scripts/audit_vwf_pilot.py --raw-dir data/pilot_raw
+        if: always()
+        run: |
+          if [ -f data/pilot_raw/manifest.json ]; then
+            python scripts/audit_vwf_pilot.py --raw-dir data/pilot_raw
+          else
+            echo 'No source manifest to audit.'
+          fi
       - name: Build read-only audit summary
-        if: success()
-        run: python scripts/build_vwf_source_summary.py --audit data/pilot_raw/audit.json --output data/pilot_raw/source-audit-summary.json
+        if: always()
+        run: |
+          if [ -f data/pilot_raw/audit.json ]; then
+            python scripts/build_vwf_source_summary.py --audit data/pilot_raw/audit.json --output data/pilot_raw/source-audit-summary.json
+          fi
       - name: Summarize verification status
         if: always()
         run: |
