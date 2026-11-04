@@ -13,7 +13,13 @@ function renderVariant(){
  const output=document.getElementById('vwf-multisource-variant');if(!output||!snapshot)return;
  const v=String(document.getElementById('vrvariant')?.value||document.getElementById('variant')?.value||'').trim().toUpperCase();
  if(!/^[A-Z][0-9]+[A-Z]$/.test(v)){output.innerHTML='<p style="color:#c6d8e4">Select a VWF substitution to inspect linked genetic records.</p>';return;}
- const alleleIds=new Set(snapshot.alleles.filter(a=>(a.protein_effects||[]).some(p=>String(p.protein_hgvs||'').replace(/^p\./,'').toUpperCase()===v)).map(a=>a.allele_id));
+ const aa={Ala:'A',Arg:'R',Asn:'N',Asp:'D',Cys:'C',Gln:'Q',Glu:'E',Gly:'G',His:'H',Ile:'I',Leu:'L',Lys:'K',Met:'M',Phe:'F',Pro:'P',Ser:'S',Thr:'T',Trp:'W',Tyr:'Y',Val:'V'};
+ const normalizeProtein=value=>{
+   const raw=String(value||'').replace(/^p\./i,'');
+   const m=raw.match(/^([A-Za-z]{3})(\d+)([A-Za-z]{3})$/);
+   return m?(aa[m[1]]||'?')+m[2]+(aa[m[3]]||'?'):raw.toUpperCase();
+ };
+ const alleleIds=new Set(snapshot.alleles.filter(a=>(a.protein_effects||[]).some(p=>normalizeProtein(p.protein_hgvs)===v)).map(a=>a.allele_id));
  const assertions=snapshot.assertions.filter(a=>alleleIds.has(a.allele_id));
  const provisional=assertions.filter(a=>String(a.provenance?.review_status||'').includes('provisional'));
  const verified=assertions.filter(a=>!String(a.provenance?.review_status||'').includes('provisional'));
