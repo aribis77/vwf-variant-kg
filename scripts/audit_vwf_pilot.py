@@ -63,7 +63,27 @@ def review(root):
                              "matches": matches, "promotion_allowed": False,
                              "review_required": ["transcript_version", "genome_assembly", "reference_allele",
                                                  "independent_ClinVar_concordance"]})
+    # Compare independently retrieved sources without inferring concordance from
+    # a shared protein label alone. Clinical and population assertions stay separate.
+    reconciliation = []
+    for variant in TARGETS:
+        group = [f for f in findings if f["variant"] == variant]
+        clinvar = next((f for f in group if f.get("provider") == "clinvar"), None)
+        ensembl = next((f for f in group if f.get("provider") == "ensembl"), None)
+        if not clinvar or not ensembl:
+            status = "insufficient_primary_sources"
+        elif clinvar["status"] != "identifier_verified":
+            status = "clinvar_identifier_unverified"
+        elif ensembl["status"] != "protein_consequence_candidate":
+            status = "ensembl_protein_consequence_unverified"
+        else:
+            status = "partial_concordance_requires_allele_and_transcript_review"
+        reconciliation.append({"variant": variant, "status": status,
+                               "clinical_classification_verified": False,
+                               "population_frequency_verified": False,
+                               "promotion_allowed": False})
     return {"audit_schema": "vwf-source-audit/0.1", "findings": findings,
+            "reconciliation": reconciliation,
             "promotion_policy": "Human or separately validated automatic review required; no source record automatically modifies data/multisource-evidence.json."}
 
 def main():
