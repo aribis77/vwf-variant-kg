@@ -1,0 +1,80 @@
+{
+  "schema_version": "vwf-multisource-evidence/0.1",
+  "generated_at": "2026-11-04T00:00:00Z",
+  "sources": [
+    {
+      "source": "ClinVar",
+      "status": "not_ingested",
+      "release": null,
+      "retrieved_at": null,
+      "record_count": 0,
+      "notes": "No versioned source ingestion recorded in this snapshot."
+    },
+    {
+      "source": "Ensembl",
+      "status": "not_ingested",
+      "release": null,
+      "retrieved_at": null,
+      "record_count": 0,
+      "notes": "No versioned source ingestion recorded in this snapshot."
+    },
+    {
+      "source": "gnomAD",
+      "status": "not_ingested",
+      "release": null,
+      "retrieved_at": null,
+      "record_count": 0,
+      "notes": "No versioned source ingestion recorded in this snapshot."
+    },
+    {
+      "source": "UniProt",
+      "status": "not_ingested",
+      "release": null,
+      "retrieved_at": null,
+      "record_count": 0,
+      "notes": "No versioned source ingestion recorded in this snapshot."
+    },
+    {
+      "source": "RCSB PDB",
+      "status": "not_ingested",
+      "release": null,
+      "retrieved_at": null,
+      "record_count": 0,
+      "notes": "No versioned source ingestion recorded in this snapshot."
+    },
+    {
+      "source": "PDBe",
+      "status": "not_ingested",
+      "release": null,
+      "retrieved_at": null,
+      "record_count": 0,
+      "notes": "No versioned source ingestion recorded in this snapshot."
+    },
+    {
+      "source": "LOVD",
+      "status": "not_ingested",
+      "release": null,
+      "retrieved_at": null,
+      "record_count": 0,
+      "notes": "No versioned source ingestion recorded in this snapshot."
+    },
+    {
+      "source": "VWFdb",
+      "status": "not_ingested",
+      "release": null,
+      "retrieved_at": null,
+      "record_count": 0,
+      "notes": "No versioned source ingestion recorded in this snapshot."
+    },
+    {
+      "source": "Literature",
+      "status": "not_ingested",
+      "release": null,
+      "retrieved_at": null,
+      "record_count": 0,
+      "notes": "No versioned source ingestion recorded in this snapshot."
+    }
+  ],
+  "alleles": [],
+  "assertions": []
+}
