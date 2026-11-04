@@ -21,15 +21,23 @@ def review(root):
             findings.append({"variant": variant, "provider": entry.get("provider"), "status": entry["status"],
                              "promotion_allowed": False})
             continue
-        raw_path = Path(entry["raw_path"])
+        # Use the expected basename, never an arbitrary manifest-supplied path.
+        raw_path = root / (variant + "_" + entry["provider"] + ".json")
         if not raw_path.is_file():
-            raw_path = root / raw_path.name
+            findings.append({"variant": variant, "provider": entry.get("provider"),
+                             "status": "raw_record_missing", "promotion_allowed": False})
+            continue
         payload = raw_path.read_bytes()
         if hashlib.sha256(payload).hexdigest() != entry.get("sha256"):
             findings.append({"variant": variant, "provider": entry.get("provider"),
                              "status": "checksum_mismatch", "promotion_allowed": False})
             continue
-        raw = json.loads(payload)
+        try:
+            raw = json.loads(payload)
+        except (ValueError, UnicodeDecodeError):
+            findings.append({"variant": variant, "provider": entry.get("provider"),
+                             "status": "invalid_source_json", "promotion_allowed": False})
+            continue
         provider = entry["provider"]
         if provider == "clinvar":
             cid = "100312" if variant == "R1315L" else None
