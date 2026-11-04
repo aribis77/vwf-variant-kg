@@ -24,8 +24,15 @@ function renderVariant(){
  const assertions=snapshot.assertions.filter(a=>alleleIds.has(a.allele_id));
  const verified=assertions.filter(a=>a.provenance?.review_status==='verified_primary_source' && a.evidence_type!=='source_record');
  const provisional=assertions.filter(a=>!verified.includes(a));
+ const groups=new Map();
+ for(const a of verified){
+   const key=a.independent_evidence_cluster||[a.provenance?.publication_id||a.provenance?.source,a.provenance?.source_record_id,a.evidence_type,a.endpoint||''].join('|');
+   if(!groups.has(key))groups.set(key,[]);
+   groups.get(key).push(a);
+ }
+ const independentCount=groups.size;
  output.innerHTML='<h3 style="color:#b8f2e7">Database evidence for '+escapeHTML(v)+'</h3>'+
- (assertions.length?'<p style="color:#f4d6a0">'+provisional.length+' provisional record(s); '+verified.length+' independently verified evidence assertion(s). Provisional records are not verified clinical evidence.</p><ul>'+assertions.map(a=>'<li><strong>'+escapeHTML(a.predicate)+'</strong>: '+escapeHTML(a.value)+' · <a style="color:#8ee8da" target="_blank" rel="noopener noreferrer" href="'+escapeHTML(a.provenance.source_url)+'">'+escapeHTML(a.provenance.source)+' '+escapeHTML(a.provenance.source_record_id)+'</a> · '+escapeHTML(a.provenance.review_status||'Not independently adjudicated')+'</li>').join('')+'</ul>':
+ (assertions.length?'<p style="color:#f4d6a0">'+provisional.length+' provisional record(s); '+verified.length+' verified assertion(s) in '+independentCount+' distinct source cluster(s). Repeated assertions from the same source cluster are not independent evidence. Provisional records are not verified clinical evidence.</p><ul>'+assertions.map(a=>'<li><strong>'+escapeHTML(a.predicate)+'</strong>: '+escapeHTML(a.value)+' · <a style="color:#8ee8da" target="_blank" rel="noopener noreferrer" href="'+escapeHTML(a.provenance.source_url)+'">'+escapeHTML(a.provenance.source)+' '+escapeHTML(a.provenance.source_record_id)+'</a> · '+escapeHTML(a.provenance.review_status||'Not independently adjudicated')+'</li>').join('')+'</ul>':
  '<p>No normalized external database assertions have been ingested for this substitution. This is <strong>not evidence that the variant is absent from those databases</strong>. Existing literature and structural evidence are shown separately.</p>');
 }
 fetch('./data/multisource-evidence.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()}).then(data=>{
