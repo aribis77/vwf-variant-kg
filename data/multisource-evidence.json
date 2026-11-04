@@ -8,7 +8,7 @@
       "release": null,
       "retrieved_at": null,
       "record_count": 0,
-      "notes": "Provisional R1315L identifier held for audit; no primary API payload or verified source release committed. Primary retrieval script available; not counted as ingested."
+      "notes": "No ClinVar allele identity or genomic coordinate is published until primary ClinVar and Ensembl records independently reconcile. Earlier R1315L pilot identifier and GRCh38 coordinates were unverified and withdrawn from the public evidence snapshot."
     },
     {
       "source": "Ensembl",
@@ -75,56 +75,6 @@
       "notes": "No versioned source ingestion recorded in this snapshot."
     }
   ],
-  "alleles": [
-    {
-      "allele_id": "ClinVar:106189",
-      "assembly": "GRCh38",
-      "chromosome": "12",
-      "position": 6019474,
-      "reference": "C",
-      "alternate": "A",
-      "protein_effects": [
-        {
-          "transcript": "NM_000552.5",
-          "protein_hgvs": "p.R1315L",
-          "uniprot_accession": "P04275",
-          "mapping_status": "unverified"
-        }
-      ],
-      "provenance": {
-        "source": "ClinVar",
-        "source_record_id": "VCV000100312",
-        "source_url": "https://www.ncbi.nlm.nih.gov/clinvar/variation/100312/",
-        "retrieved_at": "2026-11-04T08:00:00Z",
-        "source_release": null,
-        "license": null,
-        "raw_record_checksum": null,
-        "publication_id": null,
-        "review_status": "provisional_legacy_pilot_not_primary_source_verified"
-      }
-    }
-  ],
-  "assertions": [
-    {
-      "assertion_id": "ClinVar:100312:identity",
-      "allele_id": "ClinVar:106189",
-      "evidence_type": "source_record",
-      "predicate": "Provisional ClinVar record identity (not adjudicated)",
-      "value": "Provisional R1315L identifier; primary ClinVar/Ensembl source verification pending. Do not use for clinical inference.",
-      "endpoint": null,
-      "assay_context": null,
-      "independent_evidence_cluster": null,
-      "provenance": {
-        "source": "ClinVar",
-        "source_record_id": "VCV000100312",
-        "source_url": "https://www.ncbi.nlm.nih.gov/clinvar/variation/100312/",
-        "retrieved_at": "2026-11-04T08:00:00Z",
-        "source_release": null,
-        "license": null,
-        "raw_record_checksum": null,
-        "publication_id": null,
-        "review_status": "provisional_legacy_pilot_not_primary_source_verified"
-      }
-    }
-  ]
+  "alleles": [],
+  "assertions": []
 }
