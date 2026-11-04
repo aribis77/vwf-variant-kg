@@ -39,7 +39,17 @@ def review(root):
                              "status": "invalid_source_json", "promotion_allowed": False})
             continue
         provider = entry["provider"]
-        if provider == "clinvar":
+        if provider == "clinvar_discovery":
+            ids = raw.get("esearchresult", {}).get("idlist", [])
+            findings.append({"variant": variant, "provider": provider,
+                             "status": "candidate_ids_require_identity_review",
+                             "candidate_count": len(ids),
+                             "candidate_ids": [str(x) for x in ids[:25]],
+                             "promotion_allowed": False,
+                             "review_required": ["confirm_VWF_gene", "protein_HGVS",
+                                                 "transcript_HGVS", "GRCh38_REF_ALT",
+                                                 "clinical_review_status"]})
+        elif provider == "clinvar":
             cid = "100312" if variant == "R1315L" else None
             summary = raw.get("result", {}).get(cid, {}) if cid else {}
             # An ID match does not verify the clinical significance, coordinates, or mapping.
@@ -76,8 +86,11 @@ def review(root):
     for variant in TARGETS:
         group = [f for f in findings if f["variant"] == variant]
         clinvar = next((f for f in group if f.get("provider") == "clinvar"), None)
+        discovery = next((f for f in group if f.get("provider") == "clinvar_discovery"), None)
         ensembl = next((f for f in group if f.get("provider") == "ensembl"), None)
-        if not clinvar or not ensembl:
+        if discovery and not clinvar:
+            status = "candidate_discovery_not_allele_verified"
+        elif not clinvar or not ensembl:
             status = "insufficient_primary_sources"
         elif clinvar["status"] != "identifier_verified":
             status = "clinvar_identifier_unverified"
