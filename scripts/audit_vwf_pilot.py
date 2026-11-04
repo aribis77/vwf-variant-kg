@@ -7,7 +7,6 @@ Produces a machine-readable audit; does NOT change the public evidence snapshot.
 import argparse
 import json
 import hashlib
-import re
 from pathlib import Path
 
 TARGETS = {"R1315L": {"protein": "R1315L", "transcript": "NM_000552.5", "hgvs": "c.3944G>T"},
@@ -26,7 +25,7 @@ def review(root):
         if not raw_path.is_file():
             raw_path = root / raw_path.name
         payload = raw_path.read_bytes()
-        if hashlib.sha256(payload).hexdigest() != entry.get("sha256", hashlib.sha256(payload).hexdigest()):
+        if hashlib.sha256(payload).hexdigest() != entry.get("sha256"):
             findings.append({"variant": variant, "provider": entry.get("provider"),
                              "status": "checksum_mismatch", "promotion_allowed": False})
             continue
