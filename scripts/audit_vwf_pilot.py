@@ -15,8 +15,14 @@ TARGETS = {"R1315L": {"protein": "R1315L", "transcript": "NM_000552.5", "hgvs": 
 def review(root):
     manifest = json.loads((root / "manifest.json").read_text())
     findings = []
+    allowed_providers = {"clinvar_discovery", "clinvar_candidates", "clinvar", "ensembl"}
     for entry in manifest["records"]:
         variant = entry["variant"]
+        provider_name = entry.get("provider")
+        if variant not in TARGETS or (provider_name is not None and provider_name not in allowed_providers):
+            findings.append({"variant": variant, "provider": provider_name,
+                             "status": "unsupported_manifest_entry", "promotion_allowed": False})
+            continue
         if entry.get("status") != "retrieved_not_adjudicated":
             findings.append({"variant": variant, "provider": entry.get("provider"), "status": entry["status"],
                              "promotion_allowed": False})
