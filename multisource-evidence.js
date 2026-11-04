@@ -16,7 +16,7 @@ function renderVariant(){
  const alleleIds=new Set(snapshot.alleles.filter(a=>(a.protein_effects||[]).some(p=>String(p.protein_hgvs||'').replace(/^p\./,'').toUpperCase()===v)).map(a=>a.allele_id));
  const assertions=snapshot.assertions.filter(a=>alleleIds.has(a.allele_id));
  output.innerHTML='<h3 style="color:#b8f2e7">Database evidence for '+escapeHTML(v)+'</h3>'+
- (assertions.length?'<ul>'+assertions.map(a=>'<li>'+escapeHTML(a.evidence_type)+': '+escapeHTML(a.predicate)+' ('+escapeHTML(a.provenance.source)+', '+escapeHTML(a.provenance.source_record_id)+')</li>').join('')+'</ul>':
+ (assertions.length?'<ul>'+assertions.map(a=>'<li><strong>'+escapeHTML(a.predicate)+'</strong>: '+escapeHTML(a.value)+' · <a style="color:#8ee8da" target="_blank" rel="noopener noreferrer" href="'+escapeHTML(a.provenance.source_url)+'">'+escapeHTML(a.provenance.source)+' '+escapeHTML(a.provenance.source_record_id)+'</a> · '+escapeHTML(a.provenance.review_status||'Not independently adjudicated')+'</li>').join('')+'</ul>':
  '<p>No normalized external database assertions have been ingested for this substitution. This is <strong>not evidence that the variant is absent from those databases</strong>. Existing literature and structural evidence are shown separately.</p>');
 }
 fetch('./data/multisource-evidence.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()}).then(data=>{
