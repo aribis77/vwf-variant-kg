@@ -5,6 +5,7 @@ on:
     paths:
       - 'scripts/ingest_vwf_pilot.py'
       - 'scripts/audit_vwf_pilot.py'
+      - 'scripts/build_vwf_source_summary.py'
       - 'tests/test_vwf_source_audit.py'
       - 'tests/validate_multisource_evidence.py'
       - 'data/multisource-evidence.json'
@@ -30,6 +31,9 @@ jobs:
         run: python scripts/ingest_vwf_pilot.py --out-dir data/pilot_raw
       - name: Audit primary records without automatic promotion
         run: python scripts/audit_vwf_pilot.py --raw-dir data/pilot_raw
+      - name: Build read-only audit summary
+        if: success()
+        run: python scripts/build_vwf_source_summary.py --audit data/pilot_raw/audit.json --output data/pilot_raw/source-audit-summary.json
       - name: Summarize verification status
         if: always()
         run: |
