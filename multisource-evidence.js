@@ -15,8 +15,10 @@ function renderVariant(){
  if(!/^[A-Z][0-9]+[A-Z]$/.test(v)){output.innerHTML='<p style="color:#c6d8e4">Select a VWF substitution to inspect linked genetic records.</p>';return;}
  const alleleIds=new Set(snapshot.alleles.filter(a=>(a.protein_effects||[]).some(p=>String(p.protein_hgvs||'').replace(/^p\./,'').toUpperCase()===v)).map(a=>a.allele_id));
  const assertions=snapshot.assertions.filter(a=>alleleIds.has(a.allele_id));
+ const provisional=assertions.filter(a=>String(a.provenance?.review_status||'').includes('provisional'));
+ const verified=assertions.filter(a=>!String(a.provenance?.review_status||'').includes('provisional'));
  output.innerHTML='<h3 style="color:#b8f2e7">Database evidence for '+escapeHTML(v)+'</h3>'+
- (assertions.length?'<ul>'+assertions.map(a=>'<li><strong>'+escapeHTML(a.predicate)+'</strong>: '+escapeHTML(a.value)+' · <a style="color:#8ee8da" target="_blank" rel="noopener noreferrer" href="'+escapeHTML(a.provenance.source_url)+'">'+escapeHTML(a.provenance.source)+' '+escapeHTML(a.provenance.source_record_id)+'</a> · '+escapeHTML(a.provenance.review_status||'Not independently adjudicated')+'</li>').join('')+'</ul>':
+ (assertions.length?'<p style="color:#f4d6a0">'+provisional.length+' provisional record(s); '+verified.length+' non-provisional record(s). Provisional records are not verified clinical evidence.</p><ul>'+assertions.map(a=>'<li><strong>'+escapeHTML(a.predicate)+'</strong>: '+escapeHTML(a.value)+' · <a style="color:#8ee8da" target="_blank" rel="noopener noreferrer" href="'+escapeHTML(a.provenance.source_url)+'">'+escapeHTML(a.provenance.source)+' '+escapeHTML(a.provenance.source_record_id)+'</a> · '+escapeHTML(a.provenance.review_status||'Not independently adjudicated')+'</li>').join('')+'</ul>':
  '<p>No normalized external database assertions have been ingested for this substitution. This is <strong>not evidence that the variant is absent from those databases</strong>. Existing literature and structural evidence are shown separately.</p>');
 }
 fetch('./data/multisource-evidence.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()}).then(data=>{
