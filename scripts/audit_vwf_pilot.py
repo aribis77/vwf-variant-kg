@@ -53,7 +53,11 @@ def review(root):
             result = raw.get("result", {}) if isinstance(raw, dict) else {}
             ids = [str(x) for x in result.get("uids", [])]
             summaries = [result.get(cid, {}) for cid in ids]
-            valid_ids = bool(ids) and all(str(item.get("uid", "")) == cid for cid, item in zip(ids, summaries))
+            discovered = next((f.get("candidate_ids", []) for f in findings
+                               if f.get("variant") == variant and f.get("provider") == "clinvar_discovery"
+                               and f.get("status") == "candidate_ids_require_identity_review"), None)
+            valid_ids = (bool(ids) and discovered is not None and set(ids) == set(discovered)
+                         and all(str(item.get("uid", "")) == cid for cid, item in zip(ids, summaries)))
             # Text matches in ClinVar are only search hits, never allele-level proof.
             findings.append({"variant": variant, "provider": provider,
                              "status": "candidate_summaries_retrieved" if valid_ids else "candidate_summaries_invalid",
