@@ -171,6 +171,7 @@
           },
           "evidence_type": {
             "enum": [
+              "source_record",
               "clinical_assertion",
               "population_observation",
               "functional_assay",
