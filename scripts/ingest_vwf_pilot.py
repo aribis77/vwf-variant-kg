@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 TARGETS = {
-    "R1315L": {"clinvar_id": "100312", "hgvs": "NM_000552.5:c.3944G>T"},
+    "R1315L": {"clinvar_id": None, "hgvs": None, "protein": "R1315L"},
     "H1786D": {"clinvar_id": None, "hgvs": None},
 }
 HEADERS = {"Accept": "application/json", "User-Agent": "vwf-variant-kg-research/0.1"}
@@ -49,6 +49,10 @@ def main():
         if target["hgvs"]:
             endpoints.append(("ensembl", "https://rest.ensembl.org/vep/human/hgvs/" +
                 urllib.parse.quote(target["hgvs"], safe="") + "?" + urllib.parse.urlencode({"content-type": "application/json"})))
+        if target.get("protein"):
+            endpoints.append(("clinvar_discovery", "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?" +
+                urllib.parse.urlencode({"db": "clinvar", "term": 'VWF[gene] AND "' + target["protein"] + '"',
+                                        "retmode": "json", "retmax": 25})))
         if not endpoints:
             manifest.append({"variant": variant, "status": "requires_verified_nucleotide_hgvs",
                              "reason": "Do not infer a unique genomic allele from a protein substitution."})
@@ -60,6 +64,9 @@ def main():
                     item = result.get(target["clinvar_id"], {})
                     if str(item.get("uid", "")) != target["clinvar_id"]:
                         raise ValueError("ClinVar primary response does not match requested UID")
+                elif provider == "clinvar_discovery":
+                    if not isinstance(record.get("esearchresult", {}).get("idlist"), list):
+                        raise ValueError("ClinVar discovery returned no identifier list")
                 elif not isinstance(record, list) or not record:
                     raise ValueError("Ensembl VEP returned no variant predictions")
                 manifest.append(save_record(root, variant, provider, url, record))
