@@ -8,6 +8,7 @@ import argparse
 import hashlib
 import json
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -20,9 +21,20 @@ TARGETS = {
 }
 HEADERS = {"Accept": "application/json", "User-Agent": "vwf-variant-kg-research/0.1"}
 def retrieve(url):
+    """Retry transient API failures with bounded backoff; do not retry bad requests."""
     request = urllib.request.Request(url, headers=HEADERS)
-    with urllib.request.urlopen(request, timeout=25) as response:
-        return json.loads(response.read().decode("utf-8"))
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(request, timeout=25) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            if exc.code not in (429, 500, 502, 503, 504) or attempt == 2:
+                raise
+        except (urllib.error.URLError, TimeoutError) as exc:
+            if attempt == 2:
+                raise
+        time.sleep(2 ** attempt)
+    raise RuntimeError("Source retrieval retry budget exhausted")
 def save_record(root, variant, provider, url, data):
     payload = json.dumps(data, sort_keys=True, indent=2, ensure_ascii=False) + "\n"
     sha = hashlib.sha256(payload.encode("utf-8")).hexdigest()
