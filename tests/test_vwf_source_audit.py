@@ -32,4 +32,13 @@ with tempfile.TemporaryDirectory() as tmp:
     assert result["findings"][1]["status"] == "protein_consequence_candidate"
     assert result["findings"][2]["status"] == "requires_verified_nucleotide_hgvs"
     assert all(not item["promotion_allowed"] for item in result["findings"])
+    assert result["reconciliation"][0]["status"] == "partial_concordance_requires_allele_and_transcript_review"
+    assert result["reconciliation"][1]["status"] == "insufficient_primary_sources"
+    assert all(not x["promotion_allowed"] for x in result["reconciliation"])
+    # A mismatched checksum must be rejected, not treated as a source hit.
+    manifest["records"][0]["sha256"] = "0" * 64
+    (path / "manifest.json").write_text(json.dumps(manifest))
+    tampered = module.review(path)
+    assert tampered["findings"][0]["status"] == "checksum_mismatch"
+    assert tampered["reconciliation"][0]["status"] == "clinvar_identifier_unverified"
 print("Offline source-audit tests passed; no records promoted.")
