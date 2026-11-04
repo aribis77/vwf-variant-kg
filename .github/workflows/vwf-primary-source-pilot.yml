@@ -30,7 +30,16 @@ jobs:
         run: python scripts/ingest_vwf_pilot.py --out-dir data/pilot_raw
       - name: Audit primary records without automatic promotion
         run: python scripts/audit_vwf_pilot.py --raw-dir data/pilot_raw
+      - name: Summarize verification status
+        if: always()
+        run: |
+          if [ -f data/pilot_raw/audit.json ]; then
+            python -c 'import json; d=json.load(open("data/pilot_raw/audit.json")); print("## VWF primary-source audit\\n", file=open("/dev/stdout","w")); [print("-", x["variant"], x["status"]) for x in d["reconciliation"]]'
+          else
+            echo "Primary-source audit unavailable; ingestion not verified."
+          fi
       - name: Upload raw source records and audit manifest
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: vwf-primary-source-pilot
