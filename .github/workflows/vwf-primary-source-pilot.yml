@@ -18,6 +18,8 @@ jobs:
         run: python tests/validate_multisource_evidence.py
       - name: Fetch source payloads (not automatically published)
         run: python scripts/ingest_vwf_pilot.py --out-dir data/pilot_raw
+      - name: Audit primary records without automatic promotion
+        run: python scripts/audit_vwf_pilot.py --raw-dir data/pilot_raw
       - name: Upload raw source records and audit manifest
         uses: actions/upload-artifact@v4
         with:
