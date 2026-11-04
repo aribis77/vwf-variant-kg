@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VWF multi-source evidence snapshot",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "sources",
+    "alleles",
+    "assertions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "vwf-multisource-evidence/0.1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "source",
+          "status"
+        ],
+        "properties": {
+          "source": {
+            "enum": [
+              "ClinVar",
+              "Ensembl",
+              "gnomAD",
+              "UniProt",
+              "RCSB PDB",
+              "PDBe",
+              "LOVD",
+              "VWFdb",
+              "Literature"
+            ]
+          },
+          "status": {
+            "enum": [
+              "not_ingested",
+              "ingested",
+              "unavailable",
+              "requires_license",
+              "error"
+            ]
+          },
+          "release": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "retrieved_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "record_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "alleles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "allele_id",
+          "assembly",
+          "chromosome",
+          "position",
+          "reference",
+          "alternate",
+          "protein_effects",
+          "provenance"
+        ],
+        "properties": {
+          "allele_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "assembly": {
+            "type": "string",
+            "minLength": 1
+          },
+          "chromosome": {
+            "type": "string",
+            "minLength": 1
+          },
+          "position": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1
+          },
+          "alternate": {
+            "type": "string",
+            "minLength": 1
+          },
+          "protein_effects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "transcript",
+                "protein_hgvs",
+                "uniprot_accession",
+                "mapping_status"
+              ],
+              "properties": {
+                "transcript": {
+                  "type": "string"
+                },
+                "protein_hgvs": {
+                  "type": "string"
+                },
+                "uniprot_accession": {
+                  "const": "P04275"
+                },
+                "mapping_status": {
+                  "enum": [
+                    "verified",
+                    "unverified",
+                    "ambiguous"
+                  ]
+                }
+              }
+            }
+          },
+          "provenance": {
+            "$ref": "#/$defs/provenance"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "assertions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "assertion_id",
+          "allele_id",
+          "evidence_type",
+          "predicate",
+          "value",
+          "provenance"
+        ],
+        "properties": {
+          "assertion_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "allele_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_type": {
+            "enum": [
+              "clinical_assertion",
+              "population_observation",
+              "functional_assay",
+              "structural_model",
+              "curated_literature"
+            ]
+          },
+          "predicate": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {},
+          "endpoint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "assay_context": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "independent_evidence_cluster": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "provenance": {
+            "$ref": "#/$defs/provenance"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "$defs": {
+    "provenance": {
+      "type": "object",
+      "required": [
+        "source",
+        "source_record_id",
+        "source_url",
+        "retrieved_at"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_record_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "retrieved_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source_release": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "license": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "raw_record_checksum": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "publication_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "review_status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
