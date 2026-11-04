@@ -108,7 +108,7 @@
     {
       "assertion_id": "ClinVar:100312:identity",
       "allele_id": "ClinVar:106189",
-      "evidence_type": "clinical_assertion",
+      "evidence_type": "source_record",
       "predicate": "Provisional ClinVar record identity (not adjudicated)",
       "value": "Provisional R1315L identifier; primary ClinVar/Ensembl source verification pending. Do not use for clinical inference.",
       "endpoint": null,
