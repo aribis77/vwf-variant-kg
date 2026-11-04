@@ -1,0 +1,26 @@
+name: VWF primary-source pilot retrieval
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 6 1 * *'
+permissions:
+  contents: read
+jobs:
+  retrieve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate current evidence snapshot
+        run: python tests/validate_multisource_evidence.py
+      - name: Fetch source payloads (not automatically published)
+        run: python scripts/ingest_vwf_pilot.py --out-dir data/pilot_raw
+      - name: Upload raw source records and audit manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: vwf-primary-source-pilot
+          path: data/pilot_raw/
+          retention-days: 30
