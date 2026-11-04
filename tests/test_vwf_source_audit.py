@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Offline regression checks for source auditing and non-promotion."""
 import json
+import hashlib
 import tempfile
 from pathlib import Path
 from importlib.util import module_from_spec, spec_from_file_location
@@ -25,6 +26,9 @@ with tempfile.TemporaryDirectory() as tmp:
          "raw_path": str(path / "R1315L_ensembl.json")},
         {"variant": "H1786D", "status": "requires_verified_nucleotide_hgvs"}
     ]}
+    for item in manifest["records"]:
+        if item.get("raw_path"):
+            item["sha256"] = hashlib.sha256(Path(item["raw_path"]).read_bytes()).hexdigest()
     (path / "manifest.json").write_text(json.dumps(manifest))
     result = module.review(path)
     assert len(result["findings"]) == 3
