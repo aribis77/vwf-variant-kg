@@ -405,10 +405,26 @@ function renderObs(){
  const representedVariantNodes=new Set(obs.map(o=>o.subject_id).filter(isActualVariant)).size;
  const candidateCount=nodes.filter(n=>n.node_type==='VariantCandidate').length;
  const domainNodes=nodes.filter(n=>n.node_type==='ProteinRegion');
+ // Position-based domain placement is displayed separately from curated graph edges.
+ // Coordinates are VWF preproprotein (UniProt P04275) positions, not mature-chain numbering.
+ // Boundary/linker positions are deliberately left unassigned rather than forced into a domain.
+ const domainRanges={'D1':[[23,367]],'D2':[[368,763]],'D3':[[764,1242]],
+  'A1':[[1260,1479]],'A2':[[1495,1670]],'A3':[[1671,1874]],
+  'D4':[[1875,2255]],'C1-C6':[[2256,2722]],'CK':[[2723,2813]]};
  const domainCoverage=domainNodes.map(n=>{
-  const linked=edges.filter(e=>e.subject_id===n.node_id||e.object_id===n.node_id)
-   .map(e=>e.subject_id===n.node_id?e.object_id:e.subject_id).filter(isActualVariant);
-  return {label:n.label,variants:new Set(linked).size};
+  const linked=new Set(edges.filter(e=>e.subject_id===n.node_id||e.object_id===n.node_id)
+   .map(e=>e.subject_id===n.node_id?e.object_id:e.subject_id).filter(isActualVariant));
+  const mapped=nodes.filter(v=>{
+   if(!isActualVariant(v.node_id))return false;
+   const hit=String(v.label||v.node_id).match(/(?:^|[._\\s])p\\.?[A-Z]([0-9]+)[A-Z](?:$|\\b)/i)
+    ||String(v.node_id).match(/_p[A-Z]([0-9]+)[A-Z]$/i);
+   if(!hit)return false;
+   const pos=Number(hit[1]);
+   return (domainRanges[n.label]||[]).some(([lo,hi])=>pos>=lo&&pos<=hi);
+  });
+  const mappedIds=new Set(mapped.map(v=>v.node_id));
+  return {label:n.label,variants:mappedIds.size,explicit:linked.size,
+   labels:mapped.map(v=>v.label||v.node_id).sort(),ranges:domainRanges[n.label]||[]};
  });
  const allVariantRecords=obs.filter(o=>isActualVariant(o.subject_id));
  const variantEvidence=matches.filter(o=>isActualVariant(o.subject_id));
@@ -433,8 +449,8 @@ function renderObs(){
  '<p class="sub">Current filters: '+matches.length+' observations; '+variants.size+' individual variants; '+cohortRecords.length+' cohort-level observations; '+unresolvedRecords.length+' other/non-variant observations. These categories are not interchangeable.</p>'+
  '<div class="kg-browser-metrics">'+[['Variant nodes in KG',totalVariantNodes],['Variants with observations (entire KG)',representedVariantNodes],['Unresolved candidate placeholders',candidateCount],['Missing source IDs (filtered)',missingSources]].map(([label,n])=>'<div><strong>'+n+'</strong><span>'+esc(label)+'</span></div>').join('')+'</div>'+
  '<p class="sub"><strong>Provenance:</strong> '+distinctVariantSources.size+' distinct source identifiers and '+sourceVariantPairs.size+' variant–source pairs in the filtered individual-variant evidence. '+unaudited+' filtered records need further source review; '+flaggedDuplicates+' explicitly reference another observation as a duplicate. Reviewed source text does not itself validate biological conclusions. Duplicate flags are not a complete deduplication audit.</p>'+
- '<h4>Domain-level graph coverage</h4><table class="kg-browser-table"><thead><tr><th>Domain node</th><th>Directly linked individual variants</th></tr></thead><tbody>'+domainCoverage.map(d=>'<tr><td>'+esc(d.label)+'</td><td>'+d.variants+'</td></tr>').join('')+'</tbody></table>'+
- '<p class="sub">Domain counts use explicit graph links only, not inferred residue ranges. Zero means no direct variant link is recorded, not that the domain has no known disease variants. The graph is a curated demonstration, not a comprehensive VWF variant census.</p>'+auditSummary+coverageTables+'</div>';
+ '<h4>VWF domain coverage of variants already in the KG</h4><table class="kg-browser-table"><thead><tr><th>Domain</th><th>Position-mapped variants</th><th>Variants in this domain</th><th>Explicit graph links</th></tr></thead><tbody>'+domainCoverage.map(d=>'<tr><td>'+esc(d.label)+'</td><td>'+d.variants+'</td><td>'+(d.labels.length?d.labels.map(esc).join(', '):'None mapped')+'</td><td>'+d.explicit+'</td></tr>').join('')+'</tbody></table>'+
+ '<p class="sub">Position-mapped variants are assigned from their UniProt P04275 preproprotein residue numbers using approximate domain intervals; these are annotations, not verified graph edges or structural conclusions. Boundary/linker residues may remain unassigned. Explicit links are counted separately. This is coverage of the curated KG, not a comprehensive VWF variant census.</p>'+auditSummary+coverageTables+'</div>';
  $('oevidence-dashboard').innerHTML=counts+'<div class="kg-browser-charts">'+categories+audits+variantChart+'</div>'+auditPanel+'<p class="sub">All charts reflect the current filters except the explicitly labeled whole-KG metrics and domain links. A hit is one KG observation, not an independent experiment. Source identifiers may refer to overlapping studies; audit status is not a quality score.</p>';
  $('oevidence-dashboard').querySelectorAll('.kg-browser-chart:nth-child(1) .kg-browser-bar').forEach(b=>b.onclick=()=>{$('oevidence-endpoint').value=$('oevidence-endpoint').value===b.dataset.filter?'':b.dataset.filter;renderObs()});
  $('oevidence-dashboard').querySelectorAll('.kg-browser-chart:nth-child(2) .kg-browser-bar').forEach(b=>b.onclick=()=>{$('oevidence-audit').value=$('oevidence-audit').value===b.dataset.filter?'':b.dataset.filter;renderObs()});
