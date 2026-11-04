@@ -12,7 +12,7 @@ from pathlib import Path
 def summarize(audit):
     allowed = {
         "partial_concordance_requires_allele_and_transcript_review",
-        "insufficient_primary_sources", "clinvar_identifier_unverified",
+        "insufficient_primary_sources", "candidate_discovery_not_allele_verified", "clinvar_identifier_unverified",
         "ensembl_protein_consequence_unverified",
     }
     variants = []
